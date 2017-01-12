@@ -1,0 +1,20 @@
+{
+  "launch_path": "index.html",
+  "default_locale": "en",
+  "activities": {
+    "dhis": {
+      "href": "*"
+    }
+  },
+  "appType": "APP",
+  "name": "#XL Import",
+  "version": "1.0.0",
+  "description": "Excel based input interface for DHIS2",
+  "developer": {
+    "name": "harsh",
+    "email": "harsh.atal@gmail.com"
+  },
+  "icons": {
+    "48": "icon.png"
+  }
+}
