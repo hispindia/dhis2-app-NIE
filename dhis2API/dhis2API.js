@@ -122,6 +122,9 @@ APIx.dhis2API = function(){
         return schemaNameToObjectMap[domain].apiEndpoint;
     }
 
+    this.getRootOrgUnitUid = function(){
+        return ROOT_OU_UID;
+    }
     this.getEventByDV = function(args,deuid,value,teiuid,ouuid,psuid){
 
         ajax.request({

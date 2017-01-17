@@ -1,0 +1,18 @@
+
+
+/***
+Param : {unique_id : "",
+         coordinates : []    
+         }
+
+return : GeoJson
+***/
+
+function clusterize(data,distance){
+
+    for (var key in data){
+    
+        
+    }
+
+}
