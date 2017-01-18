@@ -7,8 +7,8 @@ Param : {unique_id : "",
 
 return : GeoJson
 ***/
-import Graph from "graph-data-structure"
-import utility from 'utility-functions';
+import graphlib from "graphlib"
+import utility from '../utility-functions';
 
 var _ = {};
 
@@ -61,23 +61,72 @@ _.clusterize = function(data,clusterDist){
     var graph = createGraph(data,clusterDist);
     
     var allNodesMap = utility.prepareIdToObjectMap(data,"unique_id");
-    var nodes = graph.nodes;
-    var edges = graph.links;
+    var serializedGraph = graphlib.json.write(graph);
+    var nodes = serializedGraph.nodes;
+    var edges = serializedGraph.edges;
     
-    var polygonLayer = createPolygonLayer(edges,allNodesMap);
+    var featureCollection = getFeatureCollection(graph,allNodesMap);
     
+    return featureCollection;
+
 }
 
-function  createPolygonLayer(edges,allNodesMap){
+function  getFeatureCollection(graph,allNodesMap){
 
-  //  for (var )
+    var geoJsonPointFeatures = {
+        type:"FeatureCollection",
+        features : []
+    }
 
+  var geoJsonPolygonFeatures = {
+        type:"FeatureCollection",
+        features : []
+    }
+
+    var components = graphlib.alg.components(graph);
+
+    components.map(function(comp){
+
+        if (comp.length == 1){ //is lonely point
+        
+            var coord =  allNodesMap[comp[0]].coordinates;
+            geoJsonPointFeatures.
+                features.push({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [coord.latitude,coord.longitude]
+                    }
+                })
+        }else{ // is pollyygonn
+            var pCoords = []
+                pCoords[0]=[];
+                pCoords[0][0]=[];
+            for (var key in comp){
+                var coord =  allNodesMap[comp[key]].coordinates;
+                pCoords[0][0].push([coord.latitude,coord.longitude])
+            }
+            
+            geoJsonPolygonFeatures.
+                features.push({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": pCoords
+                    }
+                })
+        }  
+    })
+
+return {
+        geoJsonPointFeatures: geoJsonPointFeatures,
+        geoJsonPolygonFeatures: geoJsonPolygonFeatures }
 
 }
 
 function createGraph(data,clusterDist){
 
- var graph = new Graph();
+ var graph = new graphlib.Graph({ directed: false, compound: true, multigraph: false });
   
     for (var i=0;i<data.length;i++){
         for (var j=i+1;j<data.length;j++){
@@ -90,18 +139,31 @@ function createGraph(data,clusterDist){
             var dist = distance(coord1.latitude,coord1.longitude,
                                 coord2.latitude,coord2.longitude,'K');
                            
-            graph.addNode(id1);
-            graph.addNode(id2);
+            graph.setNode(id1);
+            graph.setNode(id2);
 
             if (dist < clusterDist){
             // Points near each other; 
-                graph.addEdge(id1,id2);
+                graph.setEdge(id1,id2,strToInt(id1)+strToInt(id2));
             }
         }
     }
 
-return graph; 
+return graph;
+}
 
+function strToInt(str){
+    var intVal=0;
+
+    Array.from(str).map(function(char){
+        intVal+=char.charCodeAt(0);
+    })
+
+    return intVal;
 }
 module.exports = _;
 
+function buildCoordinates(data,coord){
+
+    
+}

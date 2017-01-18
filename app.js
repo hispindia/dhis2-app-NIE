@@ -149,6 +149,9 @@ function buildMap(coords){
 
     map.init("mapid",[13.23521,80.3332],10);
 
-    mUtility.clusterize(coords,5);
+    var featureCollection = mUtility.clusterize(coords,5);
+    
+    
+    
    // map.setEventLayer();
 }

@@ -15,6 +15,9 @@ this.init = function(mapContainerId,center,zoom){
         center :center,
         zoom: zoom
     });baseLayers.osm.addTo(map);
+   
+ var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
+    
 }
 
 
