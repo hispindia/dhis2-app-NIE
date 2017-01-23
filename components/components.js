@@ -15,6 +15,14 @@ export function UploadFile(props){
             )
 }
 
+export function AlertPopUp(props){
+return(
+        <div>
+        Hello
+        
+        </div>
+);
+}
 export function MapContainer(){
 
 }

@@ -14,12 +14,35 @@ this.init = function(mapContainerId,center,zoom){
    map = L.map(mapContainerId, {
         center :center,
         zoom: zoom
-    });baseLayers.osm.addTo(map);
+    });
+
+baseLayers.osm.addTo(map);
    
- var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
+// var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
     
 }
 
+this.addGeoJson = function(geoJson,pointToLayer,style){
+
+    var mapArgs ={
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup('<div id="alert"></div>');
+
+                layer.on('click', function(e) {
+            // Do whatever you want here, when the polygon is clicked.
+        });
+            }
+    };
+
+    if (pointToLayer){
+        mapArgs.pointToLayer = pointToLayer;
+    }
+    if (style){
+        mapArgs.style = style;
+    }
+
+    new  L.GeoJSON(geoJson,mapArgs).addTo(map); 
+};
 
 }
 

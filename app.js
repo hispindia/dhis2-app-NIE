@@ -11,12 +11,15 @@ import dhis2API from './dhis2API/dhis2API';
 import moment from 'moment';
 import dhis2Map from './maps/map';
 import mUtility from './maps/mapUtilities';
+import {AlertPopUp} from './components/components';
 
 
 var api = new dhis2API();
 var map = new dhis2Map();
 
 $('document').ready(function(){
+
+    map.init("mapid",[13.23521,80.3332],9);
 
     ajax.request({
         type: "GET",
@@ -27,7 +30,7 @@ $('document').ready(function(){
         if (error){
 
         }else{
-           // makeMap(getCoordinatesFromOus(response.organisationUnits));
+            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
         }
     })
 
@@ -40,7 +43,7 @@ function getEvents(){
 
     var endDate = new Date();
     var startDate = new Date();
-    startDate.setDate(endDate.getDate() - 5);
+    startDate.setDate(endDate.getDate() - 15);
     var format = "YYYY-MM-DD";
 
         ajax.request({
@@ -55,7 +58,7 @@ function getEvents(){
 
               var coords =  extractCoordsFromEvents(response.events);
                 buildMap(coords);
-debugger
+
             }
         })
 
@@ -100,13 +103,9 @@ function reverseCoordinates(coords){
     return coords;
 }
 
-function makeMap(blockCoords){
+function addOrgUnits(blockCoords){
 
-    var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: "Map: <a href='http://www.openstreetmap.org/'>&copy; OpenStreetMap </a>contributers" });
-    var esri = L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}.png', {attribution: "Map: <a href='http://www.arcgis.com/home/item.html?id=c4ec722a1cd34cf0a23904aadf8923a0'>ArcGIS - World Physical Map</a>" });
-    var stamen = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: "Map: <a href='http://maps.stamen.com/#toner/12/37.7706/-122.3782'>Stamen Design</a>" })
-    var baseLayers = {"stamen": stamen, "osm":osm, "esri":esri};
-
+   
     // a GeoJSON multipolygon
     var mp = {
         "type": "Feature",
@@ -115,43 +114,91 @@ function makeMap(blockCoords){
             "coordinates": blockCoords
         },
         "properties": {
-            "name": "MultiPolygon",
-            "style": {
-                color: "black",
-                opacity: 0.75,
-                fillColor: "white",
-                fillOpacity: 0
-            }
+            "name": "MultiPolygon"
+          
         }
     };
+var style = { color: "black",
+                opacity: 0.75,
+                fillColor: "white",
+                fillOpacity: 0,
+              weight : 1,
+//                  dashArray: '5, 5',
 
-// create a map in the "map" div, set the view to a given place and zoom
-    var map = L.map('mapid', {
-        center : [13.23521,80.3332],
-        zoom: 10
-    });
-    baseLayers.osm.addTo(map);
-  //  baseLayers.stamen.addTo(map);
 
-    new L.GeoJSON(mp, {
-        style: function(feature) {
-            return feature.properties.style
-        }
-    }).addTo(map);
+            }
 
-    var littleton = L.marker([13.23521,80.3332]).bindPopup('test').addTo(map);
-    var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
+ var pointToLayer = function(feature, latlng) {
+              feature.properties.style = style;
+            };
 
+    map.addGeoJson(mp,null,style);
 
 }
 
 function buildMap(coords){
 
-    map.init("mapid",[13.23521,80.3332],10);
+    var featureCollection = mUtility.clusterize(coords,5,3);
+    
+    var icon = getCustomIcon();
 
-    var featureCollection = mUtility.clusterize(coords,5);
+    //var redAlertMarker = new icon({iconUrl: 'images/red-icon.png'})
+    var feverDotIcon =L.divIcon({
+    className:'alert-icon leaflet-clickable',
+    html:'<i class="alert-icon"></i>'
+    });
+
     
+   var feverIcon =getCustomIcon('yellow');
+
+    var pointToLayer = getPointToLayer(feverIcon,feverDotIcon);
+    map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer); 
     
+    pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
+    var style = { color: "darkred",
+                opacity: 0.75,
+                fillColor: "red",
+                fillOpacity: 0.1,                
+                  dashArray: '5, 5',
+                  //weight: 5
+
+            }
+    map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style);
     
-   // map.setEventLayer();
+  //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
+
+   // map.();
+}
+
+function getPointToLayer(centroidIcon,icon){
+return function(feature, latlng) {
+    if (feature.properties)
+                if (feature.properties.type == 'centroid'){debugger
+                    return  
+                     L.marker(latlng,{
+                        icon : L.divIcon({
+                            className:'alert-icon',
+                            html:'<i class="alert-icon">'+feature.properties.clusterSize+'</i>'
+                        })
+                    }
+                )}
+
+                return L.marker(latlng, {
+                    icon: icon
+                });
+            };
+
+}
+function getCustomIcon(name){
+return   new L.Icon({
+//  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+  iconUrl: 'images/marker-icon-'+name+'.png',
+//  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  shadowUrl: 'images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 }

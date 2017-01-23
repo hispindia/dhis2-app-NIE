@@ -7,8 +7,9 @@ Param : {unique_id : "",
 
 return : GeoJson
 ***/
-import graphlib from "graphlib"
+import graphlib from "graphlib";
 import utility from '../utility-functions';
+import turf from '@turf/turf';
 
 var _ = {};
 
@@ -56,7 +57,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 	return dist
 }
 
-_.clusterize = function(data,clusterDist){
+_.clusterize = function(data,clusterDist,threshold){
 
     var graph = createGraph(data,clusterDist);
     
@@ -65,62 +66,101 @@ _.clusterize = function(data,clusterDist){
     var nodes = serializedGraph.nodes;
     var edges = serializedGraph.edges;
     
-    var featureCollection = getFeatureCollection(graph,allNodesMap);
+    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist);
     
     return featureCollection;
 
 }
 
-function  getFeatureCollection(graph,allNodesMap){
+function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist){
 
     var geoJsonPointFeatures = {
         type:"FeatureCollection",
         features : []
-    }
+    };
 
-  var geoJsonPolygonFeatures = {
+    var pointsMap = [];
+    var geoJsonPolygonFeatures = {
         type:"FeatureCollection",
         features : []
-    }
+    };
 
     var components = graphlib.alg.components(graph);
 
     components.map(function(comp){
 
-        if (comp.length == 1){ //is lonely point
+        if (comp.length < threshold){ //is not hotspot; make as point 
         
-            var coord =  allNodesMap[comp[0]].coordinates;
-            geoJsonPointFeatures.
-                features.push({
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [coord.latitude,coord.longitude]
-                    }
-                })
-        }else{ // is pollyygonn
-            var pCoords = []
-                pCoords[0]=[];
-                pCoords[0][0]=[];
             for (var key in comp){
                 var coord =  allNodesMap[comp[key]].coordinates;
-                pCoords[0][0].push([coord.latitude,coord.longitude])
+                var point = {
+                    "type": "Feature",
+                    properties : {
+                        id : key,
+                        type : "point"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [coord.longitude,coord.latitude]
+                    }
+                };
+
+             geoJsonPointFeatures.features.push(point);
+            }         
+
+        }else{ // is pollyygonn - make boundaries for this
+
+            var points = {
+                type:"FeatureCollection",
+                features : []
+            };
+
+            var circles = [];
+
+             var radius = (clusterDist)/2;
+            var steps = 0;
+            var units = 'kilometers';
+            for (var key in comp){
+                let coord =  allNodesMap[comp[key]].coordinates;
+                let point = {
+                    "type": "Feature",
+                    properties : {
+                        id : key,
+                        type : "point"
+                    }
+                    ,
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [coord.longitude,coord.latitude]
+                    }
+                };
+                circles.push(turf.circle(point, radius, steps, units));
+                points.features.push(point);
             }
             
+            if (points.features.length <3){return}
+            var centroid = turf.centroid(points);
+            centroid.properties.type = "centroid";
+            centroid.properties.clusterSize = points.features.length;
+
+            var hull = turf.concave(points, 1000, 'kilometers');
+            var mergedCircle = turf.union.apply(this,circles);
+            mergedCircle.properties.type="cluster";
+            
+            var circle = turf.circle(centroid, radius, steps, units);
+           // points.features = points.features.concat(hull);
+           // points.features = points.features.concat(circle);
+            points.features = points.features.concat(mergedCircle);      
+            points.features = points.features.concat(centroid);
             geoJsonPolygonFeatures.
-                features.push({
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": pCoords
-                    }
-                })
-        }  
-    })
+                features.push(points);
+        }
+          
+    });
 
 return {
         geoJsonPointFeatures: geoJsonPointFeatures,
-        geoJsonPolygonFeatures: geoJsonPolygonFeatures }
+        geoJsonPolygonFeatures: geoJsonPolygonFeatures };
 
 }
 
@@ -157,7 +197,7 @@ function strToInt(str){
 
     Array.from(str).map(function(char){
         intVal+=char.charCodeAt(0);
-    })
+    });
 
     return intVal;
 }
