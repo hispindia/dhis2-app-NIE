@@ -93,6 +93,17 @@
 	var api = new _dhis2API2.default();
 	var map = new _map2.default();
 
+	window.refresh = function () {
+
+	    var c_dist = (0, _jquery2.default)('#c_dist').val();
+	    var threshold = (0, _jquery2.default)('#threshold').val();
+	    buildMap(window.coords, c_dist, threshold);
+	};
+
+	window.alertConfirmed = function () {
+	    alert("SMS alerts to go here!");
+	};
+
 	(0, _jquery2.default)('document').ready(function () {
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
@@ -128,7 +139,7 @@
 	        if (error) {} else {
 
 	            var coords = extractCoordsFromEvents(response.events);
-	            buildMap(coords);
+	            buildMap(coords, 5, 3);
 	        }
 	    });
 
@@ -138,7 +149,7 @@
 	        for (var i = 0; i < events.length; i++) {
 	            if (events[i].coordinate) {
 	                if (events[i].coordinate.latitude != 0 && events[i].coordinate.longitude != 0) {
-	                    result.push({ unique_id: events[i].event, coordinates: events[i].coordinate });
+	                    result.push({ unique_id: events[i].event, coordinates: events[i].coordinate, orgUnit: events[i].orgUnitName });
 	                }
 	            }
 	        }
@@ -153,6 +164,7 @@
 	        if (ous[key].coordinates) {
 	            var coords = JSON.parse(ous[key].coordinates);
 	            //reverseCoordinates(coords[0]);
+
 	            ouCoords.push(coords[0]);
 	        }
 	    }
@@ -181,7 +193,8 @@
 	            "coordinates": blockCoords
 	        },
 	        "properties": {
-	            "name": "MultiPolygon"
+	            "name": "MultiPolygon",
+	            layerId: "custom"
 
 	        }
 	    };
@@ -199,9 +212,15 @@
 	    map.addGeoJson(mp, null, style);
 	}
 
-	function buildMap(coords) {
+	function buildMap(coords, c_dist, threshold) {
+	    if (threshold < 3) {
+	        alert("threshold cannot be less than 3");return;
+	    }
 
-	    var featureCollection = _mapUtilities2.default.clusterize(coords, 5, 3);
+	    map.clearLayers();
+
+	    window.coords = coords;
+	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold);
 
 	    var icon = getCustomIcon();
 
@@ -223,6 +242,9 @@
 	        fillOpacity: 0.1,
 	        dashArray: '5, 5'
 	    };
+
+	    debugger;
+
 	    map.addGeoJson(featureCollection.geoJsonPolygonFeatures, pointToLayer, style);
 
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
@@ -233,13 +255,12 @@
 	function getPointToLayer(centroidIcon, icon) {
 	    return function (feature, latlng) {
 	        if (feature.properties) if (feature.properties.type == 'centroid') {
-	            debugger;
-	            return;
-	            _leaflet2.default.marker(latlng, {
-	                icon: _leaflet2.default.divIcon({
-	                    className: 'alert-icon',
-	                    html: '<i class="alert-icon">' + feature.properties.clusterSize + '</i>'
-	                })
+	            var centroidIcon = _leaflet2.default.divIcon({
+	                className: 'alert-icon-centroid leaflet-clickable',
+	                html: '<i class="alert-icon-centroid"><b> [' + feature.properties.clusterSize + '] </b></i>'
+	            });
+	            return _leaflet2.default.marker(latlng, {
+	                icon: centroidIcon
 	            });
 	        }
 
@@ -65244,13 +65265,29 @@
 	        // var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
 	    };
 
+	    this.clearLayers = function () {
+	        map.eachLayer(function (layer) {
+	            if (layer.feature) {
+	                if (layer.feature.properties.layerId) {
+
+	                    map.removeLayer(layer);
+	                }
+	            }
+	        });
+	    };
 	    this.addGeoJson = function (geoJson, pointToLayer, style) {
 
 	        var mapArgs = {
 	            onEachFeature: function onEachFeature(feature, layer) {
-	                layer.bindPopup('<div id="alert"></div>');
+	                if (feature.properties.type == 'centroid') {
+	                    layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+	                } else {
+	                    layer.bindPopup('<div id="alert"><i>Fever Case[<b> ' + feature.properties.label + '</b>]<br></div>');
+	                }
 
 	                layer.on('click', function (e) {
+	                    // alert("SMS alerts to go here!");
+
 	                    // Do whatever you want here, when the polygon is clicked.
 	                });
 	            }
@@ -65347,7 +65384,7 @@
 	    return dist;
 	}
 
-	_.clusterize = function (data, clusterDist, threshold) {
+	_.clusterize = function (data, clusterDist, threshold, labelMap) {
 
 	    var graph = createGraph(data, clusterDist);
 
@@ -65356,12 +65393,12 @@
 	    var nodes = serializedGraph.nodes;
 	    var edges = serializedGraph.edges;
 
-	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist);
+	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist, labelMap);
 
 	    return featureCollection;
 	};
 
-	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist) {
+	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist, labelMap) {
 
 	    var geoJsonPointFeatures = {
 	        type: "FeatureCollection",
@@ -65387,7 +65424,10 @@
 	                    "type": "Feature",
 	                    properties: {
 	                        id: key,
-	                        type: "point"
+	                        type: "point",
+	                        label: allNodesMap[comp[key]].orgUnit,
+	                        layerId: "custom"
+
 	                    },
 	                    "geometry": {
 	                        "type": "Point",
@@ -65416,7 +65456,10 @@
 	                    "type": "Feature",
 	                    properties: {
 	                        id: key,
-	                        type: "point"
+	                        type: "point",
+	                        label: allNodesMap[comp[key]].orgUnit,
+	                        layerId: "custom"
+
 	                    },
 
 	                    "geometry": {
@@ -65433,11 +65476,13 @@
 	            }
 	            var centroid = _turf2.default.centroid(points);
 	            centroid.properties.type = "centroid";
+	            centroid.properties.layerId = "custom";
 	            centroid.properties.clusterSize = points.features.length;
 
 	            var hull = _turf2.default.concave(points, 1000, 'kilometers');
 	            var mergedCircle = _turf2.default.union.apply(this, circles);
 	            mergedCircle.properties.type = "cluster";
+	            mergedCircle.properties.layerId = "custom";
 
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
 	            // points.features = points.features.concat(hull);

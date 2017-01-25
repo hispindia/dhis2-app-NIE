@@ -22,13 +22,35 @@ baseLayers.osm.addTo(map);
     
 }
 
+
+this.clearLayers = function(){
+    map.eachLayer(function (layer) {
+        if (layer.feature){
+            if (layer.feature.properties.layerId){
+
+                map.removeLayer(layer);
+
+            }
+        }
+});
+}
 this.addGeoJson = function(geoJson,pointToLayer,style){
 
     var mapArgs ={
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup('<div id="alert"></div>');
+            onEachFeature: function (feature, layer)
+        {
+         if (feature.properties.type == 'centroid'){                
+             layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+            
 
-                layer.on('click', function(e) {
+         }else{
+             layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+
+         }
+
+              layer.on('click', function(e) {
+                // alert("SMS alerts to go here!");
+                    
             // Do whatever you want here, when the polygon is clicked.
         });
             }
@@ -41,8 +63,10 @@ this.addGeoJson = function(geoJson,pointToLayer,style){
         mapArgs.style = style;
     }
 
+
     new  L.GeoJSON(geoJson,mapArgs).addTo(map); 
 };
+
 
 }
 

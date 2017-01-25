@@ -17,7 +17,22 @@ import {AlertPopUp} from './components/components';
 var api = new dhis2API();
 var map = new dhis2Map();
 
+window.refresh = function(){
+
+
+var c_dist=$('#c_dist').val();
+var threshold=$('#threshold').val();
+buildMap(window.coords,c_dist,threshold);
+
+}
+
+window.alertConfirmed = function(){
+   alert("SMS alerts to go here!");
+
+}
+
 $('document').ready(function(){
+
 
     map.init("mapid",[13.23521,80.3332],9);
 
@@ -57,7 +72,7 @@ function getEvents(){
             }else{
 
               var coords =  extractCoordsFromEvents(response.events);
-                buildMap(coords);
+                buildMap(coords,5,3);
 
             }
         })
@@ -68,7 +83,7 @@ var result = [];
     for (var i=0;i<events.length;i++){       
          if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                result.push({unique_id:events[i].event , coordinates : events[i].coordinate})
+                result.push({unique_id:events[i].event , coordinates : events[i].coordinate, orgUnit : events[i].orgUnitName})
             }
         }
         
@@ -85,6 +100,7 @@ function getCoordinatesFromOus(ous){
         if (ous[key].coordinates){
             var coords = JSON.parse(ous[key].coordinates);
             //reverseCoordinates(coords[0]);
+
             ouCoords.push(coords[0]);
         }
     }
@@ -114,7 +130,9 @@ function addOrgUnits(blockCoords){
             "coordinates": blockCoords
         },
         "properties": {
-            "name": "MultiPolygon"
+            "name": "MultiPolygon",
+            layerId :"custom" 
+
           
         }
     };
@@ -124,7 +142,6 @@ var style = { color: "black",
                 fillOpacity: 0,
               weight : 1,
 //                  dashArray: '5, 5',
-
 
             }
 
@@ -136,9 +153,13 @@ var style = { color: "black",
 
 }
 
-function buildMap(coords){
+function buildMap(coords,c_dist,threshold){
+    if (threshold < 3){alert("threshold cannot be less than 3"); return}
 
-    var featureCollection = mUtility.clusterize(coords,5,3);
+   map.clearLayers();
+
+window.coords=coords;
+    var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
     
     var icon = getCustomIcon();
 
@@ -147,9 +168,8 @@ function buildMap(coords){
     className:'alert-icon leaflet-clickable',
     html:'<i class="alert-icon"></i>'
     });
-
-    
-   var feverIcon =getCustomIcon('yellow');
+       
+    var feverIcon =getCustomIcon('yellow');
 
     var pointToLayer = getPointToLayer(feverIcon,feverDotIcon);
     map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer); 
@@ -163,6 +183,9 @@ function buildMap(coords){
                   //weight: 5
 
             }
+
+  debugger
+
     map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style);
     
   //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
@@ -173,15 +196,15 @@ function buildMap(coords){
 function getPointToLayer(centroidIcon,icon){
 return function(feature, latlng) {
     if (feature.properties)
-                if (feature.properties.type == 'centroid'){debugger
-                    return  
-                     L.marker(latlng,{
-                        icon : L.divIcon({
-                            className:'alert-icon',
-                            html:'<i class="alert-icon">'+feature.properties.clusterSize+'</i>'
-                        })
-                    }
-                )}
+        if (feature.properties.type == 'centroid'){
+            var centroidIcon =L.divIcon({
+                className:'alert-icon-centroid leaflet-clickable',
+                html:'<i class="alert-icon-centroid"><b> ['+feature.properties.clusterSize+'] </b></i>'
+            });                                      
+               return L.marker(latlng,{
+                        icon : centroidIcon
+                    })
+        }
 
                 return L.marker(latlng, {
                     icon: icon
@@ -202,3 +225,4 @@ return   new L.Icon({
 });
 
 }
+

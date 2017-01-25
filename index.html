@@ -68,6 +68,14 @@
 
 <div ng-view></div>
 <div id="mainContainer">
+<label><h2>eDFSS Alerts</h2>
+</label><br>Cluster Distance:
+<input type="number" id="c_dist" value="3"></input>
+Threshold:
+<input type="number" id="threshold" value="3"></input>
+
+<input type="button" value="Refresh" onclick="refresh();"/>
+
     <div id="container"></div>
     <div id="requestStats"></div>
     <div id="dataTable"></div>

@@ -57,7 +57,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 	return dist
 }
 
-_.clusterize = function(data,clusterDist,threshold){
+_.clusterize = function(data,clusterDist,threshold,labelMap){
 
     var graph = createGraph(data,clusterDist);
     
@@ -66,13 +66,13 @@ _.clusterize = function(data,clusterDist,threshold){
     var nodes = serializedGraph.nodes;
     var edges = serializedGraph.edges;
     
-    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist);
+    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap);
     
     return featureCollection;
 
 }
 
-function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist){
+function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap){
 
     var geoJsonPointFeatures = {
         type:"FeatureCollection",
@@ -97,7 +97,10 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist){
                     "type": "Feature",
                     properties : {
                         id : key,
-                        type : "point"
+                        type : "point",
+                        label :allNodesMap[comp[key]].orgUnit,
+                        layerId :"custom" 
+
                     },
                     "geometry": {
                         "type": "Point",
@@ -126,7 +129,10 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist){
                     "type": "Feature",
                     properties : {
                         id : key,
-                        type : "point"
+                        type : "point",
+                        label :allNodesMap[comp[key]].orgUnit,
+                        layerId :"custom" 
+
                     }
                     ,
                     "geometry": {
@@ -141,12 +147,14 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist){
             if (points.features.length <3){return}
             var centroid = turf.centroid(points);
             centroid.properties.type = "centroid";
+            centroid.properties.layerId = "custom";
             centroid.properties.clusterSize = points.features.length;
 
             var hull = turf.concave(points, 1000, 'kilometers');
             var mergedCircle = turf.union.apply(this,circles);
             mergedCircle.properties.type="cluster";
-            
+            mergedCircle.properties.layerId = "custom";
+
             var circle = turf.circle(centroid, radius, steps, units);
            // points.features = points.features.concat(hull);
            // points.features = points.features.concat(circle);

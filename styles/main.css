@@ -11,6 +11,14 @@
   box-shadow: 0px 0px 2px #888;
 }
 
+
+.alert-icon-centroid {
+  display: inline-block;!important
+  border-radius: 90px;
+  background: white ;
+  box-shadow: 0px 0px 2px #888;
+}
+
 .blink_me {
   animation: blinker 1s linear infinite;
 }
