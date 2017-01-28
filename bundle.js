@@ -107,7 +107,24 @@
 	(0, _jquery2.default)('document').ready(function () {
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
-
+	    // control that shows state info on hover
+	    /*
+	        var info = L.control();
+	    
+	        info.onAdd = function (map) {
+	    	this._div = L.DomUtil.create('div', 'info');
+	    	this.update();
+	    	return this._div;
+	        };
+	    
+	        info.update = function (props) {
+	    	this._div.innerHTML = '<h4></h4>' +  (props ?
+	    			                      '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
+	    			                      : '');
+	        };
+	    
+	        map.addToMap(info);
+	    */
 	    _ajaxWrapper2.default.request({
 	        type: "GET",
 	        async: true,
@@ -194,7 +211,7 @@
 	        },
 	        "properties": {
 	            "name": "MultiPolygon",
-	            layerId: "custom"
+	            key: "block"
 
 	        }
 	    };
@@ -202,7 +219,7 @@
 	        opacity: 0.75,
 	        fillColor: "white",
 	        fillOpacity: 0,
-	        weight: 1
+	        weight: 2
 	    };
 
 	    var pointToLayer = function pointToLayer(feature, latlng) {
@@ -233,23 +250,99 @@
 	    var feverIcon = getCustomIcon('yellow');
 
 	    var pointToLayer = getPointToLayer(feverIcon, feverDotIcon);
-	    map.addGeoJson(featureCollection.geoJsonPointFeatures, pointToLayer);
 
-	    pointToLayer = getPointToLayer(feverIcon, feverDotIcon);
-	    var style = { color: "darkred",
-	        opacity: 0.75,
-	        fillColor: "red",
-	        fillOpacity: 0.1,
-	        dashArray: '5, 5'
-	    };
-
-	    debugger;
-
-	    map.addGeoJson(featureCollection.geoJsonPolygonFeatures, pointToLayer, style);
-
+	    map.addGeoJson(featureCollection.geoJsonPointFeatures, pointToLayer, null, onEachFeature);
+	    /*   
+	       pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
+	       var style = function(){
+	           return { color: "darkred",
+	                    opacity: 0.75,
+	                    fillColor: "red",
+	                    fillOpacity: 0.1,                
+	                    dashArray: '5, 5',
+	                    //weight: 5
+	                   }
+	       }
+	       // var onEachFeature = onEachFeature;
+	       map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
+	    */
+	    addClustergons(map.getMap(), featureCollection.geoJsonPolygonFeatures);
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
 	    // map.();
+	}
+
+	function addClustergons(map, gjson) {
+
+	    var geojson;
+	    function highlightFeature(e) {
+	        var layer = e.target;
+
+	        layer.setStyle({
+	            weight: 2,
+	            color: 'darkred',
+	            opacity: 0.9,
+	            fillColor: "black",
+	            fillOpacity: 0.05,
+	            dashArray: ''
+	        });
+
+	        if (!_leaflet2.default.Browser.ie && !_leaflet2.default.Browser.opera && !_leaflet2.default.Browser.edge) {
+	            layer.bringToFront();
+	        }
+
+	        //	info.update(layer.feature.properties);
+	    }
+
+	    function resetHighlight(e) {
+	        geojson.resetStyle(e.target);
+	        //	info.update();
+	    }
+
+	    function zoomToFeature(e) {
+	        map.fitBounds(e.target.getBounds());
+	    }
+
+	    var style = function style() {
+	        return { color: "darkred",
+	            opacity: 0.75,
+	            fillColor: "red",
+	            fillOpacity: 0.1,
+	            dashArray: '5, 5',
+	            weight: 3
+
+	        };
+	    };
+
+	    var onEachFeature = function onEachFeature(feature, layer) {
+	        layer.on({
+	            mouseover: highlightFeature,
+	            mouseout: resetHighlight,
+	            click: zoomToFeature
+	        });
+	        /*
+	                if (feature.properties.type == 'centroid'){                
+	                    layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+	                    
+	                }else{
+	                    layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+	                }
+	        */
+	    };
+
+	    geojson = _leaflet2.default.geoJson(gjson, {
+	        style: style,
+	        onEachFeature: onEachFeature
+	    }).addTo(map);
+
+	    debugger;
+	}
+	function onEachFeature(feature, layer) {
+	    if (feature.properties.type == 'centroid') {
+	        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+	    } else {
+	        layer.bindPopup('<div id="alert"><i>Fever Case[<b> ' + feature.properties.label + '</b>]<br></div>');
+	    }
 	}
 
 	function getPointToLayer(centroidIcon, icon) {
@@ -257,7 +350,7 @@
 	        if (feature.properties) if (feature.properties.type == 'centroid') {
 	            var centroidIcon = _leaflet2.default.divIcon({
 	                className: 'alert-icon-centroid leaflet-clickable',
-	                html: '<i class="alert-icon-centroid"><b> [' + feature.properties.clusterSize + '] </b></i>'
+	                html: '<i class="alert-icon-centroid"><b>[' + feature.properties.clusterSize + ']</b></i>'
 	            });
 	            return _leaflet2.default.marker(latlng, {
 	                icon: centroidIcon
@@ -21714,12 +21807,12 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
-	 Leaflet 1.0.2, a JS library for interactive maps. http://leafletjs.com
+	 Leaflet 1.0.3, a JS library for interactive maps. http://leafletjs.com
 	 (c) 2010-2016 Vladimir Agafonkin, (c) 2010-2011 CloudMade
 	*/
 	(function (window, document, undefined) {
 	var L = {
-		version: "1.0.2"
+		version: "1.0.3"
 	};
 
 	function expose() {
@@ -22231,7 +22324,6 @@
 			}
 
 			listeners.push(newListener);
-			typeListeners.count++;
 		},
 
 		_off: function (type, fn, context) {
@@ -22539,6 +22631,9 @@
 
 			// @property touch: Boolean
 			// `true` for all browsers supporting [touch events](https://developer.mozilla.org/docs/Web/API/Touch_events).
+			// This does not necessarily mean that the browser is running in a computer with
+			// a touchscreen, it only means that the browser is capable of understanding
+			// touch events.
 			touch: !!touch,
 
 			// @property msPointer: Boolean
@@ -23377,7 +23472,7 @@
 		},
 
 		// @method toBounds(sizeInMeters: Number): LatLngBounds
-		// Returns a new `LatLngBounds` object in which each boundary is `sizeInMeters` meters apart from the `LatLng`.
+		// Returns a new `LatLngBounds` object in which each boundary is `sizeInMeters/2` meters apart from the `LatLng`.
 		toBounds: function (sizeInMeters) {
 			var latAccuracy = 180 * sizeInMeters / 40075017,
 			    lngAccuracy = latAccuracy / Math.cos((Math.PI / 180) * this.lat);
@@ -23584,7 +23679,7 @@
 		// @method contains (latlng: LatLng): Boolean
 		// Returns `true` if the rectangle contains the given point.
 		contains: function (obj) { // (LatLngBounds) or (LatLng) -> Boolean
-			if (typeof obj[0] === 'number' || obj instanceof L.LatLng) {
+			if (typeof obj[0] === 'number' || obj instanceof L.LatLng || 'lat' in obj) {
 				obj = L.latLng(obj);
 			} else {
 				obj = L.latLngBounds(obj);
@@ -23847,12 +23942,35 @@
 		// @method wrapLatLng(latlng: LatLng): LatLng
 		// Returns a `LatLng` where lat and lng has been wrapped according to the
 		// CRS's `wrapLat` and `wrapLng` properties, if they are outside the CRS's bounds.
+		// Only accepts actual `L.LatLng` instances, not arrays.
 		wrapLatLng: function (latlng) {
 			var lng = this.wrapLng ? L.Util.wrapNum(latlng.lng, this.wrapLng, true) : latlng.lng,
 			    lat = this.wrapLat ? L.Util.wrapNum(latlng.lat, this.wrapLat, true) : latlng.lat,
 			    alt = latlng.alt;
 
 			return L.latLng(lat, lng, alt);
+		},
+
+		// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
+		// Returns a `LatLngBounds` with the same size as the given one, ensuring
+		// that its center is within the CRS's bounds.
+		// Only accepts actual `L.LatLngBounds` instances, not arrays.
+		wrapLatLngBounds: function (bounds) {
+			var center = bounds.getCenter(),
+			    newCenter = this.wrapLatLng(center),
+			    latShift = center.lat - newCenter.lat,
+			    lngShift = center.lng - newCenter.lng;
+
+			if (latShift === 0 && lngShift === 0) {
+				return bounds;
+			}
+
+			var sw = bounds.getSouthWest(),
+			    ne = bounds.getNorthEast(),
+			    newSw = L.latLng({lat: sw.lat - latShift, lng: sw.lng - lngShift}),
+			    newNe = L.latLng({lat: ne.lat - latShift, lng: ne.lng - lngShift});
+
+			return new L.LatLngBounds(newSw, newNe);
 		}
 	};
 
@@ -24020,7 +24138,7 @@
 
 			// @option maxBounds: LatLngBounds = null
 			// When this option is set, the map restricts the view to the given
-			// geographical bounds, bouncing the user back when he tries to pan
+			// geographical bounds, bouncing the user back if the user tries to pan
 			// outside the view. To set the restriction dynamically, use
 			// [`setMaxBounds`](#map-setmaxbounds) method.
 			maxBounds: undefined,
@@ -24227,7 +24345,7 @@
 			};
 		},
 
-		// @method fitBounds(bounds: LatLngBounds, options: fitBounds options): this
+		// @method fitBounds(bounds: LatLngBounds, options?: fitBounds options): this
 		// Sets a map view that contains the given geographical bounds with the
 		// maximum zoom level possible.
 		fitBounds: function (bounds, options) {
@@ -24756,7 +24874,7 @@
 			    nw = bounds.getNorthWest(),
 			    se = bounds.getSouthEast(),
 			    size = this.getSize().subtract(padding),
-			    boundsSize = this.project(se, zoom).subtract(this.project(nw, zoom)),
+			    boundsSize = L.bounds(this.project(se, zoom), this.project(nw, zoom)).getSize(),
 			    snap = L.Browser.any3d ? this.options.zoomSnap : 1;
 
 			var scale = Math.min(size.x / boundsSize.x, size.y / boundsSize.y);
@@ -24775,8 +24893,8 @@
 		getSize: function () {
 			if (!this._size || this._sizeChanged) {
 				this._size = new L.Point(
-					this._container.clientWidth,
-					this._container.clientHeight);
+					this._container.clientWidth || 0,
+					this._container.clientHeight || 0);
 
 				this._sizeChanged = false;
 			}
@@ -24897,6 +25015,16 @@
 			return this.options.crs.wrapLatLng(L.latLng(latlng));
 		},
 
+		// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
+		// Returns a `LatLngBounds` with the same size as the given one, ensuring that
+		// its center is within the CRS's bounds.
+		// By default this means the center longitude is wrapped around the dateline so its
+		// value is between -180 and +180 degrees, and the majority of the bounds
+		// overlaps the CRS's bounds.
+		wrapLatLngBounds: function (latlng) {
+			return this.options.crs.wrapLatLngBounds(L.latLngBounds(latlng));
+		},
+
 		// @method distance(latlng1: LatLng, latlng2: LatLng): Number
 		// Returns the distance between two geographical coordinates according to
 		// the map's CRS. By default this measures distance in meters.
@@ -24918,7 +25046,7 @@
 			return L.point(point).add(this._getMapPanePos());
 		},
 
-		// @method containerPointToLatLng(point: Point): Point
+		// @method containerPointToLatLng(point: Point): LatLng
 		// Given a pixel coordinate relative to the map container, returns
 		// the corresponding geographical coordinate (for the current zoom level).
 		containerPointToLatLng: function (point) {
@@ -25604,7 +25732,7 @@
 
 			// @option attribution: String = null
 			// String to be shown in the attribution control, describes the layer data, e.g. "© Mapbox".
-			attribution: null,
+			attribution: null
 		},
 
 		/* @section
@@ -25674,8 +25802,8 @@
 
 			this.onAdd(map);
 
-			if (this.getAttribution && this._map.attributionControl) {
-				this._map.attributionControl.addAttribution(this.getAttribution());
+			if (this.getAttribution && map.attributionControl) {
+				map.attributionControl.addAttribution(this.getAttribution());
 			}
 
 			this.fire('add');
@@ -25920,7 +26048,10 @@
 			if (L.Browser.pointer && type.indexOf('touch') === 0) {
 				this.addPointerListener(obj, type, handler, id);
 
-			} else if (L.Browser.touch && (type === 'dblclick') && this.addDoubleTapListener) {
+			} else if (L.Browser.touch && (type === 'dblclick') && this.addDoubleTapListener &&
+			           !(L.Browser.pointer && L.Browser.chrome)) {
+				// Chrome >55 does not need the synthetic dblclicks from addDoubleTapListener
+				// See #5180
 				this.addDoubleTapListener(obj, handler, id);
 
 			} else if ('addEventListener' in obj) {
@@ -26427,7 +26558,9 @@
 			// @option noWrap: Boolean = false
 			// Whether the layer is wrapped around the antimeridian. If `true`, the
 			// GridLayer will only be displayed once at low zoom levels. Has no
-			// effect when the [map CRS](#map-crs) doesn't wrap around.
+			// effect when the [map CRS](#map-crs) doesn't wrap around. Can be used
+			// in combination with [`bounds`](#gridlayer-bounds) to prevent requesting
+			// tiles outside the CRS limits.
 			noWrap: false,
 
 			// @option pane: String = 'tilePane'
@@ -26998,14 +27131,14 @@
 			    sePoint = nwPoint.add(tileSize),
 
 			    nw = map.unproject(nwPoint, coords.z),
-			    se = map.unproject(sePoint, coords.z);
+			    se = map.unproject(sePoint, coords.z),
+			    bounds = new L.LatLngBounds(nw, se);
 
 			if (!this.options.noWrap) {
-				nw = map.wrapLatLng(nw);
-				se = map.wrapLatLng(se);
+				map.wrapLatLngBounds(bounds);
 			}
 
-			return new L.LatLngBounds(nw, se);
+			return bounds;
 		},
 
 		// converts tile coordinates to key for the tile cache
@@ -27191,7 +27324,7 @@
 	 * @example
 	 *
 	 * ```js
-	 * L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar'}).addTo(map);
+	 * L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar'}).addTo(map);
 	 * ```
 	 *
 	 * @section URL template
@@ -27377,7 +27510,7 @@
 
 		_tileOnError: function (done, tile, e) {
 			var errorUrl = this.options.errorTileUrl;
-			if (errorUrl) {
+			if (errorUrl && tile.src !== errorUrl) {
 				tile.src = errorUrl;
 			}
 			done(e, tile);
@@ -27715,6 +27848,8 @@
 			return this;
 		},
 
+		// @method setBounds(bounds: LatLngBounds): this
+		// Update the bounds that this ImageOverlay covers
 		setBounds: function (bounds) {
 			this._bounds = bounds;
 
@@ -27737,10 +27872,14 @@
 			return events;
 		},
 
+		// @method getBounds(): LatLngBounds
+		// Get the bounds that this ImageOverlay covers
 		getBounds: function () {
 			return this._bounds;
 		},
 
+		// @method getElement(): HTMLElement
+		// Get the img element that represents the ImageOverlay on the map
 		getElement: function () {
 			return this._image;
 		},
@@ -28208,6 +28347,7 @@
 
 			if (newShadow) {
 				L.DomUtil.addClass(newShadow, classToAdd);
+				newShadow.alt = '';
 			}
 			this._shadow = newShadow;
 
@@ -29063,7 +29203,7 @@
 		// @method isPopupOpen(): boolean
 		// Returns `true` if the popup bound to this layer is currently open.
 		isPopupOpen: function () {
-			return this._popup.isOpen();
+			return (this._popup ? this._popup.isOpen() : false);
 		},
 
 		// @method setPopupContent(content: String|HTMLElement|Popup): this
@@ -30337,9 +30477,9 @@
 	 * ```js
 	 * // create a red polyline from an array of LatLng points
 	 * var latlngs = [
-	 * 	[-122.68, 45.51],
-	 * 	[-122.43, 37.77],
-	 * 	[-118.2, 34.04]
+	 * 	[45.51, -122.68],
+	 * 	[37.77, -122.43],
+	 * 	[34.04, -118.2]
 	 * ];
 	 *
 	 * var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
@@ -30353,12 +30493,12 @@
 	 * ```js
 	 * // create a red polyline from an array of arrays of LatLng points
 	 * var latlngs = [
-	 * 	[[-122.68, 45.51],
-	 * 	 [-122.43, 37.77],
-	 * 	 [-118.2, 34.04]],
-	 * 	[[-73.91, 40.78],
-	 * 	 [-87.62, 41.83],
-	 * 	 [-96.72, 32.76]]
+	 * 	[[45.51, -122.68],
+	 * 	 [37.77, -122.43],
+	 * 	 [34.04, -118.2]],
+	 * 	[[40.78, -73.91],
+	 * 	 [41.83, -87.62],
+	 * 	 [32.76, -96.72]]
 	 * ];
 	 * ```
 	 */
@@ -30698,7 +30838,7 @@
 	 *
 	 * ```js
 	 * // create a red polygon from an array of LatLng points
-	 * var latlngs = [[-111.03, 41],[-111.04, 45],[-104.05, 45],[-104.05, 41]];
+	 * var latlngs = [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]];
 	 *
 	 * var polygon = L.polygon(latlngs, {color: 'red'}).addTo(map);
 	 *
@@ -30710,8 +30850,8 @@
 	 *
 	 * ```js
 	 * var latlngs = [
-	 *   [[-111.03, 41],[-111.04, 45],[-104.05, 45],[-104.05, 41]], // outer ring
-	 *   [[-108.58,37.29],[-108.58,40.71],[-102.50,40.71],[-102.50,37.29]] // hole
+	 *   [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]], // outer ring
+	 *   [[37.29, -108.58],[40.71, -108.58],[40.71, -102.50],[37.29, -102.50]] // hole
 	 * ];
 	 * ```
 	 *
@@ -30720,11 +30860,11 @@
 	 * ```js
 	 * var latlngs = [
 	 *   [ // first polygon
-	 *     [[-111.03, 41],[-111.04, 45],[-104.05, 45],[-104.05, 41]], // outer ring
-	 *     [[-108.58,37.29],[-108.58,40.71],[-102.50,40.71],[-102.50,37.29]] // hole
+	 *     [[37, -109.05],[41, -109.03],[41, -102.05],[37, -102.04]], // outer ring
+	 *     [[37.29, -108.58],[40.71, -108.58],[40.71, -102.50],[37.29, -102.50]] // hole
 	 *   ],
 	 *   [ // second polygon
-	 *     [[-109.05, 37],[-109.03, 41],[-102.05, 41],[-102.04, 37],[-109.05, 38]]
+	 *     [[41, -111.03],[45, -111.04],[45, -104.05],[41, -104.05]]
 	 *   ]
 	 * ];
 	 * ```
@@ -31394,6 +31534,7 @@
 			container.appendChild(layer._path);
 
 			this._updateStyle(layer);
+			this._layers[L.stamp(layer)] = layer;
 		},
 
 		_addPath: function (layer) {
@@ -31409,6 +31550,7 @@
 			var container = layer._container;
 			L.DomUtil.remove(container);
 			layer.removeInteractiveTarget(container);
+			delete this._layers[L.stamp(layer)];
 		},
 
 		_updateStyle: function (layer) {
@@ -31530,6 +31672,16 @@
 	 */
 
 	L.Canvas = L.Renderer.extend({
+		getEvents: function () {
+			var events = L.Renderer.prototype.getEvents.call(this);
+			events.viewprereset = this._onViewPreReset;
+			return events;
+		},
+
+		_onViewPreReset: function () {
+			// Set a flag so that a viewprereset+moveend+viewreset only updates&redraws once
+			this._postponeUpdatePaths = true;
+		},
 
 		onAdd: function () {
 			L.Renderer.prototype.onAdd.call(this);
@@ -31551,6 +31703,8 @@
 		},
 
 		_updatePaths: function () {
+			if (this._postponeUpdatePaths) { return; }
+
 			var layer;
 			this._redrawBounds = null;
 			for (var id in this._layers) {
@@ -31589,6 +31743,15 @@
 
 			// Tell paths to redraw themselves
 			this.fire('update');
+		},
+
+		_reset: function () {
+			L.Renderer.prototype._reset.call(this);
+
+			if (this._postponeUpdatePaths) {
+				this._postponeUpdatePaths = false;
+				this._updatePaths();
+			}
 		},
 
 		_initPath: function (layer) {
@@ -31676,6 +31839,11 @@
 
 		_redraw: function () {
 			this._redrawRequest = null;
+
+			if (this._redrawBounds) {
+				this._redrawBounds.min._floor();
+				this._redrawBounds.max._ceil();
+			}
 
 			this._clear(); // clear layers in redraw bounds
 			this._draw(); // draw layers
@@ -33040,6 +33208,7 @@
 				var count;
 
 				if (L.Browser.pointer) {
+					if ((!L.Browser.edge) || e.pointerType === 'mouse') { return; }
 					count = L.DomEvent._pointersCount;
 				} else {
 					count = e.touches.length;
@@ -33055,9 +33224,11 @@
 				last = now;
 			}
 
-			function onTouchEnd() {
+			function onTouchEnd(e) {
 				if (doubleTap && !touch.cancelBubble) {
 					if (L.Browser.pointer) {
+						if ((!L.Browser.edge) || e.pointerType === 'mouse') { return; }
+
 						// work around .type being readonly with MSPointer* events
 						var newTouch = {},
 						    prop, i;
@@ -33085,12 +33256,11 @@
 			obj.addEventListener(touchstart, onTouchStart, false);
 			obj.addEventListener(touchend, onTouchEnd, false);
 
-			// On some platforms (notably, chrome on win10 + touchscreen + mouse),
+			// On some platforms (notably, chrome<55 on win10 + touchscreen + mouse),
 			// the browser doesn't fire touchend/pointerup events but does fire
 			// native dblclicks. See #4127.
-			if (!L.Browser.edge) {
-				obj.addEventListener('dblclick', handler, false);
-			}
+			// Edge 14 also fires native dblclicks, but only for pointerType mouse, see #5180.
+			obj.addEventListener('dblclick', handler, false);
 
 			return this;
 		},
@@ -33165,7 +33335,7 @@
 
 		_addPointerStart: function (obj, handler, id) {
 			var onDown = L.bind(function (e) {
-				if (e.pointerType !== 'mouse' && e.pointerType !== e.MSPOINTER_TYPE_MOUSE) {
+				if (e.pointerType !== 'mouse' && e.MSPOINTER_TYPE_MOUSE && e.pointerType !== e.MSPOINTER_TYPE_MOUSE) {
 					// In IE11, some touch events needs to fire for form controls, or
 					// the controls will stop working. We keep a whitelist of tag names that
 					// need these events. For other target tags, we prevent default on the event.
@@ -34631,7 +34801,8 @@
 
 		_initLayout: function () {
 			var className = 'leaflet-control-layers',
-			    container = this._container = L.DomUtil.create('div', className);
+			    container = this._container = L.DomUtil.create('div', className),
+			    collapsed = this.options.collapsed;
 
 			// makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
 			container.setAttribute('aria-haspopup', true);
@@ -34643,11 +34814,15 @@
 
 			var form = this._form = L.DomUtil.create('form', className + '-list');
 
-			if (!L.Browser.android) {
-				L.DomEvent.on(container, {
-					mouseenter: this.expand,
-					mouseleave: this.collapse
-				}, this);
+			if (collapsed) {
+				this._map.on('click', this.collapse, this);
+
+				if (!L.Browser.android) {
+					L.DomEvent.on(container, {
+						mouseenter: this.expand,
+						mouseleave: this.collapse
+					}, this);
+				}
 			}
 
 			var link = this._layersLink = L.DomUtil.create('a', className + '-toggle', container);
@@ -34667,10 +34842,9 @@
 				setTimeout(L.bind(this._onInputClick, this), 0);
 			}, this);
 
-			this._map.on('click', this.collapse, this);
 			// TODO keyboard accessibility
 
-			if (!this.options.collapsed) {
+			if (!collapsed) {
 				this.expand();
 			}
 
@@ -65252,7 +65426,16 @@
 	    var esri = _leaflet2.default.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}.png', { attribution: "Map: <a href='http://www.arcgis.com/home/item.html?id=c4ec722a1cd34cf0a23904aadf8923a0'>ArcGIS - World Physical Map</a>" });
 	    var stamen = _leaflet2.default.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', { attribution: "Map: <a href='http://maps.stamen.com/#toner/12/37.7706/-122.3782'>Stamen Design</a>" });
 
-	    var baseLayers = { "stamen": stamen, "osm": osm, "esri": esri };
+	    var esri2 = _leaflet2.default.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+	        attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
+	        maxZoom: 8
+	    });
+
+	    var osm_bw = _leaflet2.default.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+	        maxZoom: 18,
+	        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	    });
+	    var baseLayers = { "stamen": stamen, "osm": osm, "esri": esri, "osm_bw": osm_bw };
 
 	    this.init = function (mapContainerId, center, zoom) {
 	        map = _leaflet2.default.map(mapContainerId, {
@@ -65260,6 +65443,7 @@
 	            zoom: zoom
 	        });
 
+	        //baseLayers.osm_bw.addTo(map);
 	        baseLayers.osm.addTo(map);
 
 	        // var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
@@ -65275,32 +65459,43 @@
 	            }
 	        });
 	    };
-	    this.addGeoJson = function (geoJson, pointToLayer, style) {
+	    this.addGeoJson = function (geoJson, pointToLayer, style, onEachFeature) {
 
 	        var mapArgs = {
-	            onEachFeature: function onEachFeature(feature, layer) {
-	                if (feature.properties.type == 'centroid') {
-	                    layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-	                } else {
-	                    layer.bindPopup('<div id="alert"><i>Fever Case[<b> ' + feature.properties.label + '</b>]<br></div>');
-	                }
-
-	                layer.on('click', function (e) {
-	                    // alert("SMS alerts to go here!");
-
-	                    // Do whatever you want here, when the polygon is clicked.
-	                });
-	            }
+	            /*     onEachFeature: function (feature, layer)
+	             {
+	              if (feature.properties.type == 'centroid'){                
+	                  layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+	                 
+	               }else{
+	                  layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+	               }
+	                    layer.on('click', function(e) {
+	                     // alert("SMS alerts to go here!");
+	                         
+	                 // Do whatever you want here, when the polygon is clicked.
+	             });
+	                 }*/
 	        };
-
-	        if (pointToLayer) {
-	            mapArgs.pointToLayer = pointToLayer;
-	        }
 	        if (style) {
 	            mapArgs.style = style;
 	        }
+	        if (onEachFeature) {
+	            mapArgs.onEachFeature = onEachFeature;
+	        }
+	        if (pointToLayer) {
+	            mapArgs.pointToLayer = pointToLayer;
+	        }
 
 	        new _leaflet2.default.GeoJSON(geoJson, mapArgs).addTo(map);
+	    };
+
+	    this.addToMap = function (obj) {
+	        obj.addTo(map);
+	    };
+
+	    this.getMap = function () {
+	        return map;
 	    };
 	}
 
@@ -65419,22 +65614,7 @@
 	            //is not hotspot; make as point 
 
 	            for (var key in comp) {
-	                var coord = allNodesMap[comp[key]].coordinates;
-	                var point = {
-	                    "type": "Feature",
-	                    properties: {
-	                        id: key,
-	                        type: "point",
-	                        label: allNodesMap[comp[key]].orgUnit,
-	                        layerId: "custom"
-
-	                    },
-	                    "geometry": {
-	                        "type": "Point",
-	                        "coordinates": [coord.longitude, coord.latitude]
-	                    }
-	                };
-
+	                var point = getPointGeoJson(allNodesMap[comp[key]]);
 	                geoJsonPointFeatures.features.push(point);
 	            }
 	        } else {
@@ -65445,30 +65625,17 @@
 	                features: []
 	            };
 
-	            var circles = [];
+	            var circles = [],
+	                radius = clusterDist / 2,
+	                steps = 0,
+	                units = 'kilometers';
 
-	            var radius = clusterDist / 2;
-	            var steps = 0;
-	            var units = 'kilometers';
 	            for (var key in comp) {
-	                var _coord = allNodesMap[comp[key]].coordinates;
-	                var _point = {
-	                    "type": "Feature",
-	                    properties: {
-	                        id: key,
-	                        type: "point",
-	                        label: allNodesMap[comp[key]].orgUnit,
-	                        layerId: "custom"
+	                var point = getPointGeoJson(allNodesMap[comp[key]]);
 
-	                    },
-
-	                    "geometry": {
-	                        "type": "Point",
-	                        "coordinates": [_coord.longitude, _coord.latitude]
-	                    }
-	                };
-	                circles.push(_turf2.default.circle(_point, radius, steps, units));
-	                points.features.push(_point);
+	                circles.push(_turf2.default.circle(point, radius, steps, units));
+	                points.features.push(point);
+	                geoJsonPointFeatures.features.push(point);
 	            }
 
 	            if (points.features.length < 3) {
@@ -65479,7 +65646,7 @@
 	            centroid.properties.layerId = "custom";
 	            centroid.properties.clusterSize = points.features.length;
 
-	            var hull = _turf2.default.concave(points, 1000, 'kilometers');
+	            //  var hull = turf.concave(points, 1000, 'kilometers');
 	            var mergedCircle = _turf2.default.union.apply(this, circles);
 	            mergedCircle.properties.type = "cluster";
 	            mergedCircle.properties.layerId = "custom";
@@ -65487,9 +65654,29 @@
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
 	            // points.features = points.features.concat(hull);
 	            // points.features = points.features.concat(circle);
-	            points.features = points.features.concat(mergedCircle);
-	            points.features = points.features.concat(centroid);
-	            geoJsonPolygonFeatures.features.push(points);
+	            //  points.features = points.features.concat(mergedCircle);      
+	            // points.features = points.features.concat(centroid);
+	            geoJsonPolygonFeatures.features.push(mergedCircle);
+	            //geoJsonPolygonFeatures.features.push(centroid);
+	        }
+
+	        function getPointGeoJson(data) {
+	            var coord = data.coordinates;
+	            var point = {
+	                "type": "Feature",
+	                properties: {
+	                    id: key,
+	                    type: "point",
+	                    label: data.orgUnit,
+	                    layerId: "custom"
+
+	                },
+	                "geometry": {
+	                    "type": "Point",
+	                    "coordinates": [coord.longitude, coord.latitude]
+	                }
+	            };
+	            return point;
 	        }
 	    });
 

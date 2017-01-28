@@ -92,23 +92,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
         if (comp.length < threshold){ //is not hotspot; make as point 
         
             for (var key in comp){
-                var coord =  allNodesMap[comp[key]].coordinates;
-                var point = {
-                    "type": "Feature",
-                    properties : {
-                        id : key,
-                        type : "point",
-                        label :allNodesMap[comp[key]].orgUnit,
-                        layerId :"custom" 
-
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [coord.longitude,coord.latitude]
-                    }
-                };
-
-             geoJsonPointFeatures.features.push(point);
+                var point = getPointGeoJson(allNodesMap[comp[key]]);
+                geoJsonPointFeatures.features.push(point);
             }         
 
         }else{ // is pollyygonn - make boundaries for this
@@ -118,30 +103,17 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 features : []
             };
 
-            var circles = [];
+            var circles = [],
+                radius = (clusterDist)/2,
+                steps = 0, 
+                units = 'kilometers';
 
-             var radius = (clusterDist)/2;
-            var steps = 0;
-            var units = 'kilometers';
             for (var key in comp){
-                let coord =  allNodesMap[comp[key]].coordinates;
-                let point = {
-                    "type": "Feature",
-                    properties : {
-                        id : key,
-                        type : "point",
-                        label :allNodesMap[comp[key]].orgUnit,
-                        layerId :"custom" 
+                var point = getPointGeoJson(allNodesMap[comp[key]]);
 
-                    }
-                    ,
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [coord.longitude,coord.latitude]
-                    }
-                };
                 circles.push(turf.circle(point, radius, steps, units));
                 points.features.push(point);
+                geoJsonPointFeatures.features.push(point);
             }
             
             if (points.features.length <3){return}
@@ -150,7 +122,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             centroid.properties.layerId = "custom";
             centroid.properties.clusterSize = points.features.length;
 
-            var hull = turf.concave(points, 1000, 'kilometers');
+          //  var hull = turf.concave(points, 1000, 'kilometers');
             var mergedCircle = turf.union.apply(this,circles);
             mergedCircle.properties.type="cluster";
             mergedCircle.properties.layerId = "custom";
@@ -158,12 +130,30 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             var circle = turf.circle(centroid, radius, steps, units);
            // points.features = points.features.concat(hull);
            // points.features = points.features.concat(circle);
-            points.features = points.features.concat(mergedCircle);      
-            points.features = points.features.concat(centroid);
-            geoJsonPolygonFeatures.
-                features.push(points);
+          //  points.features = points.features.concat(mergedCircle);      
+           // points.features = points.features.concat(centroid);
+            geoJsonPolygonFeatures.features.push(mergedCircle);
+            //geoJsonPolygonFeatures.features.push(centroid);
         }
-          
+      
+        function getPointGeoJson(data){
+          var coord =  data.coordinates;
+                var point = {
+                    "type": "Feature",
+                    properties : {
+                        id : key,
+                        type : "point",
+                        label :data.orgUnit,
+                        layerId :"custom" 
+
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [coord.longitude,coord.latitude]
+                    }
+                };
+            return point;
+        }
     });
 
 return {

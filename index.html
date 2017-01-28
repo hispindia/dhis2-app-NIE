@@ -51,7 +51,7 @@
     <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/menu.css">
     <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/widgets.css">
     <link type="text/css" rel="stylesheet" href="scripts/lib/commons/font-awesome/css/font-awesome.min.css"/>
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 
 
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
@@ -68,14 +68,15 @@
 
 <div ng-view></div>
 <div id="mainContainer">
+<div>
 <label><h2>eDFSS Alerts</h2>
-</label><br>Cluster Distance:
-<input type="number" id="c_dist" value="3"></input>
+</label><br>Cluster Distance(Km):
+<input type="number" id="c_dist" value="5"></input>
 Threshold:
 <input type="number" id="threshold" value="3"></input>
 
-<input type="button" value="Refresh" onclick="refresh();"/>
-
+<input type="button" value="Refresh" onclick="refresh();"/><br><br>
+</div>
     <div id="container"></div>
     <div id="requestStats"></div>
     <div id="dataTable"></div>
