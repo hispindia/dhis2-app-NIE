@@ -1,5 +1,5 @@
 
-import L from 'leaflet';
+//import L from 'leaflet';
 
  function dhis2Map(){
 
@@ -76,7 +76,7 @@ this.addGeoJson = function(geoJson,pointToLayer,style,onEachFeature){
     }
   
 
-    new  L.GeoJSON(geoJson,mapArgs).addTo(map); 
+   return  new  L.GeoJSON(geoJson,mapArgs).addTo(map); 
 };
 
 

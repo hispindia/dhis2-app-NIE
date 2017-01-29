@@ -51,7 +51,15 @@
     <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/menu.css">
     <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/widgets.css">
     <link type="text/css" rel="stylesheet" href="scripts/lib/commons/font-awesome/css/font-awesome.min.css"/>
+
+    <script type="text/javascript" src="scripts/lib/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+ 
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+    <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.0.1/MarkerCluster.Default.css" />
 
 
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
@@ -69,13 +77,18 @@
 <div ng-view></div>
 <div id="mainContainer">
 <div>
-<label><h2>eDFSS Alerts</h2>
-</label><br>Cluster Distance(Km):
+<label><h2>eDFSS Alerts</h2></label>
+<label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 5 </i></b></label>
+
+<br>
+Moving Period Start Date: <input id="date" type="date"></input>
+
+Cluster Distance(Km):
 <input type="number" id="c_dist" value="5"></input>
 Threshold:
 <input type="number" id="threshold" value="3"></input>
-
-<input type="button" value="Refresh" onclick="refresh();"/><br><br>
+<input class="btn right" type="button" value="Refresh" onclick="refresh();"/>
+<br><br>
 </div>
     <div id="container"></div>
     <div id="requestStats"></div>

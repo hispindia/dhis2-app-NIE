@@ -30,3 +30,8 @@
 .leaflet-clickable {
   cursor: crosshair !important;
 }
+
+.right{
+position:relative
+float:right
+}

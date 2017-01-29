@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import L from 'leaflet';
+//import L from 'leaflet';
 import ajax from './ajax-wrapper'
 import $ from 'jquery';
 import dhis2API from './dhis2API/dhis2API';
@@ -13,16 +13,22 @@ import dhis2Map from './maps/map';
 import mUtility from './maps/mapUtilities';
 import {AlertPopUp} from './components/components';
 
-
+var map;
 var api = new dhis2API();
-var map = new dhis2Map();
 
 window.refresh = function(){
 
 
     var c_dist=$('#c_dist').val();
     var threshold=$('#threshold').val();
-    buildMap(window.coords,c_dist,threshold);
+    var startDate = $('#date').val();
+    var diff = moment(new Date()).diff(startDate,'days');
+    
+    $('#movingPeriod').text(diff);
+    getEvents(startDate).then(function(events){
+        var coords =  extractCoordsFromEvents(events);
+        buildMap(coords,c_dist,threshold);
+    });
 
 }
 
@@ -32,27 +38,32 @@ window.alertConfirmed = function(){
 }
 
 $('document').ready(function(){
+    map = new dhis2Map();
 
+    var startDate = new Date();
+    startDate.setDate(startDate.getDate() - 5);
+    var format = "YYYY-MM-DD";
+    $('#date').val(moment(startDate).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
     // control that shows state info on hover
-/*
-    var info = L.control();
+    /*
+      var info = L.control();
 
-    info.onAdd = function (map) {
-	this._div = L.DomUtil.create('div', 'info');
-	this.update();
-	return this._div;
-    };
+      info.onAdd = function (map) {
+      this._div = L.DomUtil.create('div', 'info');
+      this.update();
+      return this._div;
+      };
 
-    info.update = function (props) {
-	this._div.innerHTML = '<h4></h4>' +  (props ?
-			                      '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
-			                      : '');
-    };
+      info.update = function (props) {
+      this._div.innerHTML = '<h4></h4>' +  (props ?
+      '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
+      : '');
+      };
 
-    map.addToMap(info);
-*/
+      map.addToMap(info);
+    */
     ajax.request({
         type: "GET",
         async: true,
@@ -62,20 +73,23 @@ $('document').ready(function(){
         if (error){
 
         }else{
-            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
+            // addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
         }
     })
 
     // coordinates to be filtered here.
-    getEvents();
+    var startDate = $('#date').val();
+    getEvents(startDate).then(function(events){
+        var coords =  extractCoordsFromEvents(events);
+        buildMap(coords,5,3);
+    });
 
 });
 
-function getEvents(){
+function getEvents(startDate){
+    var def = $.Deferred();
 
     var endDate = new Date();
-    var startDate = new Date();
-    startDate.setDate(endDate.getDate() - 15);
     var format = "YYYY-MM-DD";
 
     ajax.request({
@@ -85,29 +99,26 @@ function getEvents(){
         url: "../../events?orgUnit="+api.getRootOrgUnitUid()+"&ouMode=DESCENDANTS&startDate="+moment(startDate).format(format)+"&endDate="+moment(endDate).format(format)+"&skipPaging=true"
     },function(error,response){
         if (error){
-
+            def.resolve(null);
         }else{
-
-            var coords =  extractCoordsFromEvents(response.events);
-            buildMap(coords,5,3);
-
+            def.resolve(response.events);
         }
     })
+    return def.promise();
+}
 
-    function extractCoordsFromEvents(events){
+function extractCoordsFromEvents(events){
 
-        var result = [];
-        for (var i=0;i<events.length;i++){       
-            if (events[i].coordinate){
-                if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                    result.push({unique_id:events[i].event , coordinates : events[i].coordinate, orgUnit : events[i].orgUnitName})
-                }
+    var result = [];
+    for (var i=0;i<events.length;i++){       
+        if (events[i].coordinate){
+            if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
+                result.push({unique_id:events[i].event , coordinates : events[i].coordinate, orgUnit : events[i].orgUnitName})
             }
-            
         }
-        return result;
+        
     }
-
+    return result;
 }
 
 function getCoordinatesFromOus(ous){
@@ -190,22 +201,26 @@ function buildMap(coords,c_dist,threshold){
 
     var pointToLayer = getPointToLayer(feverIcon,feverDotIcon);
     
-    map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
- /*   
-    pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
-    var style = function(){
-        return { color: "darkred",
-                 opacity: 0.75,
-                 fillColor: "red",
-                 fillOpacity: 0.1,                
-                 dashArray: '5, 5',
-                 //weight: 5
+    var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
+    var markers = L.markerClusterGroup({  });
+    markers.addLayer(pointsLayers);
+    map.getMap().addLayer(markers);
 
-               }
-    }
-    // var onEachFeature = onEachFeature;
-    map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
-*/
+    /*   
+         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
+         var style = function(){
+         return { color: "darkred",
+         opacity: 0.75,
+         fillColor: "red",
+         fillOpacity: 0.1,                
+         dashArray: '5, 5',
+         //weight: 5
+
+         }
+         }
+         // var onEachFeature = onEachFeature;
+         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
+    */
     addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
@@ -245,32 +260,32 @@ function addClustergons(map,gjson){
     }
 
     var style = function(){
-        return { color: "darkred",
-                 opacity: 0.75,
-                 fillColor: "red",
-                 fillOpacity: 0.1,                
-                 dashArray: '5, 5',
-                 weight: 3
+        return { //color: "darkred",
+            //opacity: 0.75,
+            fillColor: "red",
+            fillOpacity: 0.1,                
+            //dashArray: '5, 5',
+            weight: 3
 
-               }
+        }
     }
 
     var onEachFeature = function (feature, layer)
     {
         layer.on({
-	    mouseover: highlightFeature,
-	    mouseout: resetHighlight,
-	    click: zoomToFeature
+	    //  mouseover: highlightFeature,
+	    // mouseout: resetHighlight,
+	    //   click: zoomToFeature
 	});
-/*
-        if (feature.properties.type == 'centroid'){                
-            layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-            
-        }else{
-            layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-        }
-*/
-       
+        /*
+          if (feature.properties.type == 'centroid'){                
+          layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+          
+          }else{
+          layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+          }
+        */
+        
     }
 
     geojson = L.geoJson(gjson, {
@@ -278,7 +293,7 @@ function addClustergons(map,gjson){
 	onEachFeature: onEachFeature
     }).addTo(map);
 
-debugger
+
     
 
 }
@@ -308,7 +323,7 @@ function getPointToLayer(centroidIcon,icon){
             }
 
         return L.marker(latlng, {
-            icon: icon
+            // icon: icon
         });
     };
 
