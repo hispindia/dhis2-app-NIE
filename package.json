@@ -22,6 +22,7 @@
     "graph-data-structure": "^0.8.0",
     "jquery": "^3.1.1",
     "leaflet": "1.0.3",
+    "leaflet-measure": "^2.1.1",
     "lodash": "^4.17.4",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",

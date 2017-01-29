@@ -61,7 +61,7 @@ _.clusterize = function(data,clusterDist,threshold,labelMap){
 
     var graph = createGraph(data,clusterDist);
     
-    var allNodesMap = utility.prepareIdToObjectMap(data,"unique_id");
+    var allNodesMap = utility.prepareIdToObjectMap(data,"id");
     var serializedGraph = graphlib.json.write(graph);
     var nodes = serializedGraph.nodes;
     var edges = serializedGraph.edges;
@@ -142,7 +142,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                     "type": "Feature",
                     properties : {
                         id : key,
-                        type : "point",
+                        type : data.type,
                         label :data.orgUnit,
                         layerId :"custom" 
 
@@ -171,8 +171,8 @@ function createGraph(data,clusterDist){
             
             var coord1 = data[i].coordinates;
             var coord2 = data[j].coordinates;
-            var id1 = data[i].unique_id;
-            var id2 = data[j].unique_id;
+            var id1 = data[i].id;
+            var id2 = data[j].id;
 
             var dist = distance(coord1.latitude,coord1.longitude,
                                 coord2.latitude,coord2.longitude,'K');

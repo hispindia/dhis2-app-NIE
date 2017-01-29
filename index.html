@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="excelImport">
-<head>
+  <head>
     <meta charset="UTF-8">
     <title>Alerts</title>
 
-<script type="application/javascript" src="bundle.js"></script>
-<link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
+    <script type="application/javascript" src="bundle.js"></script>
+    <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
 
     <script type="text/javascript" src="scripts/lib/jQuery/jquery.min.js"></script>
     <script type="text/javascript" src="scripts/lib/jQuery/ui/jquery-ui.min.js"></script>
@@ -54,51 +54,47 @@
 
     <script type="text/javascript" src="scripts/lib/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
- 
-<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-
-    <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.0.1/MarkerCluster.Default.css" />
-
+    
+    <link rel="stylesheet" href="scripts/lib/leaflet-easyPrint/dist/easyPrint.css"/>
+    <script src="scripts/lib/leaflet-easyPrint/dist/leaflet.easyPrint.js"></script>
 
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
     <link type="text/css" rel="stylesheet" media="screen" href="styles/main.css">
 
     <script type="text/javascript" src="angular-app.js"></script>
 
+  </head>
+  <body>
+
+    <div class="hidden-print">
+      <d2-header-bar></d2-header-bar>
+    </div>
+
+    <div ng-view></div>
+    <div id="mainContainer">
+      <div>
+        <label><h2>eDFSS Alerts</h2></label>
+        <label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 5 </i></b></label>
+
+        <br>
+        Moving Period Start Date: <input id="date" type="date"></input>
+
+        Cluster Distance(Km):
+        <input type="number" id="c_dist" value="5"></input>
+        Threshold:
+        <input type="number" id="threshold" value="3"></input>
+        <input class="btn-info right" type="button" value="Refresh" onclick="refresh();"/>
+        <br><br>
+      </div>
+      <div id="container"></div>
+      <div id="requestStats"></div>
+      <div id="dataTable"></div>
+
+      <div id="mapid" style="height: 500px"></div>
+    </div>
 
 
-</head>
-<body>
-
-<d2-header-bar></d2-header-bar>
-
-<div ng-view></div>
-<div id="mainContainer">
-<div>
-<label><h2>eDFSS Alerts</h2></label>
-<label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 5 </i></b></label>
-
-<br>
-Moving Period Start Date: <input id="date" type="date"></input>
-
-Cluster Distance(Km):
-<input type="number" id="c_dist" value="5"></input>
-Threshold:
-<input type="number" id="threshold" value="3"></input>
-<input class="btn right" type="button" value="Refresh" onclick="refresh();"/>
-<br><br>
-</div>
-    <div id="container"></div>
-    <div id="requestStats"></div>
-    <div id="dataTable"></div>
-
-    <div id="mapid" style="height: 500px"></div>
-</div>
 
 
-
-
-</body>
+  </body>
 </html>

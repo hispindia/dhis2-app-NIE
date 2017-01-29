@@ -30,6 +30,8 @@ window.refresh = function(){
         buildMap(coords,c_dist,threshold);
     });
 
+
+
 }
 
 window.alertConfirmed = function(){
@@ -73,7 +75,7 @@ $('document').ready(function(){
         if (error){
 
         }else{
-            // addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
+             addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
         }
     })
 
@@ -113,7 +115,29 @@ function extractCoordsFromEvents(events){
     for (var i=0;i<events.length;i++){       
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                result.push({unique_id:events[i].event , coordinates : events[i].coordinate, orgUnit : events[i].orgUnitName})
+                if (events[i].program == "xqoEn6Je5Kj"){
+                    var type = "unknown";
+                    if (events[i].programStage == "Fy9tjDYgdBi"){
+                        var val = findValueAgainstId(events[i].dataValues,"dataElement","ylhxXcMMuZC","value");
+                        if (val == "AFI" || val == "ADD"){
+                            type = val;
+                        }else{continue;}
+                    }else 
+                        if (events[i].programStage == "jo25vJdB3qx"){
+                            if (events[i].dataValues.length>0){
+                                type="LAB";
+                            }else{continue;}
+                        }
+                    
+                    result.push({
+                        id : events[i].event , 
+                        coordinates : events[i].coordinate, 
+                        orgUnit : events[i].orgUnitName,
+                        type : type
+                       
+                    })
+                }
+                
             }
         }
         
@@ -121,6 +145,16 @@ function extractCoordsFromEvents(events){
     return result;
 }
 
+function findValueAgainstId(data,idKey,id,valKey){
+    
+    for (var i=0;i<data.length;i++){
+        if (data[i][idKey]==id){
+            return data[i][valKey]
+        }
+    }
+return null;
+    
+}
 function getCoordinatesFromOus(ous){
 
     var ouCoords = [];
@@ -199,13 +233,44 @@ function buildMap(coords,c_dist,threshold){
     
     var feverIcon =getCustomIcon('yellow');
 
-    var pointToLayer = getPointToLayer(feverIcon,feverDotIcon);
-    
+    var pointToLayer = function(feature, latlng) {
+        if (feature.properties){
+            switch(feature.properties.type){
+            case 'centroid' : 
+                var centroidIcon =L.divIcon({
+                    className:'alert-icon-centroid leaflet-clickable',
+                    html:'<i class="alert-icon-centroid"><b>['+feature.properties.clusterSize+']</b></i>'
+                });
+                
+                return L.marker(latlng,{
+                    icon : centroidIcon
+                });
+            case 'LAB' :  
+                return L.marker(latlng,{
+                    icon : getCustomIcon('violet')
+                });
+                
+            case 'AFI' :   return L.marker(latlng,{
+                icon : getCustomIcon('yellow')
+            });
+            case 'ADD' :
+                return L.marker(latlng,{
+                    icon : getCustomIcon('orange')
+                });
+                
+            }
+        }
+        
+        return L.marker(latlng, {
+            // icon: icon
+        });
+        
+    }
     var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-    var markers = L.markerClusterGroup({  });
+  /*  var markers = L.markerClusterGroup({  });
     markers.addLayer(pointsLayers);
     map.getMap().addLayer(markers);
-
+*/
     /*   
          pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
          var style = function(){
@@ -222,11 +287,30 @@ function buildMap(coords,c_dist,threshold){
          map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
     */
     addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
+
+    addLegend(map.getMap())
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
     // map.();
 }
 
+function addLegend(map){
+var legend = L.control({position: 'bottomright'});
+
+	legend.onAdd = function (map) {
+
+		var div = L.DomUtil.create('div', 'info legend');
+            var html = '<img src="images/marker-icon-yellow.png"  height="31" width="25"> : AFI<br>'+
+	    '<img src="images/marker-icon-orange.png"  height="31" width="25"> : ADD<br>'+
+	    '<img src="images/marker-icon-violet.png"  height="31" width="25"> : LAB';
+
+		div.innerHTML = html;
+		return div;
+	};
+
+	legend.addTo(map);
+
+}
 function addClustergons(map,gjson){
 
     var geojson;
@@ -260,11 +344,11 @@ function addClustergons(map,gjson){
     }
 
     var style = function(){
-        return { //color: "darkred",
-            //opacity: 0.75,
+        return { color: "black",
+            opacity: 0.75,
             fillColor: "red",
             fillOpacity: 0.1,                
-            //dashArray: '5, 5',
+            dashArray: '5, 5',
             weight: 3
 
         }
@@ -273,8 +357,8 @@ function addClustergons(map,gjson){
     var onEachFeature = function (feature, layer)
     {
         layer.on({
-	    //  mouseover: highlightFeature,
-	    // mouseout: resetHighlight,
+	      mouseover: highlightFeature,
+	     mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});
         /*
