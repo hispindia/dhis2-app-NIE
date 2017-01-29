@@ -126,6 +126,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             var mergedCircle = turf.union.apply(this,circles);
             mergedCircle.properties.type="cluster";
             mergedCircle.properties.layerId = "custom";
+            mergedCircle.properties.num_points = points.features.length;
 
             var circle = turf.circle(centroid, radius, steps, units);
            // points.features = points.features.concat(hull);

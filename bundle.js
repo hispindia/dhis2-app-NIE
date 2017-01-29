@@ -439,6 +439,22 @@
 	        style: style,
 	        onEachFeature: onEachFeature
 	    }).addTo(map);
+
+	    zoomToBiggestCluster(map, geojson._layers);
+	}
+
+	function zoomToBiggestCluster(map, layers) {
+	    var maxPoints = 0;
+	    var bounds = null;
+	    for (var key in layers) {
+	        var layer = layers[key];
+	        if (layer.feature.properties.num_points > maxPoints) {
+	            bounds = layer.getBounds();
+	            maxPoints = layer.feature.properties.num_points;
+	        }
+	    }
+
+	    map.fitBounds(bounds);
 	}
 	function onEachFeature(feature, layer) {
 	    if (feature.properties.type == 'centroid') {
@@ -52496,6 +52512,7 @@
 	            var mergedCircle = _turf2.default.union.apply(this, circles);
 	            mergedCircle.properties.type = "cluster";
 	            mergedCircle.properties.layerId = "custom";
+	            mergedCircle.properties.num_points = points.features.length;
 
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
 	            // points.features = points.features.concat(hull);

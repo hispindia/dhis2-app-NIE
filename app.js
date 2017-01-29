@@ -77,7 +77,7 @@ $('document').ready(function(){
         if (error){
 
         }else{
-             addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
+            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
         }
     })
 
@@ -136,7 +136,7 @@ function extractCoordsFromEvents(events){
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
                         type : type
-                       
+                        
                     })
                 }
                 
@@ -154,7 +154,7 @@ function findValueAgainstId(data,idKey,id,valKey){
             return data[i][valKey]
         }
     }
-return null;
+    return null;
     
 }
 function getCoordinatesFromOus(ous){
@@ -222,7 +222,7 @@ function buildMap(coords,c_dist,threshold){
 
     map.clearLayers();
 
-  //  window.coords=coords;
+    //  window.coords=coords;
     var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
     
     var icon = getCustomIcon();
@@ -270,19 +270,19 @@ function buildMap(coords,c_dist,threshold){
     }
     
     var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
-    nearbyDistance : 1
+        nearbyDistance : 1
     });
     var data = featureCollection.geoJsonPointFeatures;
     for (let i=0;i<data.features.length;i++){
-          var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
+        var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
         var marker = pointToLayer(data.features[i],loc);
 
         marker.desc = "asdad";
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
-   // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
- 
+    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
+    
     /*   
          pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
          var style = function(){
@@ -306,20 +306,20 @@ function buildMap(coords,c_dist,threshold){
 }
 
 function addLegend(map){
-var legend = L.control({position: 'bottomright'});
+    var legend = L.control({position: 'bottomright'});
 
-	legend.onAdd = function (map) {
+    legend.onAdd = function (map) {
 
-		var div = L.DomUtil.create('div', 'info legend');
-            var html = '<img src="images/marker-icon-yellow.png"  height="31" width="25"> : AFI<br>'+
+	var div = L.DomUtil.create('div', 'info legend');
+        var html = '<img src="images/marker-icon-yellow.png"  height="31" width="25"> : AFI<br>'+
 	    '<img src="images/marker-icon-orange.png"  height="31" width="25"> : ADD<br>'+
 	    '<img src="images/marker-icon-violet.png"  height="31" width="25"> : LAB';
 
-		div.innerHTML = html;
-		return div;
-	};
+	div.innerHTML = html;
+	return div;
+    };
 
-	legend.addTo(map);
+    legend.addTo(map);
 
 }
 function addClustergons(map,gjson){
@@ -356,20 +356,20 @@ function addClustergons(map,gjson){
 
     var style = function(){
         return { color: "black",
-            opacity: 0.75,
-            fillColor: "red",
-            fillOpacity: 0.1,                
-            dashArray: '5, 5',
-            weight: 3
+                 opacity: 0.75,
+                 fillColor: "red",
+                 fillOpacity: 0.1,                
+                 dashArray: '5, 5',
+                 weight: 3
 
-        }
+               }
     }
 
     var onEachFeature = function (feature, layer)
     {
         layer.on({
-	      mouseover: highlightFeature,
-	     mouseout: resetHighlight,
+	    mouseover: highlightFeature,
+	    mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});
         /*
@@ -388,8 +388,21 @@ function addClustergons(map,gjson){
 	onEachFeature: onEachFeature
     }).addTo(map);
 
+    zoomToBiggestCluster(map,geojson._layers);
+}
 
-    
+function zoomToBiggestCluster(map,layers){
+    var maxPoints = 0;
+    var bounds = null;
+    for (var key in layers){
+        var layer = layers[key];
+          if (layer.feature.properties.num_points > maxPoints){
+            bounds=layer.getBounds();
+            maxPoints =layer.feature.properties.num_points; 
+        }
+    }
+  
+    map.fitBounds(bounds);
 
 }
 function onEachFeature (feature, layer)
