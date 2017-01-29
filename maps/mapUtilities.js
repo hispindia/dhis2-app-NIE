@@ -133,7 +133,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
           //  points.features = points.features.concat(mergedCircle);      
            // points.features = points.features.concat(centroid);
             geoJsonPolygonFeatures.features.push(mergedCircle);
-            //geoJsonPolygonFeatures.features.push(centroid);
+          //  geoJsonPolygonFeatures.features.push(centroid);
         }
       
         function getPointGeoJson(data){

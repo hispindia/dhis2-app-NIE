@@ -117,6 +117,8 @@
 	    (0, _jquery2.default)('#date').val((0, _moment2.default)(startDate).format(format));
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
+	    addLegend(map.getMap());
+
 	    // control that shows state info on hover
 	    /*
 	      var info = L.control();
@@ -280,7 +282,7 @@
 
 	    map.clearLayers();
 
-	    window.coords = coords;
+	    //  window.coords=coords;
 	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold);
 
 	    var icon = getCustomIcon();
@@ -326,11 +328,21 @@
 	            // icon: icon
 	        });
 	    };
-	    var pointsLayers = map.addGeoJson(featureCollection.geoJsonPointFeatures, pointToLayer, null, onEachFeature);
-	    /*  var markers = L.markerClusterGroup({  });
-	      markers.addLayer(pointsLayers);
-	      map.getMap().addLayer(markers);
-	    */
+
+	    var oms = new OverlappingMarkerSpiderfier(map.getMap(), {
+	        nearbyDistance: 1
+	    });
+	    var data = featureCollection.geoJsonPointFeatures;
+	    for (var i = 0; i < data.features.length; i++) {
+	        var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
+	        var marker = pointToLayer(data.features[i], loc);
+
+	        marker.desc = "asdad";
+	        map.getMap().addLayer(marker);
+	        oms.addMarker(marker);
+	    }
+	    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
+
 	    /*   
 	         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
 	         var style = function(){
@@ -347,7 +359,6 @@
 	    */
 	    addClustergons(map.getMap(), featureCollection.geoJsonPolygonFeatures);
 
-	    addLegend(map.getMap());
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
 	    // map.();
@@ -52492,7 +52503,7 @@
 	            //  points.features = points.features.concat(mergedCircle);      
 	            // points.features = points.features.concat(centroid);
 	            geoJsonPolygonFeatures.features.push(mergedCircle);
-	            //geoJsonPolygonFeatures.features.push(centroid);
+	            //  geoJsonPolygonFeatures.features.push(centroid);
 	        }
 
 	        function getPointGeoJson(data) {

@@ -48,6 +48,8 @@ $('document').ready(function(){
     $('#date').val(moment(startDate).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
+    addLegend(map.getMap())
+
     // control that shows state info on hover
     /*
       var info = L.control();
@@ -220,7 +222,7 @@ function buildMap(coords,c_dist,threshold){
 
     map.clearLayers();
 
-    window.coords=coords;
+  //  window.coords=coords;
     var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
     
     var icon = getCustomIcon();
@@ -266,11 +268,21 @@ function buildMap(coords,c_dist,threshold){
         });
         
     }
-    var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-  /*  var markers = L.markerClusterGroup({  });
-    markers.addLayer(pointsLayers);
-    map.getMap().addLayer(markers);
-*/
+    
+    var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
+    nearbyDistance : 1
+    });
+    var data = featureCollection.geoJsonPointFeatures;
+    for (let i=0;i<data.features.length;i++){
+          var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
+        var marker = pointToLayer(data.features[i],loc);
+
+        marker.desc = "asdad";
+        map.getMap().addLayer(marker);
+        oms.addMarker(marker); 
+    }
+   // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
+ 
     /*   
          pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
          var style = function(){
@@ -288,7 +300,6 @@ function buildMap(coords,c_dist,threshold){
     */
     addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
 
-    addLegend(map.getMap())
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
     // map.();
