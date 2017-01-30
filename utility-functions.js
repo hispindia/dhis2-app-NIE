@@ -23,6 +23,13 @@ _.prepareMapGroupedById= function(object,id){
     return map;
 }
 
+_.prepareUID = function(options,ids){
+    
+    var sha1 = require('js-sha1');
+    var uid = sha1(ids.sort());
+    
+    return uid.substr(0,11);
+}
 
 //http://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
 //http://stackoverflow.com/users/3119662/kubosho

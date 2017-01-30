@@ -102,6 +102,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 type:"FeatureCollection",
                 features : []
             };
+            var pointsKeys = [];
 
             var circles = [],
                 radius = (clusterDist)/2,
@@ -114,6 +115,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 circles.push(turf.circle(point, radius, steps, units));
                 points.features.push(point);
                 geoJsonPointFeatures.features.push(point);
+                pointsKeys.push(key);
             }
             
             if (points.features.length <3){return}
@@ -127,14 +129,17 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             mergedCircle.properties.type="cluster";
             mergedCircle.properties.layerId = "custom";
             mergedCircle.properties.num_points = points.features.length;
+            mergedCircle.properties.area = turf.area(mergedCircle);
+            mergedCircle.properties.uid = utility.prepareUID(null,pointsKeys);
 
+            
             var circle = turf.circle(centroid, radius, steps, units);
            // points.features = points.features.concat(hull);
            // points.features = points.features.concat(circle);
           //  points.features = points.features.concat(mergedCircle);      
            // points.features = points.features.concat(centroid);
             geoJsonPolygonFeatures.features.push(mergedCircle);
-          //  geoJsonPolygonFeatures.features.push(centroid);
+            geoJsonPolygonFeatures.features.push(centroid);
         }
       
         function getPointGeoJson(data){

@@ -15,6 +15,13 @@ import {AlertPopUp} from './components/components';
 
 var map;
 var api = new dhis2API();
+var previousClusterLayer;
+var info;
+
+const imgpath_afi = "images/yellow-point.png";
+const imgpath_lab = "images/violet-point.png";
+const imgpath_add = "images/orange-point.png";
+const imgpath_cluster = "images/marker-icon-red.png";
 
 window.refresh = function(){
 
@@ -51,23 +58,25 @@ $('document').ready(function(){
     addLegend(map.getMap())
 
     // control that shows state info on hover
-    /*
-      var info = L.control();
+    
+     info = L.control();
 
-      info.onAdd = function (map) {
-      this._div = L.DomUtil.create('div', 'info');
-      this.update();
-      return this._div;
-      };
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info');
+        this.update();
+        return this._div;
+    };
 
-      info.update = function (props) {
-      this._div.innerHTML = '<h4></h4>' +  (props ?
-      '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
-      : '');
-      };
+    info.update = function (props) {
+        if (!props){return} 
 
-      map.addToMap(info);
-    */
+        this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>'+props.uid+'</b></i></th></tr><thead>'+
+        '<tbody><tr><td>No of Cases </td><td> <b><i>'+props.num_points + '</b></i></td></tr>'+
+            '<tr><td>Area </td><td><b><i> '+((parseFloat(props.area)/1000000)).toFixed(2)+'(sq Kms)</b></i></td></tr></tbody></table>';
+    };
+
+    info.addTo(map.getMap());
+
     ajax.request({
         type: "GET",
         async: true,
@@ -89,7 +98,7 @@ $('document').ready(function(){
     });
 
 });
-
+                    
 function getEvents(startDate){
     var def = $.Deferred();
 
@@ -146,7 +155,6 @@ function extractCoordsFromEvents(events){
     }
     return result;
 }
-
 function findValueAgainstId(data,idKey,id,valKey){
     
     for (var i=0;i<data.length;i++){
@@ -249,15 +257,15 @@ function buildMap(coords,c_dist,threshold){
                 });
             case 'LAB' :  
                 return L.marker(latlng,{
-                    icon : getCustomIcon('violet')
+                    icon : getCustomIcon2(imgpath_lab)
                 });
                 
             case 'AFI' :   return L.marker(latlng,{
-                icon : getCustomIcon('yellow')
+                icon :  getCustomIcon2(imgpath_afi)
             });
             case 'ADD' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon('orange')
+                    icon : getCustomIcon2(imgpath_add)
                 });
                 
             }
@@ -270,14 +278,21 @@ function buildMap(coords,c_dist,threshold){
     }
     
     var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
-        nearbyDistance : 1
+        nearbyDistance : 1 , keepSpiderfied : true
+    });
+
+    var popup = new L.Popup();
+    oms.addListener('click', function(marker) {
+        popup.setContent(marker.desc);
+        popup.setLatLng(marker.getLatLng());
+        map.getMap().openPopup(popup);
     });
     var data = featureCollection.geoJsonPointFeatures;
     for (let i=0;i<data.features.length;i++){
         var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
         var marker = pointToLayer(data.features[i],loc);
 
-        marker.desc = "asdad";
+        marker.desc = data.features[i].properties.label;
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
@@ -311,11 +326,17 @@ function addLegend(map){
     legend.onAdd = function (map) {
 
 	var div = L.DomUtil.create('div', 'info legend');
-        var html = '<img src="images/marker-icon-yellow.png"  height="31" width="25"> : AFI<br>'+
-	    '<img src="images/marker-icon-orange.png"  height="31" width="25"> : ADD<br>'+
-	    '<img src="images/marker-icon-violet.png"  height="31" width="25"> : LAB';
-
-	div.innerHTML = html;
+        var height = 15,width=15;
+        var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
+	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
+	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
+      
+      /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
+            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
+            "<i class='alert-icon' style='background: "+color_lab+"'></i>  : LAB";
+	*/
+        div.innerHTML = html;
 	return div;
     };
 
@@ -327,10 +348,13 @@ function addClustergons(map,gjson){
     var geojson;
     function highlightFeature(e) {
         var layer = e.target;
-
+        
+        if (previousClusterLayer)
+            geojson.resetStyle(previousClusterLayer);
+        previousClusterLayer = layer;
         layer.setStyle({
-	    weight: 2,
-	    color: 'darkred',
+	    weight: 3,
+	    color: '#de2d26',
             opacity: 0.9,
             fillColor: "black",
             fillOpacity: 0.05,   
@@ -341,7 +365,7 @@ function addClustergons(map,gjson){
 	    layer.bringToFront();
         }
 
-        //	info.update(layer.feature.properties);
+        info.update(layer.feature.properties);
     }
 
 
@@ -353,7 +377,9 @@ function addClustergons(map,gjson){
     function zoomToFeature(e) {
         map.fitBounds(e.target.getBounds());
     }
-
+    function panToFeature(e){
+        map.panTo(e.target.getLatLng()); 
+    }
     var style = function(){
         return { color: "black",
                  opacity: 0.75,
@@ -367,25 +393,45 @@ function addClustergons(map,gjson){
 
     var onEachFeature = function (feature, layer)
     {
+        
+        
+          if (feature.properties.type == 'centroid'){                
+        //  layer.bindPopup('<div id="alert">This is a cluster!</div>');
+              layer.on({
+	        //  mouseover: highlightFeature,
+	          //  mouseout: resetHighlight,
+	          click: panToFeature
+	      });
+           return;   
+          }
+          
+        
         layer.on({
 	    mouseover: highlightFeature,
-	    mouseout: resetHighlight,
+	    //  mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});
-        /*
-          if (feature.properties.type == 'centroid'){                
-          layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-          
-          }else{
-          layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-          }
-        */
         
     }
 
+ var pointToLayer = function(feature, latlng) {
+        if (feature.properties.type=="centroid"){
+           return L.marker(latlng, {
+             icon: getCustomIcon('red')
+        });
+        }
+        
+        return L.marker(latlng, {
+            // icon: icon
+        });
+        
+    }
+    
+
     geojson = L.geoJson(gjson, {
 	style: style,
-	onEachFeature: onEachFeature
+	onEachFeature: onEachFeature,
+        pointToLayer : pointToLayer
     }).addTo(map);
 
     zoomToBiggestCluster(map,geojson._layers);
@@ -396,12 +442,12 @@ function zoomToBiggestCluster(map,layers){
     var bounds = null;
     for (var key in layers){
         var layer = layers[key];
-          if (layer.feature.properties.num_points > maxPoints){
+        if (layer.feature.properties.num_points > maxPoints){
             bounds=layer.getBounds();
             maxPoints =layer.feature.properties.num_points; 
         }
     }
-  
+    
     map.fitBounds(bounds);
 
 }
@@ -450,3 +496,29 @@ function getCustomIcon(name){
 
 }
 
+
+function getCustomIcon2(iconUrl){
+    return   new L.Icon({
+        //  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+        iconUrl:iconUrl,
+        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        shadowUrl: 'images/point-shadow.png',
+        iconSize: [15, 15],
+//        iconSize: [25, 41],
+
+//        iconAnchor: [12, 41],
+        iconAnchor: [6, 1],
+
+        popupAnchor: [1, -34],
+        shadowSize: [16, 20]
+    });
+
+}
+
+function getCustomDivIcon(background){
+
+    return L.divIcon({
+        className : 'alert-icon '+'',
+        html:'<i class="alert-icon"  style="background: '+background+'"></i>'
+    });
+}
