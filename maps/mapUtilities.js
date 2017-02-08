@@ -90,10 +90,27 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
     components.map(function(comp){
 
         if (comp.length < threshold){ //is not hotspot; make as point 
-        
+            
             for (var key in comp){
                 var point = getPointGeoJson(allNodesMap[comp[key]]);
                 geoJsonPointFeatures.features.push(point);
+                var type = allNodesMap[comp[key]].type;
+            /*    if (type == "LAB"){
+                     let mergedCircle= turf.circle(point, radius, steps, units);
+                    mergedCircle.properties.type="cluster";
+                    mergedCircle.properties.layerId = "custom";
+                    mergedCircle.properties.num_points = 1;
+                    mergedCircle.properties.area = turf.area(mergedCircle);
+                    mergedCircle.properties.uid = utility.prepareUID(null,key);
+
+                    let centroid = point;
+                    centroid.properties.type = "centroid";
+                    centroid.properties.layerId = "custom";
+                    centroid.properties.clusterSize = 1;
+
+                    geoJsonPolygonFeatures.features.push(mergedCircle);
+                    geoJsonPolygonFeatures.features.push(centroid);
+                }*/
             }         
 
         }else{ // is pollyygonn - make boundaries for this
@@ -186,9 +203,9 @@ function createGraph(data,clusterDist){
             graph.setNode(id1);
             graph.setNode(id2);
 
-            if (dist < clusterDist){
+            if (dist < clusterDist || Number.isNaN(dist)){
             // Points near each other; 
-                graph.setEdge(id1,id2,strToInt(id1)+strToInt(id2));
+                graph.setEdge(id1,id2,utility.prepareUID(null,[id1,id2]));
             }
         }
     }

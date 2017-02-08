@@ -119,9 +119,10 @@
 	    map = new _map2.default();
 
 	    var startDate = new Date();
+	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
 	    startDate.setDate(startDate.getDate() - 5);
 	    var format = "YYYY-MM-DD";
-	    (0, _jquery2.default)('#date').val((0, _moment2.default)(startDate).format(format));
+	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(startDate).format(format));
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
 	    addLegend(map.getMap());
@@ -150,7 +151,7 @@
 	        type: "GET",
 	        async: true,
 	        contentType: "application/json",
-	        url: "../../organisationUnits?filter=level:eq:5&fields=id,name,coordinates&paging=false"
+	        url: "../../organisationUnits?filter=level:eq:8&fields=id,name,coordinates&paging=false"
 	    }, function (error, response) {
 	        if (error) {} else {
 	            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
@@ -158,17 +159,19 @@
 	    });
 
 	    // coordinates to be filtered here.
-	    var startDate = (0, _jquery2.default)('#date').val();
-	    getEvents(startDate).then(function (events) {
+	    var startDate = (0, _jquery2.default)('#sdate').val();
+	    var endDate = (0, _jquery2.default)('#edate').val();
+
+	    getEvents(startDate, endDate).then(function (events) {
 	        var coords = extractCoordsFromEvents(events);
 	        buildMap(coords, 5, 3);
 	    });
 	});
 
-	function getEvents(startDate) {
+	function getEvents(startDate, endDate) {
 	    var def = _jquery2.default.Deferred();
 
-	    var endDate = new Date();
+	    //    var endDate = new Date();
 	    var format = "YYYY-MM-DD";
 
 	    _ajaxWrapper2.default.request({
@@ -483,7 +486,7 @@
 	        pointToLayer: pointToLayer
 	    }).addTo(map);
 
-	    zoomToBiggestCluster(map, geojson._layers);
+	    //zoomToBiggestCluster(map,geojson._layers);
 	}
 
 	function zoomToBiggestCluster(map, layers) {
@@ -500,9 +503,11 @@
 	    map.fitBounds(bounds);
 	}
 	function onEachFeature(feature, layer) {
+	    debugger;
 	    if (feature.properties.type == 'centroid') {
 	        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
 	    } else {
+	        debugger;
 	        layer.bindPopup('<div id="alert"><i>Fever Case[<b> ' + feature.properties.label + '</b>]<br></div>');
 	    }
 	}
@@ -60757,6 +60762,21 @@
 	            for (var key in comp) {
 	                var point = getPointGeoJson(allNodesMap[comp[key]]);
 	                geoJsonPointFeatures.features.push(point);
+	                var type = allNodesMap[comp[key]].type;
+	                /*    if (type == "LAB"){
+	                         let mergedCircle= turf.circle(point, radius, steps, units);
+	                        mergedCircle.properties.type="cluster";
+	                        mergedCircle.properties.layerId = "custom";
+	                        mergedCircle.properties.num_points = 1;
+	                        mergedCircle.properties.area = turf.area(mergedCircle);
+	                        mergedCircle.properties.uid = utility.prepareUID(null,key);
+	                         let centroid = point;
+	                        centroid.properties.type = "centroid";
+	                        centroid.properties.layerId = "custom";
+	                        centroid.properties.clusterSize = 1;
+	                         geoJsonPolygonFeatures.features.push(mergedCircle);
+	                        geoJsonPolygonFeatures.features.push(centroid);
+	                    }*/
 	            }
 	        } else {
 	            // is pollyygonn - make boundaries for this
@@ -60848,9 +60868,9 @@
 	            graph.setNode(id1);
 	            graph.setNode(id2);
 
-	            if (dist < clusterDist) {
+	            if (dist < clusterDist || Number.isNaN(dist)) {
 	                // Points near each other; 
-	                graph.setEdge(id1, id2, strToInt(id1) + strToInt(id2));
+	                graph.setEdge(id1, id2, _utilityFunctions2.default.prepareUID(null, [id1, id2]));
 	            }
 	        }
 	    }

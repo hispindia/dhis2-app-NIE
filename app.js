@@ -50,9 +50,10 @@ $('document').ready(function(){
     map = new dhis2Map();
 
     var startDate = new Date();
+    $('#sdate').val(moment(startDate).format(format));
     startDate.setDate(startDate.getDate() - 5);
     var format = "YYYY-MM-DD";
-    $('#date').val(moment(startDate).format(format));
+    $('#edate').val(moment(startDate).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
     addLegend(map.getMap())
@@ -81,7 +82,7 @@ $('document').ready(function(){
         type: "GET",
         async: true,
         contentType: "application/json",
-        url: "../../organisationUnits?filter=level:eq:5&fields=id,name,coordinates&paging=false"
+        url: "../../organisationUnits?filter=level:eq:8&fields=id,name,coordinates&paging=false"
     },function(error,response){
         if (error){
 
@@ -91,18 +92,20 @@ $('document').ready(function(){
     })
 
     // coordinates to be filtered here.
-    var startDate = $('#date').val();
-    getEvents(startDate).then(function(events){
+    var startDate = $('#sdate').val();
+    var endDate = $('#edate').val();
+
+    getEvents(startDate,endDate).then(function(events){
         var coords =  extractCoordsFromEvents(events);
         buildMap(coords,5,3);
     });
 
 });
                     
-function getEvents(startDate){
+function getEvents(startDate,endDate){
     var def = $.Deferred();
 
-    var endDate = new Date();
+//    var endDate = new Date();
     var format = "YYYY-MM-DD";
 
     ajax.request({
@@ -192,7 +195,6 @@ function reverseCoordinates(coords){
 }
 
 function addOrgUnits(blockCoords){
-
     
     // a GeoJSON multipolygon
     var mp = {
@@ -204,7 +206,6 @@ function addOrgUnits(blockCoords){
         "properties": {
             "name": "MultiPolygon",
             key : "block"
-
             
         }
     };
@@ -404,8 +405,7 @@ function addClustergons(map,gjson){
 	      });
            return;   
           }
-          
-        
+                  
         layer.on({
 	    mouseover: highlightFeature,
 	    //  mouseout: resetHighlight,
@@ -434,7 +434,7 @@ function addClustergons(map,gjson){
         pointToLayer : pointToLayer
     }).addTo(map);
 
-    zoomToBiggestCluster(map,geojson._layers);
+    //zoomToBiggestCluster(map,geojson._layers);
 }
 
 function zoomToBiggestCluster(map,layers){
@@ -452,11 +452,11 @@ function zoomToBiggestCluster(map,layers){
 
 }
 function onEachFeature (feature, layer)
-{
+{debugger
     if (feature.properties.type == 'centroid'){                
         layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
         
-    }else{
+    }else{debugger
         layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
     }
 
