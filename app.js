@@ -13,6 +13,7 @@ import dhis2Map from './maps/map';
 import mUtility from './maps/mapUtilities';
 import {AlertPopUp} from './components/components';
 import * as NIE from './nie-constants';
+import utility from './utility-functions';
 
 var map;
 var api = new dhis2API();
@@ -30,11 +31,37 @@ function saveClusterFoo(args){
 window.saveCluster(args);
 }
 
-window.saveCluster = function(properties){
+window.saveCluster = function(args){
+
+var properties = utility.unshadowStringify(args);
 
 NIE.Cluster_ProgramUID;
 
+var tei = {
+    trackedEntityInstance : properties.uid,
+    orgUnit : api.getRootOrgUnitUid(),
+    trackedEntity : NIE.TrackedEntity,
+    relationships : [
+       
+    ]
+}
+
+for  (var i=0;i<properties.teis.length;i++){
+    var rel =  {
+           relationship: NIE.Cluster_Relationship,
+            trackedEntityInstanceA : tei.trackedEntityInstance,
+            trackedEntityInstanceB : properties.teis[i]
+        }
+    tei.relationships.push(rel);
+}
+api.save("trackedEntityInstance",tei,callback);
+
+function callback(error,response){
 debugger
+}
+
+//program : NIE.Cluster_ProgramUID,
+
 
 }
 
@@ -180,7 +207,8 @@ function extractCoordsFromEvents(events){
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
-                        type : type
+                        type : type,
+                        trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
                 }
@@ -422,8 +450,8 @@ function addClustergons(map,gjson){
         
         if (feature.properties.type == 'centroid'){                
             
-           
-            str = shadowStringify(str);
+           var str = feature.properties;
+            str = utility.shadowStringify(str);
             layer.bindPopup('<div id="alert">This is a cluster!<input type="button" onclick="saveCluster(\''+str+'\')" /></div>');
             layer.on({
 	        //  mouseover: highlightFeature,

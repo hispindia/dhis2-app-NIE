@@ -84,16 +84,20 @@
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
+	var _utilityFunctions = __webpack_require__(181);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var map;
 	//import L from 'leaflet';
 	/**
 	 * Created by harsh on 15/12/16.
 	 */
 
-	var map;
 	var api = new _dhis2API2.default();
 	var previousClusterLayer;
 	var info;
@@ -108,11 +112,35 @@
 	    window.saveCluster(args);
 	}
 
-	window.saveCluster = function (properties) {
+	window.saveCluster = function (args) {
+
+	    var properties = _utilityFunctions2.default.unshadowStringify(args);
 
 	    NIE.Cluster_ProgramUID;
 
-	    debugger;
+	    var tei = {
+	        trackedEntityInstance: properties.uid,
+	        orgUnit: api.getRootOrgUnitUid(),
+	        trackedEntity: NIE.TrackedEntity,
+	        relationships: []
+	    };
+
+	    for (var i = 0; i < properties.teis.length; i++) {
+	        var rel = {
+	            relationship: NIE.Cluster_Relationship,
+	            trackedEntityInstanceA: tei.trackedEntityInstance,
+	            trackedEntityInstanceB: properties.teis[i]
+	        };
+	        tei.relationships.push(rel);
+	    }
+	    api.save("trackedEntityInstance", tei, callback);
+
+	    function callback(error, response) {
+	        debugger;
+	    }
+
+	    //program : NIE.Cluster_ProgramUID,
+
 	};
 
 	window.refresh = function () {
@@ -251,7 +279,8 @@
 	                        id: events[i].event,
 	                        coordinates: events[i].coordinate,
 	                        orgUnit: events[i].orgUnitName,
-	                        type: type
+	                        type: type,
+	                        trackedEntityInstance: events[i].trackedEntityInstance
 
 	                    });
 	                }
@@ -484,7 +513,8 @@
 
 	        if (feature.properties.type == 'centroid') {
 
-	            str = shadowStringify(str);
+	            var str = feature.properties;
+	            str = _utilityFunctions2.default.shadowStringify(str);
 	            layer.bindPopup('<div id="alert">This is a cluster!<input type="button" onclick="saveCluster(\'' + str + '\')" /></div>');
 	            layer.on({
 	                //  mouseover: highlightFeature,
@@ -32596,7 +32626,7 @@
 	    var sha1 = __webpack_require__(182);
 	    var uid = sha1(ids.sort());
 
-	    return uid.substr(0, 11);
+	    return "CL" + uid.substr(0, 9);
 	};
 
 	//http://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
@@ -60833,6 +60863,7 @@
 	                features: []
 	            };
 	            var pointsKeys = [];
+	            var teis = [];
 
 	            var circles = [],
 	                radius = clusterDist / 2,
@@ -60845,7 +60876,8 @@
 	                circles.push(_turf2.default.circle(point, radius, steps, units));
 	                points.features.push(point);
 	                geoJsonPointFeatures.features.push(point);
-	                pointsKeys.push(key);
+	                pointsKeys.push(comp[key]);
+	                teis.push(allNodesMap[comp[key]].trackedEntityInstance);
 	            }
 
 	            if (points.features.length < 3) {
@@ -60855,6 +60887,8 @@
 	            centroid.properties.type = "centroid";
 	            centroid.properties.layerId = "custom";
 	            centroid.properties.clusterSize = points.features.length;
+	            centroid.properties.keys = pointsKeys;
+	            centroid.properties.teis = teis;
 
 	            //  var hull = turf.concave(points, 1000, 'kilometers');
 	            var mergedCircle = _turf2.default.union.apply(this, circles);
@@ -60863,7 +60897,6 @@
 	            mergedCircle.properties.num_points = points.features.length;
 	            mergedCircle.properties.area = _turf2.default.area(mergedCircle);
 	            mergedCircle.properties.uid = _utilityFunctions2.default.prepareUID(null, pointsKeys);
-
 	            centroid.properties.uid = mergedCircle.properties.uid;
 
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
@@ -87929,6 +87962,8 @@
 	  value: true
 	});
 	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
+	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
+	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
 
 /***/ }
 /******/ ]);

@@ -120,6 +120,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 features : []
             };
             var pointsKeys = [];
+            var teis = [];
 
             var circles = [],
                 radius = (clusterDist)/2,
@@ -132,7 +133,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 circles.push(turf.circle(point, radius, steps, units));
                 points.features.push(point);
                 geoJsonPointFeatures.features.push(point);
-                pointsKeys.push(key);
+                pointsKeys.push(comp[key]);
+                teis.push(allNodesMap[comp[key]].trackedEntityInstance);
             }
             
             if (points.features.length <3){return}
@@ -140,6 +142,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             centroid.properties.type = "centroid";
             centroid.properties.layerId = "custom";
             centroid.properties.clusterSize = points.features.length;
+            centroid.properties.keys = pointsKeys;
+            centroid.properties.teis = teis;
 
           //  var hull = turf.concave(points, 1000, 'kilometers');
             var mergedCircle = turf.union.apply(this,circles);
@@ -148,8 +152,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             mergedCircle.properties.num_points = points.features.length;
             mergedCircle.properties.area = turf.area(mergedCircle);
             mergedCircle.properties.uid = utility.prepareUID(null,pointsKeys);
-
             centroid.properties.uid = mergedCircle.properties.uid;
+
 
             var circle = turf.circle(centroid, radius, steps, units);
            // points.features = points.features.concat(hull);
