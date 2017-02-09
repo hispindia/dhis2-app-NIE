@@ -80,14 +80,20 @@
 
 	var _components = __webpack_require__(447);
 
+	var _nieConstants = __webpack_require__(448);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var map;
 	//import L from 'leaflet';
 	/**
 	 * Created by harsh on 15/12/16.
 	 */
 
+	var map;
 	var api = new _dhis2API2.default();
 	var previousClusterLayer;
 	var info;
@@ -97,15 +103,29 @@
 	var imgpath_add = "images/orange-point.png";
 	var imgpath_cluster = "images/marker-icon-red.png";
 
+	function saveClusterFoo(args) {
+
+	    window.saveCluster(args);
+	}
+
+	window.saveCluster = function (properties) {
+
+	    NIE.Cluster_ProgramUID;
+
+	    debugger;
+	};
+
 	window.refresh = function () {
 
 	    var c_dist = (0, _jquery2.default)('#c_dist').val();
 	    var threshold = (0, _jquery2.default)('#threshold').val();
-	    var startDate = (0, _jquery2.default)('#date').val();
+	    var startDate = (0, _jquery2.default)('#sdate').val();
+	    var endDate = (0, _jquery2.default)('#edate').val();
+
 	    var diff = (0, _moment2.default)(new Date()).diff(startDate, 'days');
 
 	    (0, _jquery2.default)('#movingPeriod').text(diff);
-	    getEvents(startDate).then(function (events) {
+	    getEvents(startDate, endDate).then(function (events) {
 	        var coords = extractCoordsFromEvents(events);
 	        buildMap(coords, c_dist, threshold);
 	    });
@@ -119,9 +139,9 @@
 	    map = new _map2.default();
 
 	    var startDate = new Date();
+	    var format = "YYYY-MM-DD";
 	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
 	    startDate.setDate(startDate.getDate() - 5);
-	    var format = "YYYY-MM-DD";
 	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(startDate).format(format));
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
@@ -147,16 +167,18 @@
 
 	    info.addTo(map.getMap());
 
-	    _ajaxWrapper2.default.request({
-	        type: "GET",
-	        async: true,
-	        contentType: "application/json",
-	        url: "../../organisationUnits?filter=level:eq:8&fields=id,name,coordinates&paging=false"
-	    }, function (error, response) {
-	        if (error) {} else {
-	            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
-	        }
-	    });
+	    var style = { color: "black",
+	        opacity: 0.75,
+	        fillColor: "white",
+	        fillOpacity: 0,
+	        weight: 2
+	    };
+
+	    addOrgUnitLayer(5, Object.assign({}, style));
+	    style.weight = 0.95;
+	    style.color = "black";
+	    style.opacity = 0.25;
+	    addOrgUnitLayer(8, Object.assign({}, style));
 
 	    // coordinates to be filtered here.
 	    var startDate = (0, _jquery2.default)('#sdate').val();
@@ -168,6 +190,19 @@
 	    });
 	});
 
+	function addOrgUnitLayer(level, style) {
+
+	    _ajaxWrapper2.default.request({
+	        type: "GET",
+	        async: true,
+	        contentType: "application/json",
+	        url: "../../organisationUnits?filter=level:eq:" + level + "&fields=id,name,coordinates&paging=false"
+	    }, function (error, response) {
+	        if (error) {} else {
+	            addOrgUnits(getCoordinatesFromOus(response.organisationUnits), style);
+	        }
+	    });
+	}
 	function getEvents(startDate, endDate) {
 	    var def = _jquery2.default.Deferred();
 
@@ -260,7 +295,7 @@
 	    return coords;
 	}
 
-	function addOrgUnits(blockCoords) {
+	function addOrgUnits(blockCoords, style) {
 
 	    // a GeoJSON multipolygon
 	    var mp = {
@@ -274,12 +309,6 @@
 	            key: "block"
 
 	        }
-	    };
-	    var style = { color: "black",
-	        opacity: 0.75,
-	        fillColor: "white",
-	        fillOpacity: 0,
-	        weight: 2
 	    };
 
 	    var pointToLayer = function pointToLayer(feature, latlng) {
@@ -396,8 +425,8 @@
 	        var html = '<img src="' + imgpath_afi + '"  height="' + height + '" width="' + width + '">  AFI<br>' + '<img src="' + imgpath_add + '"  height="' + height + '" width="' + width + '">  ADD<br>' + '<img src="' + imgpath_lab + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
-	              "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
-	              "<i class='alert-icon' style='background: "+color_lab+"'></i>  : LAB";
+	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
+	            "<i class='alert-icon' style='background: "+color_lab+"'></i>  : LAB";
 	        */
 	        div.innerHTML = html;
 	        return div;
@@ -454,7 +483,9 @@
 	    var onEachFeature = function onEachFeature(feature, layer) {
 
 	        if (feature.properties.type == 'centroid') {
-	            //  layer.bindPopup('<div id="alert">This is a cluster!</div>');
+
+	            str = shadowStringify(str);
+	            layer.bindPopup('<div id="alert">This is a cluster!<input type="button" onclick="saveCluster(\'' + str + '\')" /></div>');
 	            layer.on({
 	                //  mouseover: highlightFeature,
 	                //  mouseout: resetHighlight,
@@ -32586,6 +32617,22 @@
 	    return false;
 	};
 
+	_.shadowStringify = function (json) {
+	    var str = json;
+	    str = JSON.stringify(str);
+	    str = str.replace(/\"/g, '^');
+	    str = str.replace(/{/g, '<');
+	    str = str.replace(/}/g, '>');
+	    return str;
+	};
+
+	_.unshadowStringify = function (str) {
+	    str = str.replace(/\^/g, '"');
+	    str = str.replace(/</g, '{');
+	    str = str.replace(/>/g, '}');
+
+	    return JSON.parse(str);
+	};
 	module.exports = _;
 
 /***/ },
@@ -60817,6 +60864,8 @@
 	            mergedCircle.properties.area = _turf2.default.area(mergedCircle);
 	            mergedCircle.properties.uid = _utilityFunctions2.default.prepareUID(null, pointsKeys);
 
+	            centroid.properties.uid = mergedCircle.properties.uid;
+
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
 	            // points.features = points.features.concat(hull);
 	            // points.features = points.features.concat(circle);
@@ -87869,6 +87918,17 @@
 	        );
 	}
 	function MapContainer() {}
+
+/***/ },
+/* 448 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
 
 /***/ }
 /******/ ]);

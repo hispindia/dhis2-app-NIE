@@ -51,4 +51,20 @@ _.isJson = function(item) {
     return false;
 }
 
+_.shadowStringify= function (json){
+    var str = json;
+    str = JSON.stringify(str);
+    str = str.replace(/\"/g,'^');
+    str = str.replace(/{/g,'<');
+    str = str.replace(/}/g,'>');
+    return str;
+}
+
+_.unshadowStringify = function(str){
+    str = str.replace(/\^/g,'"');
+    str = str.replace(/</g,'{');
+    str = str.replace(/>/g,'}');
+
+    return JSON.parse(str);
+}
 module.exports = _;

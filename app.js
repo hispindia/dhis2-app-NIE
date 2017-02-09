@@ -12,6 +12,7 @@ import moment from 'moment';
 import dhis2Map from './maps/map';
 import mUtility from './maps/mapUtilities';
 import {AlertPopUp} from './components/components';
+import * as NIE from './nie-constants';
 
 var map;
 var api = new dhis2API();
@@ -23,21 +24,35 @@ const imgpath_lab = "images/violet-point.png";
 const imgpath_add = "images/orange-point.png";
 const imgpath_cluster = "images/marker-icon-red.png";
 
-window.refresh = function(){
 
+function saveClusterFoo(args){
+
+window.saveCluster(args);
+}
+
+window.saveCluster = function(properties){
+
+NIE.Cluster_ProgramUID;
+
+debugger
+
+}
+
+
+window.refresh = function(){
 
     var c_dist=$('#c_dist').val();
     var threshold=$('#threshold').val();
-    var startDate = $('#date').val();
+    var startDate = $('#sdate').val();
+    var endDate = $('#edate').val();
+
     var diff = moment(new Date()).diff(startDate,'days');
     
     $('#movingPeriod').text(diff);
-    getEvents(startDate).then(function(events){
+    getEvents(startDate,endDate).then(function(events){
         var coords =  extractCoordsFromEvents(events);
         buildMap(coords,c_dist,threshold);
     });
-
-
 
 }
 
@@ -50,9 +65,9 @@ $('document').ready(function(){
     map = new dhis2Map();
 
     var startDate = new Date();
+    var format = "YYYY-MM-DD";
     $('#sdate').val(moment(startDate).format(format));
     startDate.setDate(startDate.getDate() - 5);
-    var format = "YYYY-MM-DD";
     $('#edate').val(moment(startDate).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
@@ -60,7 +75,7 @@ $('document').ready(function(){
 
     // control that shows state info on hover
     
-     info = L.control();
+    info = L.control();
 
     info.onAdd = function (map) {
         this._div = L.DomUtil.create('div', 'info');
@@ -72,24 +87,26 @@ $('document').ready(function(){
         if (!props){return} 
 
         this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>'+props.uid+'</b></i></th></tr><thead>'+
-        '<tbody><tr><td>No of Cases </td><td> <b><i>'+props.num_points + '</b></i></td></tr>'+
+            '<tbody><tr><td>No of Cases </td><td> <b><i>'+props.num_points + '</b></i></td></tr>'+
             '<tr><td>Area </td><td><b><i> '+((parseFloat(props.area)/1000000)).toFixed(2)+'(sq Kms)</b></i></td></tr></tbody></table>';
     };
 
     info.addTo(map.getMap());
 
-    ajax.request({
-        type: "GET",
-        async: true,
-        contentType: "application/json",
-        url: "../../organisationUnits?filter=level:eq:8&fields=id,name,coordinates&paging=false"
-    },function(error,response){
-        if (error){
+    var style = { color: "black",
+                  opacity: 0.75,
+                  fillColor: "white",
+                  fillOpacity: 0,
+                  weight : 2,
+                  //                  dashArray: '5, 5',
 
-        }else{
-            addOrgUnits(getCoordinatesFromOus(response.organisationUnits));
-        }
-    })
+                }
+
+    addOrgUnitLayer(5,Object.assign({},style));
+    style.weight =0.95;
+    style.color = "black";
+    style.opacity = 0.25;
+    addOrgUnitLayer(8,Object.assign({},style));
 
     // coordinates to be filtered here.
     var startDate = $('#sdate').val();
@@ -101,11 +118,27 @@ $('document').ready(function(){
     });
 
 });
-                    
+
+function addOrgUnitLayer(level,style){
+
+    ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url: "../../organisationUnits?filter=level:eq:"+level+"&fields=id,name,coordinates&paging=false"
+    },function(error,response){
+        if (error){
+
+        }else{
+            addOrgUnits(getCoordinatesFromOus(response.organisationUnits),style);
+        }
+    })
+
+}                    
 function getEvents(startDate,endDate){
     var def = $.Deferred();
 
-//    var endDate = new Date();
+    //    var endDate = new Date();
     var format = "YYYY-MM-DD";
 
     ajax.request({
@@ -194,7 +227,7 @@ function reverseCoordinates(coords){
     return coords;
 }
 
-function addOrgUnits(blockCoords){
+function addOrgUnits(blockCoords,style){
     
     // a GeoJSON multipolygon
     var mp = {
@@ -209,15 +242,7 @@ function addOrgUnits(blockCoords){
             
         }
     };
-    var style = { color: "black",
-                  opacity: 0.75,
-                  fillColor: "white",
-                  fillOpacity: 0,
-                  weight : 2,
-                  //                  dashArray: '5, 5',
-
-                }
-
+    
     var pointToLayer = function(feature, latlng) {
         feature.properties.style = style;
     };
@@ -332,8 +357,8 @@ function addLegend(map){
 	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
-      
-      /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
+        
+        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
             "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
             "<i class='alert-icon' style='background: "+color_lab+"'></i>  : LAB";
 	*/
@@ -395,17 +420,19 @@ function addClustergons(map,gjson){
     var onEachFeature = function (feature, layer)
     {
         
-        
-          if (feature.properties.type == 'centroid'){                
-        //  layer.bindPopup('<div id="alert">This is a cluster!</div>');
-              layer.on({
+        if (feature.properties.type == 'centroid'){                
+            
+           
+            str = shadowStringify(str);
+            layer.bindPopup('<div id="alert">This is a cluster!<input type="button" onclick="saveCluster(\''+str+'\')" /></div>');
+            layer.on({
 	        //  mouseover: highlightFeature,
-	          //  mouseout: resetHighlight,
-	          click: panToFeature
-	      });
-           return;   
-          }
-                  
+	        //  mouseout: resetHighlight,
+	        click: panToFeature
+	    });
+            return;   
+        }
+        
         layer.on({
 	    mouseover: highlightFeature,
 	    //  mouseout: resetHighlight,
@@ -414,11 +441,11 @@ function addClustergons(map,gjson){
         
     }
 
- var pointToLayer = function(feature, latlng) {
+    var pointToLayer = function(feature, latlng) {
         if (feature.properties.type=="centroid"){
-           return L.marker(latlng, {
-             icon: getCustomIcon('red')
-        });
+            return L.marker(latlng, {
+                icon: getCustomIcon('red')
+            });
         }
         
         return L.marker(latlng, {
@@ -453,12 +480,12 @@ function zoomToBiggestCluster(map,layers){
 }
 function onEachFeature (feature, layer)
 {debugger
-    if (feature.properties.type == 'centroid'){                
-        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-        
-    }else{debugger
-        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-    }
+ if (feature.properties.type == 'centroid'){                
+     layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+     
+ }else{debugger
+       layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+      }
 
 }
 
@@ -504,9 +531,9 @@ function getCustomIcon2(iconUrl){
         //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         shadowUrl: 'images/point-shadow.png',
         iconSize: [15, 15],
-//        iconSize: [25, 41],
+        //        iconSize: [25, 41],
 
-//        iconAnchor: [12, 41],
+        //        iconAnchor: [12, 41],
         iconAnchor: [6, 1],
 
         popupAnchor: [1, -34],
