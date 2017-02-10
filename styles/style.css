@@ -1174,6 +1174,10 @@ input, button, select, textarea {
     background-color: red;
 }
 
+.leaflet-popup-content {
+    width:auto !important;
+}
+
 .select2-container .select2-choice {
     padding: 5px !important;
     color: #555 !important;

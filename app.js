@@ -25,6 +25,7 @@ const imgpath_lab = "images/violet-point.png";
 const imgpath_add = "images/orange-point.png";
 const imgpath_cluster = "images/marker-icon-red.png";
 
+var patientList =[];
 
 function saveClusterFoo(args){
 
@@ -87,6 +88,67 @@ window.refresh = function(){
 
 }
 
+//window.addTable = function(){
+function addTable(){
+    /*  patientList.forEach(function(items) {
+     var row = document.createElement("tr");
+     items.forEach(function(item) {
+     var cell = document.createElement("td");
+     cell.textContent = item;
+     row.appendChild(cell);
+     });
+     table.appendChild(row);
+     });*/
+    var uniqueNames = [];
+    $.each(patientList, function(i, el){
+        if($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+    });
+
+   document.getElementById("table").innerHTML="";
+    var myTableDiv = document.getElementById("table");
+    var  table = document.createElement('TABLE');
+    var tableBody = document.createElement('TBODY');
+
+    table.border = '1';
+    table.appendChild(tableBody);
+
+    /*var heading = new Array();
+     heading[0] = "Request Type"
+     heading[1] = "Group A"
+     heading[2] = "Groub B"
+     heading[3] = "Group C"
+     heading[4] = "Total"
+
+     var stock = new Array()
+     stock[0] = new Array("Cars", "88.625", "85.50", "85.81", "987")
+     stock[1] = new Array("Veggies", "88.625", "85.50", "85.81", "988")
+     stock[2] = new Array("Colors", "88.625", "85.50", "85.81", "989")
+     stock[3] = new Array("Numbers", "88.625", "85.50", "85.81", "990")
+     stock[4] = new Array("Requests", "88.625", "85.50", "85.81", "991")
+
+     //TABLE COLUMNS
+     var tr = document.createElement('TR');
+     tableBody.appendChild(tr);
+     for (var i = 0; i < patientList; i++) {
+     var th = document.createElement('TH')
+     th.width = '75';
+     th.appendChild(document.createTextNode(heading[i]));
+     tr.appendChild(th);
+     }
+     */
+    //TABLE ROWS
+    //  for (i = 0; i < stock.length; i++) {
+    var tr = document.createElement('TR');
+    for (var j = 0; j < uniqueNames.length; j++) {
+        var td = document.createElement('TD');
+        td.appendChild(document.createTextNode(uniqueNames[j]));
+        tr.appendChild(td)
+    }
+    tableBody.appendChild(tr);
+    // }
+     myTableDiv.appendChild(table)
+
+}
 window.alertConfirmed = function(){
     alert("SMS alerts to go here!");
 
@@ -165,7 +227,54 @@ function addOrgUnitLayer(level,style){
         }
     })
 
-}                    
+}
+
+window.filterEventsBasedOnCluster = function (teiIds){
+
+    var str_array = teiIds.split(',');
+    var startDate = $('#date').val();
+
+        getPatients().then(function (tei) {
+
+            patientList =[];
+            for (var i = 0; i < str_array.length; i++) {
+                for (var j = 0; j < tei.length; j++) {
+                    if (str_array[i] == tei[j].trackedEntityInstance) {
+                        for (var k = 0; k < tei[j].attributes.length; k++) {
+                            if (tei[j].attributes[k].displayName == 'Patient name') {
+                                patientList.push(tei[j].attributes[k].value);
+
+                            }
+                        }
+
+                    }
+                }
+            }
+            addTable();
+
+
+        })
+
+   //addTable();
+}
+function getPatients(){
+    var def = $.Deferred();
+    ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url:"../../trackedEntityInstances.json?program=xqoEn6Je5Kj&ou="+api.getRootOrgUnitUid()+"&ouMode=DESCENDANTS&skipPaging=true"
+        // url: "../../events?orgUnit="+api.getRootOrgUnitUid()+"&ouMode=DESCENDANTS&startDate="+moment(startDate).format(format)+"&endDate="+moment(endDate).format(format)+"&skipPaging=true"
+    },function(error,response){
+        if (error){
+            def.resolve(null);
+        }else{
+            def.resolve(response.trackedEntityInstances);
+        }
+    })
+    return def.promise();
+
+}
 function getEvents(startDate,endDate){
     var def = $.Deferred();
 
@@ -338,7 +447,7 @@ function buildMap(coords,c_dist,threshold){
         nearbyDistance : 1 , keepSpiderfied : true
     });
 
-    var popup = new L.Popup();
+    var popup = new L.Popup({   minWidth:4000 });
     oms.addListener('click', function(marker) {
         popup.setContent(marker.desc);
         popup.setLatLng(marker.getLatLng());
@@ -455,7 +564,9 @@ function addClustergons(map,gjson){
             
            var str = feature.properties;
             str = utility.shadowStringify(str);
-            layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
+          //  layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
+           layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"></div>' +'<div><input type="button" id="create" value="see patients" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table"></table></div>',{maxWidth: 5000});
+
             layer.on({
 	        //  mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,
@@ -465,7 +576,7 @@ function addClustergons(map,gjson){
         }
         
         layer.on({
-	    mouseover: highlightFeature,
+	    mouseover: highlightFeature
 	    //  mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});

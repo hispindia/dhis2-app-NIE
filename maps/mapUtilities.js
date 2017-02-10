@@ -153,6 +153,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
             mergedCircle.properties.area = turf.area(mergedCircle);
             mergedCircle.properties.uid = utility.prepareUID(null,pointsKeys);
             centroid.properties.uid = mergedCircle.properties.uid;
+            mergedCircle.properties.teis = teis;
 
 
             var circle = turf.circle(centroid, radius, steps, units);
