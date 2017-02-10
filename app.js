@@ -57,14 +57,18 @@ for  (var i=0;i<properties.teis.length;i++){
 api.save("trackedEntityInstance",tei,callback);
 
 function callback(error,response){
-debugger
+if (error){
+alert("Already Exists!!");
+}else{
+alert("Cluster Saved Succesfully!");
+}
+
+
 }
 
 //program : NIE.Cluster_ProgramUID,
 
-
 }
-
 
 window.refresh = function(){
 
@@ -267,7 +271,6 @@ function addOrgUnits(blockCoords,style){
         "properties": {
             "name": "MultiPolygon",
             key : "block"
-            
         }
     };
     
@@ -452,7 +455,7 @@ function addClustergons(map,gjson){
             
            var str = feature.properties;
             str = utility.shadowStringify(str);
-            layer.bindPopup('<div id="alert">This is a cluster!<input type="button" onclick="saveCluster(\''+str+'\')" /></div>');
+            layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
             layer.on({
 	        //  mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,
@@ -507,11 +510,11 @@ function zoomToBiggestCluster(map,layers){
 
 }
 function onEachFeature (feature, layer)
-{debugger
+{
  if (feature.properties.type == 'centroid'){                
      layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
      
- }else{debugger
+ }else{
        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
       }
 
