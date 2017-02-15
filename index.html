@@ -54,7 +54,11 @@
 
     <script type="text/javascript" src="scripts/lib/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="scripts/lib/leaflet/dist/leaflet.css" />
-    
+
+    <script type="text/javascript" src="scripts/lib/leaflet/dist/rrose-src.js"></script>
+    <link rel="stylesheet" href="scripts/lib/leaflet/dist/leaflet.rrose.css" />
+    <link rel="stylesheet" href="scripts/lib/leaflet/dist/leaflet.rrose.ie.css" />
+
     <link rel="stylesheet" href="scripts/lib/leaflet-easyPrint/dist/easyPrint.css"/>
     <script src="scripts/lib/leaflet-easyPrint/dist/leaflet.easyPrint.js"></script>
     <script src="scripts/lib/oms/oms.min.js"></script>
@@ -63,6 +67,7 @@
     <link type="text/css" rel="stylesheet" media="screen" href="styles/main.css">
 
     <script type="text/javascript" src="angular-app.js"></script>
+
 
   </head>
   <body>
@@ -75,28 +80,42 @@
     <div id="mainContainer">
       <div class="hidden-print">
         <label><h2>eDFSS Alerts</h2></label>
-        <label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 5 </i></b></label>
+        <label class="right">Moving Period Range(in days):<b><i id = "movingPeriod">  </i></b></label>
 
         <br>
-        Start Date: <input id="sdate" type="date"></input>
-        End Date: <input id="edate" type="date"></input>
+        Start Date: <input id="sdate" type="date"/>
+        End Date: <input id="edate" type="date"/>
 
         Cluster Distance(Km):
-        <input type="number" id="c_dist" value="5"></input>
+        <input type="number" id="c_dist" value="5"/>
         Threshold:
-        <input type="number" id="threshold" value="3"></input>
-        <input class="btn-info right" type="button" value="Refresh" onclick="refresh();"/>
+        <input type="number" id="threshold" value="3"/>
+        <input class="btn-info right" type="button" value="Refresh" onclick="refresh();movingPeriod();"/>
         <br><br>
       </div>
       <div id="container"></div>
       <div id="requestStats"></div>
       <div id="dataTable"></div>
 
-      <div id="mapid" style="height: 500px"></div>
+      <div id="mapid" style="height: 700px"></div>
     </div>
-
-
-
-
   </body>
+<script>
+  function movingPeriod(){
+
+    var start = document.getElementById("sdate").value;
+    var end = document.getElementById("edate").value;
+
+    var start1 = new Date(start);
+    var end1 = new Date(end);
+
+    var timeDiff = Math.abs(end1.getTime() - start1.getTime());
+    var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  //  alert(diffDays);
+
+    document.getElementById("movingPeriod").innerHTML =diffDays;
+  }
+
+
+</script>
 </html>

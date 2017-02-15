@@ -25,8 +25,8 @@ const imgpath_lab = "images/violet-point.png";
 const imgpath_add = "images/orange-point.png";
 const imgpath_cluster = "images/marker-icon-red.png";
 
-var patientList =[];
-
+var filteredTei=[];
+var optionSetList =[];
 function saveClusterFoo(args){
 
 window.saveCluster(args);
@@ -61,9 +61,8 @@ function callback(error,response){
 if (error){
 alert("Already Exists!!");
 }else{
-alert("Cluster Saved Succesfully!");
+alert("Cluster Saved Successfully!");
 }
-
 
 }
 
@@ -89,22 +88,9 @@ window.refresh = function(){
 }
 
 //window.addTable = function(){
-function addTable(){
-    /*  patientList.forEach(function(items) {
-     var row = document.createElement("tr");
-     items.forEach(function(item) {
-     var cell = document.createElement("td");
-     cell.textContent = item;
-     row.appendChild(cell);
-     });
-     table.appendChild(row);
-     });*/
-    var uniqueNames = [];
-    $.each(patientList, function(i, el){
-        if($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-    });
+function addTable1(){
 
-   document.getElementById("table").innerHTML="";
+    document.getElementById("table").innerHTML="";
     var myTableDiv = document.getElementById("table");
     var  table = document.createElement('TABLE');
     var tableBody = document.createElement('TBODY');
@@ -112,48 +98,212 @@ function addTable(){
     table.border = '1';
     table.appendChild(tableBody);
 
-    /*var heading = new Array();
-     heading[0] = "Request Type"
-     heading[1] = "Group A"
-     heading[2] = "Groub B"
-     heading[3] = "Group C"
-     heading[4] = "Total"
+    var heading = [];
+    heading[0] = "Patient name";
+    heading[1] = "Age";
+    heading[2] = "Gender";
+    heading[3] = "Phone";
+    heading[4] = "Habitation";
+    heading[5] = "Street name";
+    heading[6] = "Village";
+    heading[7] = "Reporting institution";
 
-     var stock = new Array()
-     stock[0] = new Array("Cars", "88.625", "85.50", "85.81", "987")
-     stock[1] = new Array("Veggies", "88.625", "85.50", "85.81", "988")
-     stock[2] = new Array("Colors", "88.625", "85.50", "85.81", "989")
-     stock[3] = new Array("Numbers", "88.625", "85.50", "85.81", "990")
-     stock[4] = new Array("Requests", "88.625", "85.50", "85.81", "991")
+    //TABLE COLUMNS
 
-     //TABLE COLUMNS
-     var tr = document.createElement('TR');
-     tableBody.appendChild(tr);
-     for (var i = 0; i < patientList; i++) {
-     var th = document.createElement('TH')
-     th.width = '75';
-     th.appendChild(document.createTextNode(heading[i]));
-     tr.appendChild(th);
-     }
-     */
-    //TABLE ROWS
-    //  for (i = 0; i < stock.length; i++) {
     var tr = document.createElement('TR');
-    for (var j = 0; j < uniqueNames.length; j++) {
-        var td = document.createElement('TD');
-        td.appendChild(document.createTextNode(uniqueNames[j]));
-        tr.appendChild(td)
-    }
     tableBody.appendChild(tr);
-    // }
-     myTableDiv.appendChild(table)
+    for (var i = 0; i <heading.length; i++) {
+        var th = document.createElement('TH');
+        th.width = '75';
+        th.appendChild(document.createTextNode(heading[i]));
+        tr.appendChild(th);
+    }
+
+    //TABLE ROWS
+
+    for (var i = 0; i < filteredTei.length; i++) {
+        var org;
+        $.ajax({
+            async:false,
+            type: "GET",
+            url: '../../../api/organisationUnits/' + filteredTei[i].orgUnit + '.json?fields=displayName,id',
+            success: function(response){
+                org=response.displayName;
+            },
+            error: function(response){
+            }
+
+        });
+
+        var tr = document.createElement('TR');
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td1 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Patient name') {
+
+                td1.appendChild(document.createTextNode(filteredTei[i].attributes[j].value));
+                break;
+
+            }
+        }
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td2 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Age (in years)') {
+
+                td2.appendChild(document.createTextNode(filteredTei[i].attributes[j].value));break;
+            }
+
+        }
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td3 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Sex') {
+
+                td3.appendChild(document.createTextNode(filteredTei[i].attributes[j].value));break;
+            }
+
+        }
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td4 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Phone number') {
+
+                td4.appendChild(document.createTextNode(filteredTei[i].attributes[j].value));break;
+            }
+
+        }
+
+        var td5 = document.createElement('TD');
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+           // var td5 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Habitation') {
+                for(var l=0; l<optionSetList.length; l++){
+                    if( filteredTei[i].attributes[j].value == optionSetList[l].code ){
+                        td5.appendChild(document.createTextNode(optionSetList[l].name));
+                        break;
+
+                    }
+                }
+            }
+
+        }
+
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td6 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Street name') {
+
+                td6.appendChild(document.createTextNode(filteredTei[i].attributes[j].value));break;
+            }
+
+        }
+
+        for (var j = 0; j < filteredTei[i].attributes.length; j++) {
+            var td7 = document.createElement('TD');
+            if (filteredTei[i].attributes[j].displayName == 'Village') {
+
+                td7.appendChild(document.createTextNode(filteredTei[i].attributes[j].value)); break;
+
+            }
+        }
+
+        var td15 = document.createElement('TD');
+        td15.appendChild(document.createTextNode(org));
+
+// col 1
+        if(td1.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+        }
+        else  if(td1.innerHTML != ""){
+            tr.appendChild(td1);
+        }
+
+
+        //col2
+        if(td2.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+        }
+        else  if(td2.innerHTML != ""){
+            tr.appendChild(td2);
+        }
+
+        //col3
+
+        if(td3.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);        }
+        else  if(td3.innerHTML != ""){
+            tr.appendChild(td3);
+        }
+
+        //col 4
+        if(td4.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+
+        }
+        else  if(td4.innerHTML != ""){
+            tr.appendChild(td4);
+
+        }
+
+        //col5
+        if(td5.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+
+        }
+        else if(td5.innerHTML != ""){
+            tr.appendChild(td5);
+
+        }
+
+        //col6
+        if(td6.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+
+        }
+
+        else if(td6.innerHTML != ""){
+            tr.appendChild(td6);
+
+        }
+
+        //col7
+        if(td7.innerHTML == ""){
+            var tds = document.createElement('TD');
+            tds.appendChild(document.createTextNode(""));
+            tr.appendChild(tds);
+        }
+        else{
+            tr.appendChild(td7);
+
+        }
+        tr.appendChild(td15);
+        tableBody.appendChild(tr);
+       // })
+        myTableDiv.appendChild(table);
+    }
+
+
 
 }
+
 window.alertConfirmed = function(){
     alert("SMS alerts to go here!");
 
 }
-
 $('document').ready(function(){
     map = new dhis2Map();
 
@@ -184,13 +334,14 @@ $('document').ready(function(){
             '<tr><td>Area </td><td><b><i> '+((parseFloat(props.area)/1000000)).toFixed(2)+'(sq Kms)</b></i></td></tr></tbody></table>';
     };
 
+
     info.addTo(map.getMap());
 
     var style = { color: "black",
                   opacity: 0.75,
                   fillColor: "white",
                   fillOpacity: 0,
-                  weight : 2,
+                  weight : 2
                   //                  dashArray: '5, 5',
 
                 }
@@ -235,27 +386,25 @@ window.filterEventsBasedOnCluster = function (teiIds){
     var startDate = $('#date').val();
 
         getPatients().then(function (tei) {
-
-            patientList =[];
-            for (var i = 0; i < str_array.length; i++) {
-                for (var j = 0; j < tei.length; j++) {
-                    if (str_array[i] == tei[j].trackedEntityInstance) {
-                        for (var k = 0; k < tei[j].attributes.length; k++) {
-                            if (tei[j].attributes[k].displayName == 'Patient name') {
-                                patientList.push(tei[j].attributes[k].value);
-
-                            }
-                        }
-
-                    }
-                }
+            getOptionSetOptions().then(function(op) {
+                filteredTei =[];
+optionSetList =[];
+    for (var i = 0; i < str_array.length; i++) {
+        for (var j = 0; j < tei.length; j++) {
+            if (str_array[i] == tei[j].trackedEntityInstance) {
+                filteredTei.push(tei[j]);
             }
-            addTable();
+        }
+    }
+    for(var k=0;k < op.length; k++){
+        optionSetList.push(op[k]);
+    }
+    addTable1();
 
-
+})
         })
 
-   //addTable();
+
 }
 function getPatients(){
     var def = $.Deferred();
@@ -270,6 +419,25 @@ function getPatients(){
             def.resolve(null);
         }else{
             def.resolve(response.trackedEntityInstances);
+        }
+    })
+    return def.promise();
+
+}
+
+function getOptionSetOptions(){
+    var def = $.Deferred();
+    ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url:"../../optionSets/Y0PP4hMNAcX.json?fields=options[name,code]"
+        // url: "../../events?orgUnit="+api.getRootOrgUnitUid()+"&ouMode=DESCENDANTS&startDate="+moment(startDate).format(format)+"&endDate="+moment(endDate).format(format)+"&skipPaging=true"
+    },function(error,response){
+        if (error){
+            def.resolve(null);
+        }else{
+            def.resolve(response.options);
         }
     })
     return def.promise();
@@ -564,8 +732,8 @@ function addClustergons(map,gjson){
             
            var str = feature.properties;
             str = utility.shadowStringify(str);
-          //  layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
-           layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"></div>' +'<div><input type="button" id="create" value="see patients" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table"></table></div>',{maxWidth: 5000});
+
+           layer.bindPopup('<div id="alert">cluster found.. !<input type="button" style="margin-top:3px" onclick="saveCluster(\''+str+'\')" value="Approve"></div>' +'<div><input type="button" id="create" style="margin-top:7px" value="see patient line list" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table" style="margin-top:9px"></table></div>',{autoPan:false});
 
             layer.on({
 	        //  mouseover: highlightFeature,
@@ -600,7 +768,8 @@ function addClustergons(map,gjson){
     geojson = L.geoJson(gjson, {
 	style: style,
 	onEachFeature: onEachFeature,
-        pointToLayer : pointToLayer
+        pointToLayer : pointToLayer,
+
     }).addTo(map);
 
     //zoomToBiggestCluster(map,geojson._layers);
