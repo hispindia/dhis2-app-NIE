@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 //import L from 'leaflet';
 import ajax from './ajax-wrapper'
 import $ from 'jquery';
@@ -14,6 +14,42 @@ import mUtility from './maps/mapUtilities';
 import {AlertPopUp} from './components/components';
 import * as NIE from './nie-constants';
 import utility from './utility-functions';
+
+import withStateFrom from 'd2-ui/lib/component-helpers/withStateFrom';
+import HeaderBarComponent from 'd2-ui/lib/app-header/HeaderBar';
+import headerBarStore$ from 'd2-ui/lib/app-header/headerBar.store';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import {init, getManifest} from 'd2/lib/d2';
+
+const HeaderBar = withStateFrom(headerBarStore$, HeaderBarComponent);
+
+getManifest('manifest.webapp')
+    .then(manifest => manifest.getBaseUrl())
+    .then(baseUrl => init({ baseUrl: `${baseUrl}/api` }))
+    .then(d2 => {
+        const D2Provider = React.createClass({
+            childContextTypes: {
+                d2: React.PropTypes.object,
+            },
+            getChildContext() {
+                return {
+                    d2,
+                };
+            },
+            render() {
+                return (<div>{this.props.children}</div>);
+            }
+        });
+
+        render(
+            <MuiThemeProvider>
+                <D2Provider>
+                    <HeaderBar />
+                </D2Provider>
+            </MuiThemeProvider>,
+            document.getElementById('header')
+        );
+    });
 
 var map;
 var api = new dhis2API();
@@ -27,46 +63,42 @@ const imgpath_cluster = "images/marker-icon-red.png";
 
 
 function saveClusterFoo(args){
-
-window.saveCluster(args);
+debugger
+    window.saveCluster(args);
 }
 
 window.saveCluster = function(args){
 
-var properties = utility.unshadowStringify(args);
+    var properties = utility.unshadowStringify(args);
 
-NIE.Cluster_ProgramUID;
+    NIE.Cluster_ProgramUID;
 
-var tei = {
-    trackedEntityInstance : properties.uid,
-    orgUnit : api.getRootOrgUnitUid(),
-    trackedEntity : NIE.TrackedEntity,
-    relationships : [
-       
-    ]
-}
+    var tei = {
+        trackedEntityInstance : properties.uid,
+        orgUnit : api.getRootOrgUnitUid(),
+        trackedEntity : NIE.TrackedEntity,
+        relationships : [
+            
+        ]
+    }
 
-for  (var i=0;i<properties.teis.length;i++){
-    var rel =  {
-           relationship: NIE.Cluster_Relationship,
+    for  (var i=0;i<properties.teis.length;i++){
+        var rel =  {
+            relationship: NIE.Cluster_Relationship,
             trackedEntityInstanceA : tei.trackedEntityInstance,
             trackedEntityInstanceB : properties.teis[i]
         }
-    tei.relationships.push(rel);
-}
-api.save("trackedEntityInstance",tei,callback);
+        tei.relationships.push(rel);
+    }
+    api.save("trackedEntityInstance",tei,callback);
 
-function callback(error,response){
-if (error){
-alert("Already Exists!!");
-}else{
-alert("Cluster Saved Succesfully!");
-}
-
-
-}
-
-//program : NIE.Cluster_ProgramUID,
+    function callback(error,response){
+        if (error){
+            alert("Already Exists!!");
+        }else{
+            alert("Cluster Saved Succesfully!");
+        }
+    }
 
 }
 
@@ -89,7 +121,6 @@ window.refresh = function(){
 
 window.alertConfirmed = function(){
     alert("SMS alerts to go here!");
-
 }
 
 $('document').ready(function(){
@@ -97,9 +128,9 @@ $('document').ready(function(){
 
     var startDate = new Date();
     var format = "YYYY-MM-DD";
-    $('#sdate').val(moment(startDate).format(format));
     startDate.setDate(startDate.getDate() - 5);
-    $('#edate').val(moment(startDate).format(format));
+    $('#sdate').val(moment(startDate).format(format));
+    $('#edate').val(moment(new Date()).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
     addLegend(map.getMap())
@@ -193,21 +224,9 @@ function extractCoordsFromEvents(events){
     for (var i=0;i<events.length;i++){       
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                if (events[i].program == "xqoEn6Je5Kj"){
-                    var type = "unknown";
-                    if (events[i].programStage == "Fy9tjDYgdBi"){
-                        var val = findValueAgainstId(events[i].dataValues,"dataElement","ylhxXcMMuZC","value");
-                        if (val == "AFI" || val == "ADD"){
-                            type = val;
-                        }else{continue;}
-                    }else 
-                        if (events[i].programStage == "jo25vJdB3qx"){
-                            if (events[i].dataValues.length>0){
-                                type="LAB";
-                            }else{continue;}
-                        }
-                    
-                    result.push({
+                var type = "AFI";
+                  
+                result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
@@ -215,8 +234,6 @@ function extractCoordsFromEvents(events){
                         trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
-                }
-                
             }
         }
         
@@ -453,7 +470,7 @@ function addClustergons(map,gjson){
         
         if (feature.properties.type == 'centroid'){                
             
-           var str = feature.properties;
+            var str = feature.properties;
             str = utility.shadowStringify(str);
             layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
             layer.on({
@@ -492,7 +509,8 @@ function addClustergons(map,gjson){
         pointToLayer : pointToLayer
     }).addTo(map);
 
-    //zoomToBiggestCluster(map,geojson._layers);
+   
+    zoomToBiggestCluster(map,geojson._layers);
 }
 
 function zoomToBiggestCluster(map,layers){
@@ -511,12 +529,12 @@ function zoomToBiggestCluster(map,layers){
 }
 function onEachFeature (feature, layer)
 {
- if (feature.properties.type == 'centroid'){                
-     layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-     
- }else{
-       layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-      }
+    if (feature.properties.type == 'centroid'){                
+        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+        
+    }else{
+        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+    }
 
 }
 

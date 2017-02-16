@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Alerts</title>
 
-    <script type="application/javascript" src="bundle.js"></script>
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
 
     <script type="text/javascript" src="scripts/lib/jQuery/jquery.min.js"></script>
@@ -44,11 +43,6 @@
     <script type="text/javascript" src="scripts/lib/commons/dhis2.storage.memory.js"></script>
     <script type="text/javascript" src="scripts/lib/commons/dhis2.storage.js"></script>
 
-    <script type="text/javascript" src="scripts/lib/commons/dhis2.translate.js"></script>
-    <script type="text/javascript" src="scripts/lib/commons/dhis2.menu.js"></script>
-    <script type="text/javascript" src="scripts/lib/commons/dhis2.menu.ui.js"></script>
-
-    <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/menu.css">
     <link type="text/css" rel="stylesheet" media="screen" href="scripts/lib/commons/css/widgets.css">
     <link type="text/css" rel="stylesheet" href="scripts/lib/commons/font-awesome/css/font-awesome.min.css"/>
 
@@ -67,8 +61,8 @@
   </head>
   <body>
 
-    <div class="hidden-print">
-      <d2-header-bar></d2-header-bar>
+    <div id="header" class="hidden-print">
+     <!-- <d2-header-bar></d2-header-bar> -->
     </div>
 
     <div ng-view></div>
@@ -97,6 +91,6 @@
 
 
 
-
+    <script type="application/javascript" src="bundle.js"></script>
   </body>
 </html>
