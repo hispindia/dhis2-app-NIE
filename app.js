@@ -20,16 +20,18 @@ var api = new dhis2API();
 var previousClusterLayer;
 var info;
 
-const imgpath_afi = "images/yellow-point.png";
+
+const imgpath_afi = "images/red-triangle.PNG";
 const imgpath_lab = "images/violet-point.png";
-const imgpath_add = "images/orange-point.png";
+const imgpath_add = "images/black-square.PNG";
 const imgpath_cluster = "images/marker-icon-red.png";
 
 var filteredTei=[];
 var optionSetList =[];
+var registeringOu,programId;
 function saveClusterFoo(args){
-
-window.saveCluster(args);
+    window.saveCluster(args);
+  //  window.saveClusterEnrollment(args);
 }
 
 window.saveCluster = function(args){
@@ -37,38 +39,45 @@ window.saveCluster = function(args){
 var properties = utility.unshadowStringify(args);
 
 NIE.Cluster_ProgramUID;
+    var teid = properties.teis[0];
+    getPatients().then(function (patients) {
+        for (var l = 0; l < patients.length; l++) {
+            if (teid == patients[l].trackedEntityInstance) {
+                registeringOu = patients[l].orgUnit;
 
-var tei = {
-    trackedEntityInstance : properties.uid,
-    orgUnit : api.getRootOrgUnitUid(),
-    trackedEntity : NIE.TrackedEntity,
-    relationships : [
-       
-    ]
-}
-
-for  (var i=0;i<properties.teis.length;i++){
-    var rel =  {
-           relationship: NIE.Cluster_Relationship,
-            trackedEntityInstanceA : tei.trackedEntityInstance,
-            trackedEntityInstanceB : properties.teis[i]
+            }
         }
-    tei.relationships.push(rel);
-}
-api.save("trackedEntityInstance",tei,callback);
 
-function callback(error,response){
-if (error){
-alert("Already Exists!!");
-}else{
-alert("Cluster Saved Successfully!");
-}
+        var tei = {
+            trackedEntityInstance: properties.uid,
+            orgUnit: registeringOu,
+            trackedEntity: NIE.TrackedEntity,
+            relationships: []
+        }
 
-}
+        for (var i = 0; i < properties.teis.length; i++) {
+            var rel = {
+                relationship: NIE.Cluster_Relationship,
+                trackedEntityInstanceA: tei.trackedEntityInstance,
+                trackedEntityInstanceB: properties.teis[i]
+            }
+            tei.relationships.push(rel);
+        }
+        api.save("trackedEntityInstance", tei, callback);
+
+        function callback(error, response) {
+            if (error) {
+                alert("Already Exists!!");
+            } else {
+                alert("Cluster Saved Successfully!");
+            }
+
+        }
 
 //program : NIE.Cluster_ProgramUID,
-
+    })
 }
+
 
 window.refresh = function(){
 
@@ -78,7 +87,7 @@ window.refresh = function(){
     var endDate = $('#edate').val();
 
     var diff = moment(new Date()).diff(startDate,'days');
-    
+
     $('#movingPeriod').text(diff);
     getEvents(startDate,endDate).then(function(events){
         var coords =  extractCoordsFromEvents(events);
@@ -317,7 +326,7 @@ $('document').ready(function(){
     addLegend(map.getMap())
 
     // control that shows state info on hover
-    
+
     info = L.control();
 
     info.onAdd = function (map) {
@@ -327,7 +336,7 @@ $('document').ready(function(){
     };
 
     info.update = function (props) {
-        if (!props){return} 
+        if (!props){return}
 
         this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>'+props.uid+'</b></i></th></tr><thead>'+
             '<tbody><tr><td>No of Cases </td><td> <b><i>'+props.num_points + '</b></i></td></tr>'+
@@ -467,7 +476,7 @@ function getEvents(startDate,endDate){
 function extractCoordsFromEvents(events){
 
     var result = [];
-    for (var i=0;i<events.length;i++){       
+    for (var i=0;i<events.length;i++){
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
                 if (events[i].program == "xqoEn6Je5Kj"){
@@ -477,38 +486,38 @@ function extractCoordsFromEvents(events){
                         if (val == "AFI" || val == "ADD"){
                             type = val;
                         }else{continue;}
-                    }else 
+                    }else
                         if (events[i].programStage == "jo25vJdB3qx"){
                             if (events[i].dataValues.length>0){
                                 type="LAB";
                             }else{continue;}
                         }
-                    
+
                     result.push({
-                        id : events[i].event , 
-                        coordinates : events[i].coordinate, 
+                        id : events[i].event ,
+                        coordinates : events[i].coordinate,
                         orgUnit : events[i].orgUnitName,
                         type : type,
                         trackedEntityInstance : events[i].trackedEntityInstance
-                        
+
                     })
                 }
-                
+
             }
         }
-        
+
     }
     return result;
 }
 function findValueAgainstId(data,idKey,id,valKey){
-    
+
     for (var i=0;i<data.length;i++){
         if (data[i][idKey]==id){
             return data[i][valKey]
         }
     }
     return null;
-    
+
 }
 function getCoordinatesFromOus(ous){
 
@@ -537,7 +546,7 @@ function reverseCoordinates(coords){
 }
 
 function addOrgUnits(blockCoords,style){
-    
+
     // a GeoJSON multipolygon
     var mp = {
         "type": "Feature",
@@ -550,7 +559,7 @@ function addOrgUnits(blockCoords,style){
             key : "block"
         }
     };
-    
+
     var pointToLayer = function(feature, latlng) {
         feature.properties.style = style;
     };
@@ -566,7 +575,7 @@ function buildMap(coords,c_dist,threshold){
 
     //  window.coords=coords;
     var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
-    
+
     var icon = getCustomIcon();
 
     //var redAlertMarker = new icon({iconUrl: 'images/red-icon.png'})
@@ -574,26 +583,26 @@ function buildMap(coords,c_dist,threshold){
         className:'alert-icon leaflet-clickable',
         html:'<i class="alert-icon"></i>'
     });
-    
+
     var feverIcon =getCustomIcon('yellow');
 
     var pointToLayer = function(feature, latlng) {
         if (feature.properties){
             switch(feature.properties.type){
-            case 'centroid' : 
+            case 'centroid' :
                 var centroidIcon =L.divIcon({
                     className:'alert-icon-centroid leaflet-clickable',
                     html:'<i class="alert-icon-centroid"><b>['+feature.properties.clusterSize+']</b></i>'
                 });
-                
+
                 return L.marker(latlng,{
                     icon : centroidIcon
                 });
-            case 'LAB' :  
+            case 'LAB' :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_lab)
                 });
-                
+
             case 'AFI' :   return L.marker(latlng,{
                 icon :  getCustomIcon2(imgpath_afi)
             });
@@ -601,16 +610,16 @@ function buildMap(coords,c_dist,threshold){
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_add)
                 });
-                
+
             }
         }
-        
+
         return L.marker(latlng, {
             // icon: icon
         });
-        
+
     }
-    
+
     var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
         nearbyDistance : 1 , keepSpiderfied : true
     });
@@ -628,17 +637,17 @@ function buildMap(coords,c_dist,threshold){
 
         marker.desc = data.features[i].properties.label;
         map.getMap().addLayer(marker);
-        oms.addMarker(marker); 
+        oms.addMarker(marker);
     }
-    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-    
-    /*   
-         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
+    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature);
+
+    /*
+         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);
          var style = function(){
          return { color: "darkred",
          opacity: 0.75,
          fillColor: "red",
-         fillOpacity: 0.1,                
+         fillOpacity: 0.1,
          dashArray: '5, 5',
          //weight: 5
 
@@ -665,7 +674,7 @@ function addLegend(map){
 	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
-        
+
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
             "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
             "<i class='alert-icon' style='background: "+color_lab+"'></i>  : LAB";
@@ -682,7 +691,7 @@ function addClustergons(map,gjson){
     var geojson;
     function highlightFeature(e) {
         var layer = e.target;
-        
+
         if (previousClusterLayer)
             geojson.resetStyle(previousClusterLayer);
         previousClusterLayer = layer;
@@ -691,7 +700,7 @@ function addClustergons(map,gjson){
 	    color: '#de2d26',
             opacity: 0.9,
             fillColor: "black",
-            fillOpacity: 0.05,   
+            fillOpacity: 0.05,
 	    dashArray: '',
         });
 
@@ -712,13 +721,13 @@ function addClustergons(map,gjson){
         map.fitBounds(e.target.getBounds());
     }
     function panToFeature(e){
-        map.panTo(e.target.getLatLng()); 
+        map.panTo(e.target.getLatLng());
     }
     var style = function(){
         return { color: "black",
                  opacity: 0.75,
                  fillColor: "red",
-                 fillOpacity: 0.1,                
+                 fillOpacity: 0.1,
                  dashArray: '5, 5',
                  weight: 3
 
@@ -727,28 +736,29 @@ function addClustergons(map,gjson){
 
     var onEachFeature = function (feature, layer)
     {
-        
-        if (feature.properties.type == 'centroid'){                
-            
+
+        if (feature.properties.type == 'centroid'){
+
            var str = feature.properties;
             str = utility.shadowStringify(str);
 
-           layer.bindPopup('<div id="alert">cluster found.. !<input type="button" style="margin-top:3px" onclick="saveCluster(\''+str+'\')" value="Approve"></div>' +'<div><input type="button" id="create" style="margin-top:7px" value="see patient line list" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table" style="margin-top:9px"></table></div>',{autoPan:false});
+           layer.bindPopup('<div id="alert">cluster found!<input type="button" style="margin-top:3px" onclick="saveCluster(\''+str+'\')" value="Approve and Save"></div>' +'<div><input type="button" id="create" style="margin-top:7px" value="Patient Linelist" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table" style="margin-top:9px"></table></div>',{autoPan:false});
+          // layer.bindPopup('<div id="alert">cluster found!<input type="button" style="margin-top:3px" onclick="saveCluster(\''+str+'\');saveClusterEnrollment(\''+str+'\',\''+feature.properties.teis+'\')" value="Approve and Save"></div>' +'<div><input type="button" id="create" style="margin-top:7px" value="Patient Linelist" onclick="filterEventsBasedOnCluster(\''+feature.properties.teis+'\')"><table id="table" style="margin-top:9px"></table></div>',{autoPan:false});
 
             layer.on({
 	        //  mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,
 	        click: panToFeature
 	    });
-            return;   
+            return;
         }
-        
+
         layer.on({
 	    mouseover: highlightFeature
 	    //  mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});
-        
+
     }
 
     var pointToLayer = function(feature, latlng) {
@@ -757,13 +767,13 @@ function addClustergons(map,gjson){
                 icon: getCustomIcon('red')
             });
         }
-        
+
         return L.marker(latlng, {
             // icon: icon
         });
-        
+
     }
-    
+
 
     geojson = L.geoJson(gjson, {
 	style: style,
@@ -782,18 +792,18 @@ function zoomToBiggestCluster(map,layers){
         var layer = layers[key];
         if (layer.feature.properties.num_points > maxPoints){
             bounds=layer.getBounds();
-            maxPoints =layer.feature.properties.num_points; 
+            maxPoints =layer.feature.properties.num_points;
         }
     }
-    
+
     map.fitBounds(bounds);
 
 }
 function onEachFeature (feature, layer)
 {
- if (feature.properties.type == 'centroid'){                
+ if (feature.properties.type == 'centroid'){
      layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-     
+
  }else{
        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
       }
@@ -808,7 +818,7 @@ function getPointToLayer(centroidIcon,icon){
                 var centroidIcon =L.divIcon({
                     className:'alert-icon-centroid leaflet-clickable',
                     html:'<i class="alert-icon-centroid"><b>['+feature.properties.clusterSize+']</b></i>'
-                });                                      
+                });
                 return L.marker(latlng,{
                     icon : centroidIcon
                 })
