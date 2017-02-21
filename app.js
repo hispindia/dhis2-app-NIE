@@ -20,8 +20,7 @@ var api = new dhis2API();
 var previousClusterLayer;
 var info;
 
-
-const imgpath_afi = "images/red-triangle.PNG";
+const imgpath_afi = "images/red-triangle.png";
 const imgpath_lab = "images/violet-point.png";
 const imgpath_add = "images/black-square.PNG";
 const imgpath_cluster = "images/marker-icon-red.png";
@@ -47,12 +46,20 @@ NIE.Cluster_ProgramUID;
 
             }
         }
+        var myNewString = args.replace(/</g, '{');
+        var myNewString1 = myNewString.replace(/>/g, '}');
+        var myNewString2 = myNewString1.replace(/\^/g, '"');
+
+        var argsParse = JSON.parse(myNewString2);
+        var cluster = argsParse.uid;
 
         var tei = {
             trackedEntityInstance: properties.uid,
             orgUnit: registeringOu,
             trackedEntity: NIE.TrackedEntity,
-            relationships: []
+            relationships: [],
+            attributes :
+                [{attribute: "K11Ma8P3PlD", value:cluster }]
         }
 
         for (var i = 0; i < properties.teis.length; i++) {
@@ -66,11 +73,13 @@ NIE.Cluster_ProgramUID;
         api.save("trackedEntityInstance", tei, callback);
 
         function callback(error, response) {
-            if (error) {
+          /*  if (error) {
                 alert("Already Exists!!");
             } else {
                 alert("Cluster Saved Successfully!");
-            }
+                enrollment(response,args);
+            }*/
+            enrollment(response,args);
 
         }
 
@@ -78,6 +87,52 @@ NIE.Cluster_ProgramUID;
     })
 }
 
+function enrollment(response,args){
+
+    var myNewString = args.replace(/</g, '{');
+    var myNewString1 = myNewString.replace(/>/g, '}');
+    var myNewString2 = myNewString1.replace(/\^/g, '"');
+
+    var argsParse = JSON.parse(myNewString2);
+    var cluster = argsParse.uid;
+
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+
+    if(dd<10) {
+        dd='0'+dd
+    }
+
+    if(mm<10) {
+        mm='0'+mm
+    }
+
+    today = yyyy+'-'+mm+'-'+dd;
+    var enroll = {
+        enrollmentDate: today,
+       // incidentDate: "2017-02-21",
+        orgUnit: registeringOu,
+        program:NIE.Cluster_ProgramUID,
+        status:"ACTIVE",
+        trackedEntityInstance:cluster
+    }
+
+
+    api.save("enrollment", enroll, callback);
+
+    function callback(error, response) {
+        if (error) {
+            alert("Already Exists!!");
+        } else {
+            alert("Cluster Saved Successfully!");
+
+        }
+
+    }
+
+}
 
 window.refresh = function(){
 
@@ -670,6 +725,7 @@ function addLegend(map){
 
 	var div = L.DomUtil.create('div', 'info legend');
         var height = 15,width=15;
+       // var height1 = 40,width1=40;
         var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
 	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
@@ -851,7 +907,7 @@ function getCustomIcon2(iconUrl){
         iconUrl:iconUrl,
         //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         shadowUrl: 'images/point-shadow.png',
-        iconSize: [15, 15],
+        iconSize: [20, 20],
         //        iconSize: [25, 41],
 
         //        iconAnchor: [12, 41],
