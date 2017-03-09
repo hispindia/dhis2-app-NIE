@@ -187,7 +187,6 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
 return {
         geoJsonPointFeatures: geoJsonPointFeatures,
         geoJsonPolygonFeatures: geoJsonPolygonFeatures };
-
 }
 
 function createGraph(data,clusterDist){

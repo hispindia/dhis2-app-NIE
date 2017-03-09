@@ -66,21 +66,21 @@
 
 	var _dhis2API2 = _interopRequireDefault(_dhis2API);
 
-	var _moment = __webpack_require__(245);
+	var _moment = __webpack_require__(246);
 
 	var _moment2 = _interopRequireDefault(_moment);
 
-	var _map = __webpack_require__(348);
+	var _map = __webpack_require__(349);
 
 	var _map2 = _interopRequireDefault(_map);
 
-	var _mapUtilities = __webpack_require__(349);
+	var _mapUtilities = __webpack_require__(350);
 
 	var _mapUtilities2 = _interopRequireDefault(_mapUtilities);
 
-	var _components = __webpack_require__(447);
+	var _components = __webpack_require__(460);
 
-	var _nieConstants = __webpack_require__(448);
+	var _nieConstants = __webpack_require__(461);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
@@ -139,6 +139,8 @@
 	        if (error) {
 	            alert("Already Exists!!");
 	        } else {
+	            // Cluster registered, begin enrollment
+	            debugger;
 	            alert("Cluster Saved Succesfully!");
 	        }
 	    }
@@ -921,8 +923,15 @@
 /* 4 */
 /***/ function(module, exports) {
 
+	/*
+	object-assign
+	(c) Sindre Sorhus
+	@license MIT
+	*/
+
 	'use strict';
 	/* eslint-disable no-unused-vars */
+	var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
 	var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -943,7 +952,7 @@
 			// Detect buggy property enumeration order in older V8 versions.
 
 			// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-			var test1 = new String('abc');  // eslint-disable-line
+			var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
 			test1[5] = 'de';
 			if (Object.getOwnPropertyNames(test1)[0] === '5') {
 				return false;
@@ -972,7 +981,7 @@
 			}
 
 			return true;
-		} catch (e) {
+		} catch (err) {
 			// We don't expect any of the above to throw, but better to be safe.
 			return false;
 		}
@@ -992,8 +1001,8 @@
 				}
 			}
 
-			if (Object.getOwnPropertySymbols) {
-				symbols = Object.getOwnPropertySymbols(from);
+			if (getOwnPropertySymbols) {
+				symbols = getOwnPropertySymbols(from);
 				for (var i = 0; i < symbols.length; i++) {
 					if (propIsEnumerable.call(from, symbols[i])) {
 						to[symbols[i]] = from[symbols[i]];
@@ -32330,8 +32339,8 @@
 
 	    var ajax = __webpack_require__(178);
 	    var utility = __webpack_require__(181);
-	    var Promise = __webpack_require__(242);
-	    var CONSTANTS = __webpack_require__(243);
+	    var Promise = __webpack_require__(243);
+	    var CONSTANTS = __webpack_require__(244);
 
 	    var baseURL = "../../";
 	    var schemaNameToObjectMap = [];
@@ -32375,7 +32384,7 @@
 
 	        function buildSchemaMap(_schemas, extendedSchema) {
 
-	            var merge = __webpack_require__(244);
+	            var merge = __webpack_require__(245);
 
 	            var schemas = {};
 	            for (var key in _schemas) {
@@ -37058,10 +37067,10 @@
 	  var ciphers = __webpack_require__(207)(crypto);
 	  exports.createCipher = ciphers.createCipher;
 	  exports.createCipheriv = ciphers.createCipheriv;
-	  var deciphers = __webpack_require__(241)(crypto);
+	  var deciphers = __webpack_require__(242)(crypto);
 	  exports.createDecipher = deciphers.createDecipher;
 	  exports.createDecipheriv = deciphers.createDecipheriv;
-	  var modes = __webpack_require__(232);
+	  var modes = __webpack_require__(233);
 	  function listCiphers () {
 	    return Object.keys(modes);
 	  }
@@ -37077,9 +37086,9 @@
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
 	var Transform = __webpack_require__(209);
 	var inherits = __webpack_require__(212);
-	var modes = __webpack_require__(232);
-	var ebtk = __webpack_require__(233);
-	var StreamCipher = __webpack_require__(234);
+	var modes = __webpack_require__(233);
+	var ebtk = __webpack_require__(234);
+	var StreamCipher = __webpack_require__(235);
 	inherits(Cipher, Transform);
 	function Cipher(mode, key, iv) {
 	  if (!(this instanceof Cipher)) {
@@ -37140,11 +37149,11 @@
 	  return out;
 	};
 	var modelist = {
-	  ECB: __webpack_require__(235),
-	  CBC: __webpack_require__(236),
-	  CFB: __webpack_require__(238),
-	  OFB: __webpack_require__(239),
-	  CTR: __webpack_require__(240)
+	  ECB: __webpack_require__(236),
+	  CBC: __webpack_require__(237),
+	  CFB: __webpack_require__(239),
+	  OFB: __webpack_require__(240),
+	  CTR: __webpack_require__(241)
 	};
 	module.exports = function (crypto) {
 	  function createCipheriv(suite, password, iv) {
@@ -37457,10 +37466,10 @@
 
 	inherits(Stream, EE);
 	Stream.Readable = __webpack_require__(213);
-	Stream.Writable = __webpack_require__(228);
-	Stream.Duplex = __webpack_require__(229);
-	Stream.Transform = __webpack_require__(230);
-	Stream.PassThrough = __webpack_require__(231);
+	Stream.Writable = __webpack_require__(229);
+	Stream.Duplex = __webpack_require__(230);
+	Stream.Transform = __webpack_require__(231);
+	Stream.PassThrough = __webpack_require__(232);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -37907,10 +37916,10 @@
 	exports = module.exports = __webpack_require__(214);
 	exports.Stream = Stream || exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(221);
-	exports.Duplex = __webpack_require__(220);
-	exports.Transform = __webpack_require__(226);
-	exports.PassThrough = __webpack_require__(227);
+	exports.Writable = __webpack_require__(222);
+	exports.Duplex = __webpack_require__(221);
+	exports.Transform = __webpack_require__(227);
+	exports.PassThrough = __webpack_require__(228);
 
 	if (!process.browser && process.env.READABLE_STREAM === 'disable' && Stream) {
 	  module.exports = Stream;
@@ -37931,7 +37940,7 @@
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(188);
+	var isArray = __webpack_require__(216);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -37961,16 +37970,16 @@
 
 	var Buffer = __webpack_require__(185).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(217);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
+	var util = __webpack_require__(218);
 	util.inherits = __webpack_require__(212);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(218);
+	var debugUtil = __webpack_require__(219);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -37979,7 +37988,7 @@
 	}
 	/*</replacement>*/
 
-	var BufferList = __webpack_require__(219);
+	var BufferList = __webpack_require__(220);
 	var StringDecoder;
 
 	util.inherits(Readable, Stream);
@@ -37999,7 +38008,7 @@
 	}
 
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(221);
 
 	  options = options || {};
 
@@ -38061,14 +38070,14 @@
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(225).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(226).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(221);
 
 	  if (!(this instanceof Readable)) return new Readable(options);
 
@@ -38171,7 +38180,7 @@
 
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(225).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(226).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -38917,6 +38926,17 @@
 
 /***/ },
 /* 216 */
+/***/ function(module, exports) {
+
+	var toString = {}.toString;
+
+	module.exports = Array.isArray || function (arr) {
+	  return toString.call(arr) == '[object Array]';
+	};
+
+
+/***/ },
+/* 217 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -39031,7 +39051,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 217 */
+/* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -39145,20 +39165,20 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 218 */
+/* 219 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 219 */
+/* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var Buffer = __webpack_require__(185).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(217);
 	/*</replacement>*/
 
 	module.exports = BufferList;
@@ -39220,7 +39240,7 @@
 	};
 
 /***/ },
-/* 220 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a duplex stream is just a stream that is both readable and writable.
@@ -39247,12 +39267,12 @@
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
+	var util = __webpack_require__(218);
 	util.inherits = __webpack_require__(212);
 	/*</replacement>*/
 
 	var Readable = __webpack_require__(214);
-	var Writable = __webpack_require__(221);
+	var Writable = __webpack_require__(222);
 
 	util.inherits(Duplex, Readable);
 
@@ -39300,7 +39320,7 @@
 	}
 
 /***/ },
-/* 221 */
+/* 222 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate) {// A bit simpler than readable streams.
@@ -39326,13 +39346,13 @@
 	Writable.WritableState = WritableState;
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
+	var util = __webpack_require__(218);
 	util.inherits = __webpack_require__(212);
 	/*</replacement>*/
 
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(224)
+	  deprecate: __webpack_require__(225)
 	};
 	/*</replacement>*/
 
@@ -39349,7 +39369,7 @@
 
 	var Buffer = __webpack_require__(185).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(217);
 	/*</replacement>*/
 
 	util.inherits(Writable, Stream);
@@ -39364,7 +39384,7 @@
 	}
 
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(221);
 
 	  options = options || {};
 
@@ -39498,7 +39518,7 @@
 	}
 
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(221);
 
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -39857,10 +39877,10 @@
 	    }
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(222).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(223).setImmediate))
 
 /***/ },
-/* 222 */
+/* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var apply = Function.prototype.apply;
@@ -39913,13 +39933,13 @@
 	};
 
 	// setimmediate attaches itself to the global object
-	__webpack_require__(223);
+	__webpack_require__(224);
 	exports.setImmediate = setImmediate;
 	exports.clearImmediate = clearImmediate;
 
 
 /***/ },
-/* 223 */
+/* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -40112,7 +40132,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)))
 
 /***/ },
-/* 224 */
+/* 225 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -40186,7 +40206,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 225 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -40413,7 +40433,7 @@
 
 
 /***/ },
-/* 226 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a transform stream is a readable/writable stream where you do
@@ -40462,10 +40482,10 @@
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(220);
+	var Duplex = __webpack_require__(221);
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
+	var util = __webpack_require__(218);
 	util.inherits = __webpack_require__(212);
 	/*</replacement>*/
 
@@ -40600,7 +40620,7 @@
 	}
 
 /***/ },
-/* 227 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a passthrough stream.
@@ -40611,10 +40631,10 @@
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(226);
+	var Transform = __webpack_require__(227);
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
+	var util = __webpack_require__(218);
 	util.inherits = __webpack_require__(212);
 	/*</replacement>*/
 
@@ -40631,24 +40651,17 @@
 	};
 
 /***/ },
-/* 228 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(221)
-
-
-/***/ },
 /* 229 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(220)
+	module.exports = __webpack_require__(222)
 
 
 /***/ },
 /* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(226)
+	module.exports = __webpack_require__(221)
 
 
 /***/ },
@@ -40660,6 +40673,13 @@
 
 /***/ },
 /* 232 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(228)
+
+
+/***/ },
+/* 233 */
 /***/ function(module, exports) {
 
 	exports['aes-128-ecb'] = {
@@ -40772,7 +40792,7 @@
 	};
 
 /***/ },
-/* 233 */
+/* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -40835,7 +40855,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 234 */
+/* 235 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
@@ -40867,7 +40887,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 235 */
+/* 236 */
 /***/ function(module, exports) {
 
 	exports.encrypt = function (self, block) {
@@ -40878,10 +40898,10 @@
 	};
 
 /***/ },
-/* 236 */
+/* 237 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var xor = __webpack_require__(237);
+	var xor = __webpack_require__(238);
 	exports.encrypt = function (self, block) {
 	  var data = xor(block, self._prev);
 	  self._prev = self._cipher.encryptBlock(data);
@@ -40895,7 +40915,7 @@
 	};
 
 /***/ },
-/* 237 */
+/* 238 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = xor;
@@ -40911,10 +40931,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 238 */
+/* 239 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(238);
 	exports.encrypt = function (self, data, decrypt) {
 	  var out = new Buffer('');
 	  var len;
@@ -40944,10 +40964,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 239 */
+/* 240 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(238);
 	function getBlock(self) {
 	  self._prev = self._cipher.encryptBlock(self._prev);
 	  return self._prev;
@@ -40963,10 +40983,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 240 */
+/* 241 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(238);
 	function getBlock(self) {
 	  var out = self._cipher.encryptBlock(self._prev);
 	  incr32(self._prev);
@@ -40997,15 +41017,15 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 241 */
+/* 242 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
 	var Transform = __webpack_require__(209);
 	var inherits = __webpack_require__(212);
-	var modes = __webpack_require__(232);
-	var StreamCipher = __webpack_require__(234);
-	var ebtk = __webpack_require__(233);
+	var modes = __webpack_require__(233);
+	var StreamCipher = __webpack_require__(235);
+	var ebtk = __webpack_require__(234);
 
 	inherits(Decipher, Transform);
 	function Decipher(mode, key, iv) {
@@ -41073,11 +41093,11 @@
 	}
 
 	var modelist = {
-	  ECB: __webpack_require__(235),
-	  CBC: __webpack_require__(236),
-	  CFB: __webpack_require__(238),
-	  OFB: __webpack_require__(239),
-	  CTR: __webpack_require__(240)
+	  ECB: __webpack_require__(236),
+	  CBC: __webpack_require__(237),
+	  CFB: __webpack_require__(239),
+	  OFB: __webpack_require__(240),
+	  CTR: __webpack_require__(241)
 	};
 
 	module.exports = function (crypto) {
@@ -41121,7 +41141,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
 
 /***/ },
-/* 242 */
+/* 243 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, global, setImmediate) {/* @preserve
@@ -46600,10 +46620,10 @@
 
 	},{"./es5":13}]},{},[4])(4)
 	});                    ;if (typeof window !== 'undefined' && window !== null) {                               window.P = window.Promise;                                                     } else if (typeof self !== 'undefined' && self !== null) {                             self.P = self.Promise;                                                         }
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }()), __webpack_require__(222).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }()), __webpack_require__(223).setImmediate))
 
 /***/ },
-/* 243 */
+/* 244 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -46749,7 +46769,7 @@
 	};
 
 /***/ },
-/* 244 */
+/* 245 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
@@ -46839,7 +46859,7 @@
 
 
 /***/ },
-/* 245 */
+/* 246 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -47240,7 +47260,7 @@
 	                module && module.exports) {
 	            try {
 	                oldLocale = globalLocale._abbr;
-	                __webpack_require__(247)("./" + name);
+	                __webpack_require__(248)("./" + name);
 	                // because defineLocale currently also sets the global locale, we
 	                // want to undo that for lazy loaded locales
 	                locale_locales__getSetGlobalLocale(oldLocale);
@@ -50882,10 +50902,10 @@
 	    return _moment;
 
 	}));
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(246)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(247)(module)))
 
 /***/ },
-/* 246 */
+/* 247 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -50901,210 +50921,210 @@
 
 
 /***/ },
-/* 247 */
+/* 248 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./af": 248,
-		"./af.js": 248,
-		"./ar": 249,
-		"./ar-ma": 250,
-		"./ar-ma.js": 250,
-		"./ar-sa": 251,
-		"./ar-sa.js": 251,
-		"./ar-tn": 252,
-		"./ar-tn.js": 252,
-		"./ar.js": 249,
-		"./az": 253,
-		"./az.js": 253,
-		"./be": 254,
-		"./be.js": 254,
-		"./bg": 255,
-		"./bg.js": 255,
-		"./bn": 256,
-		"./bn.js": 256,
-		"./bo": 257,
-		"./bo.js": 257,
-		"./br": 258,
-		"./br.js": 258,
-		"./bs": 259,
-		"./bs.js": 259,
-		"./ca": 260,
-		"./ca.js": 260,
-		"./cs": 261,
-		"./cs.js": 261,
-		"./cv": 262,
-		"./cv.js": 262,
-		"./cy": 263,
-		"./cy.js": 263,
-		"./da": 264,
-		"./da.js": 264,
-		"./de": 265,
-		"./de-at": 266,
-		"./de-at.js": 266,
-		"./de.js": 265,
-		"./dv": 267,
-		"./dv.js": 267,
-		"./el": 268,
-		"./el.js": 268,
-		"./en-au": 269,
-		"./en-au.js": 269,
-		"./en-ca": 270,
-		"./en-ca.js": 270,
-		"./en-gb": 271,
-		"./en-gb.js": 271,
-		"./en-ie": 272,
-		"./en-ie.js": 272,
-		"./en-nz": 273,
-		"./en-nz.js": 273,
-		"./eo": 274,
-		"./eo.js": 274,
-		"./es": 275,
-		"./es.js": 275,
-		"./et": 276,
-		"./et.js": 276,
-		"./eu": 277,
-		"./eu.js": 277,
-		"./fa": 278,
-		"./fa.js": 278,
-		"./fi": 279,
-		"./fi.js": 279,
-		"./fo": 280,
-		"./fo.js": 280,
-		"./fr": 281,
-		"./fr-ca": 282,
-		"./fr-ca.js": 282,
-		"./fr-ch": 283,
-		"./fr-ch.js": 283,
-		"./fr.js": 281,
-		"./fy": 284,
-		"./fy.js": 284,
-		"./gd": 285,
-		"./gd.js": 285,
-		"./gl": 286,
-		"./gl.js": 286,
-		"./he": 287,
-		"./he.js": 287,
-		"./hi": 288,
-		"./hi.js": 288,
-		"./hr": 289,
-		"./hr.js": 289,
-		"./hu": 290,
-		"./hu.js": 290,
-		"./hy-am": 291,
-		"./hy-am.js": 291,
-		"./id": 292,
-		"./id.js": 292,
-		"./is": 293,
-		"./is.js": 293,
-		"./it": 294,
-		"./it.js": 294,
-		"./ja": 295,
-		"./ja.js": 295,
-		"./jv": 296,
-		"./jv.js": 296,
-		"./ka": 297,
-		"./ka.js": 297,
-		"./kk": 298,
-		"./kk.js": 298,
-		"./km": 299,
-		"./km.js": 299,
-		"./ko": 300,
-		"./ko.js": 300,
-		"./ky": 301,
-		"./ky.js": 301,
-		"./lb": 302,
-		"./lb.js": 302,
-		"./lo": 303,
-		"./lo.js": 303,
-		"./lt": 304,
-		"./lt.js": 304,
-		"./lv": 305,
-		"./lv.js": 305,
-		"./me": 306,
-		"./me.js": 306,
-		"./mk": 307,
-		"./mk.js": 307,
-		"./ml": 308,
-		"./ml.js": 308,
-		"./mr": 309,
-		"./mr.js": 309,
-		"./ms": 310,
-		"./ms-my": 311,
-		"./ms-my.js": 311,
-		"./ms.js": 310,
-		"./my": 312,
-		"./my.js": 312,
-		"./nb": 313,
-		"./nb.js": 313,
-		"./ne": 314,
-		"./ne.js": 314,
-		"./nl": 315,
-		"./nl.js": 315,
-		"./nn": 316,
-		"./nn.js": 316,
-		"./pa-in": 317,
-		"./pa-in.js": 317,
-		"./pl": 318,
-		"./pl.js": 318,
-		"./pt": 319,
-		"./pt-br": 320,
-		"./pt-br.js": 320,
-		"./pt.js": 319,
-		"./ro": 321,
-		"./ro.js": 321,
-		"./ru": 322,
-		"./ru.js": 322,
-		"./se": 323,
-		"./se.js": 323,
-		"./si": 324,
-		"./si.js": 324,
-		"./sk": 325,
-		"./sk.js": 325,
-		"./sl": 326,
-		"./sl.js": 326,
-		"./sq": 327,
-		"./sq.js": 327,
-		"./sr": 328,
-		"./sr-cyrl": 329,
-		"./sr-cyrl.js": 329,
-		"./sr.js": 328,
-		"./ss": 330,
-		"./ss.js": 330,
-		"./sv": 331,
-		"./sv.js": 331,
-		"./sw": 332,
-		"./sw.js": 332,
-		"./ta": 333,
-		"./ta.js": 333,
-		"./te": 334,
-		"./te.js": 334,
-		"./th": 335,
-		"./th.js": 335,
-		"./tl-ph": 336,
-		"./tl-ph.js": 336,
-		"./tlh": 337,
-		"./tlh.js": 337,
-		"./tr": 338,
-		"./tr.js": 338,
-		"./tzl": 339,
-		"./tzl.js": 339,
-		"./tzm": 340,
-		"./tzm-latn": 341,
-		"./tzm-latn.js": 341,
-		"./tzm.js": 340,
-		"./uk": 342,
-		"./uk.js": 342,
-		"./uz": 343,
-		"./uz.js": 343,
-		"./vi": 344,
-		"./vi.js": 344,
-		"./x-pseudo": 345,
-		"./x-pseudo.js": 345,
-		"./zh-cn": 346,
-		"./zh-cn.js": 346,
-		"./zh-tw": 347,
-		"./zh-tw.js": 347
+		"./af": 249,
+		"./af.js": 249,
+		"./ar": 250,
+		"./ar-ma": 251,
+		"./ar-ma.js": 251,
+		"./ar-sa": 252,
+		"./ar-sa.js": 252,
+		"./ar-tn": 253,
+		"./ar-tn.js": 253,
+		"./ar.js": 250,
+		"./az": 254,
+		"./az.js": 254,
+		"./be": 255,
+		"./be.js": 255,
+		"./bg": 256,
+		"./bg.js": 256,
+		"./bn": 257,
+		"./bn.js": 257,
+		"./bo": 258,
+		"./bo.js": 258,
+		"./br": 259,
+		"./br.js": 259,
+		"./bs": 260,
+		"./bs.js": 260,
+		"./ca": 261,
+		"./ca.js": 261,
+		"./cs": 262,
+		"./cs.js": 262,
+		"./cv": 263,
+		"./cv.js": 263,
+		"./cy": 264,
+		"./cy.js": 264,
+		"./da": 265,
+		"./da.js": 265,
+		"./de": 266,
+		"./de-at": 267,
+		"./de-at.js": 267,
+		"./de.js": 266,
+		"./dv": 268,
+		"./dv.js": 268,
+		"./el": 269,
+		"./el.js": 269,
+		"./en-au": 270,
+		"./en-au.js": 270,
+		"./en-ca": 271,
+		"./en-ca.js": 271,
+		"./en-gb": 272,
+		"./en-gb.js": 272,
+		"./en-ie": 273,
+		"./en-ie.js": 273,
+		"./en-nz": 274,
+		"./en-nz.js": 274,
+		"./eo": 275,
+		"./eo.js": 275,
+		"./es": 276,
+		"./es.js": 276,
+		"./et": 277,
+		"./et.js": 277,
+		"./eu": 278,
+		"./eu.js": 278,
+		"./fa": 279,
+		"./fa.js": 279,
+		"./fi": 280,
+		"./fi.js": 280,
+		"./fo": 281,
+		"./fo.js": 281,
+		"./fr": 282,
+		"./fr-ca": 283,
+		"./fr-ca.js": 283,
+		"./fr-ch": 284,
+		"./fr-ch.js": 284,
+		"./fr.js": 282,
+		"./fy": 285,
+		"./fy.js": 285,
+		"./gd": 286,
+		"./gd.js": 286,
+		"./gl": 287,
+		"./gl.js": 287,
+		"./he": 288,
+		"./he.js": 288,
+		"./hi": 289,
+		"./hi.js": 289,
+		"./hr": 290,
+		"./hr.js": 290,
+		"./hu": 291,
+		"./hu.js": 291,
+		"./hy-am": 292,
+		"./hy-am.js": 292,
+		"./id": 293,
+		"./id.js": 293,
+		"./is": 294,
+		"./is.js": 294,
+		"./it": 295,
+		"./it.js": 295,
+		"./ja": 296,
+		"./ja.js": 296,
+		"./jv": 297,
+		"./jv.js": 297,
+		"./ka": 298,
+		"./ka.js": 298,
+		"./kk": 299,
+		"./kk.js": 299,
+		"./km": 300,
+		"./km.js": 300,
+		"./ko": 301,
+		"./ko.js": 301,
+		"./ky": 302,
+		"./ky.js": 302,
+		"./lb": 303,
+		"./lb.js": 303,
+		"./lo": 304,
+		"./lo.js": 304,
+		"./lt": 305,
+		"./lt.js": 305,
+		"./lv": 306,
+		"./lv.js": 306,
+		"./me": 307,
+		"./me.js": 307,
+		"./mk": 308,
+		"./mk.js": 308,
+		"./ml": 309,
+		"./ml.js": 309,
+		"./mr": 310,
+		"./mr.js": 310,
+		"./ms": 311,
+		"./ms-my": 312,
+		"./ms-my.js": 312,
+		"./ms.js": 311,
+		"./my": 313,
+		"./my.js": 313,
+		"./nb": 314,
+		"./nb.js": 314,
+		"./ne": 315,
+		"./ne.js": 315,
+		"./nl": 316,
+		"./nl.js": 316,
+		"./nn": 317,
+		"./nn.js": 317,
+		"./pa-in": 318,
+		"./pa-in.js": 318,
+		"./pl": 319,
+		"./pl.js": 319,
+		"./pt": 320,
+		"./pt-br": 321,
+		"./pt-br.js": 321,
+		"./pt.js": 320,
+		"./ro": 322,
+		"./ro.js": 322,
+		"./ru": 323,
+		"./ru.js": 323,
+		"./se": 324,
+		"./se.js": 324,
+		"./si": 325,
+		"./si.js": 325,
+		"./sk": 326,
+		"./sk.js": 326,
+		"./sl": 327,
+		"./sl.js": 327,
+		"./sq": 328,
+		"./sq.js": 328,
+		"./sr": 329,
+		"./sr-cyrl": 330,
+		"./sr-cyrl.js": 330,
+		"./sr.js": 329,
+		"./ss": 331,
+		"./ss.js": 331,
+		"./sv": 332,
+		"./sv.js": 332,
+		"./sw": 333,
+		"./sw.js": 333,
+		"./ta": 334,
+		"./ta.js": 334,
+		"./te": 335,
+		"./te.js": 335,
+		"./th": 336,
+		"./th.js": 336,
+		"./tl-ph": 337,
+		"./tl-ph.js": 337,
+		"./tlh": 338,
+		"./tlh.js": 338,
+		"./tr": 339,
+		"./tr.js": 339,
+		"./tzl": 340,
+		"./tzl.js": 340,
+		"./tzm": 341,
+		"./tzm-latn": 342,
+		"./tzm-latn.js": 342,
+		"./tzm.js": 341,
+		"./uk": 343,
+		"./uk.js": 343,
+		"./uz": 344,
+		"./uz.js": 344,
+		"./vi": 345,
+		"./vi.js": 345,
+		"./x-pseudo": 346,
+		"./x-pseudo.js": 346,
+		"./zh-cn": 347,
+		"./zh-cn.js": 347,
+		"./zh-tw": 348,
+		"./zh-tw.js": 348
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -51117,11 +51137,11 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 247;
+	webpackContext.id = 248;
 
 
 /***/ },
-/* 248 */
+/* 249 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51129,7 +51149,7 @@
 	//! author : Werner Mollentze : https://github.com/wernerm
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51198,7 +51218,7 @@
 	}));
 
 /***/ },
-/* 249 */
+/* 250 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51208,7 +51228,7 @@
 	//! Native plural forms: forabi https://github.com/forabi
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51339,7 +51359,7 @@
 	}));
 
 /***/ },
-/* 250 */
+/* 251 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51348,7 +51368,7 @@
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51403,7 +51423,7 @@
 	}));
 
 /***/ },
-/* 251 */
+/* 252 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51411,7 +51431,7 @@
 	//! author : Suhail Alkowaileet : https://github.com/xsoh
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51511,14 +51531,14 @@
 	}));
 
 /***/ },
-/* 252 */
+/* 253 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale  : Tunisian Arabic (ar-tn)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51573,7 +51593,7 @@
 	}));
 
 /***/ },
-/* 253 */
+/* 254 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51581,7 +51601,7 @@
 	//! author : topchiyev : https://github.com/topchiyev
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51682,7 +51702,7 @@
 	}));
 
 /***/ },
-/* 254 */
+/* 255 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51692,7 +51712,7 @@
 	//! Author : Menelion Elensúle : https://github.com/Oire
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51820,7 +51840,7 @@
 	}));
 
 /***/ },
-/* 255 */
+/* 256 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51828,7 +51848,7 @@
 	//! author : Krasen Borisov : https://github.com/kraz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51914,7 +51934,7 @@
 	}));
 
 /***/ },
-/* 256 */
+/* 257 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -51922,7 +51942,7 @@
 	//! author : Kaushik Gandhi : https://github.com/kaushikgandhi
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52037,7 +52057,7 @@
 	}));
 
 /***/ },
-/* 257 */
+/* 258 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52045,7 +52065,7 @@
 	//! author : Thupten N. Chakrishar : https://github.com/vajradog
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52160,7 +52180,7 @@
 	}));
 
 /***/ },
-/* 258 */
+/* 259 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52168,7 +52188,7 @@
 	//! author : Jean-Baptiste Le Duigou : https://github.com/jbleduigou
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52272,7 +52292,7 @@
 	}));
 
 /***/ },
-/* 259 */
+/* 260 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52281,7 +52301,7 @@
 	//! based on (hr) translation by Bojan Marković
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52419,7 +52439,7 @@
 	}));
 
 /***/ },
-/* 260 */
+/* 261 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52427,7 +52447,7 @@
 	//! author : Juan G. Hurtado : https://github.com/juanghurtado
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52504,7 +52524,7 @@
 	}));
 
 /***/ },
-/* 261 */
+/* 262 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52512,7 +52532,7 @@
 	//! author : petrbela : https://github.com/petrbela
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52679,7 +52699,7 @@
 	}));
 
 /***/ },
-/* 262 */
+/* 263 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52687,7 +52707,7 @@
 	//! author : Anatoly Mironov : https://github.com/mirontoli
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52746,7 +52766,7 @@
 	}));
 
 /***/ },
-/* 263 */
+/* 264 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52754,7 +52774,7 @@
 	//! author : Robert Allen
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52830,7 +52850,7 @@
 	}));
 
 /***/ },
-/* 264 */
+/* 265 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52838,7 +52858,7 @@
 	//! author : Ulrik Nielsen : https://github.com/mrbase
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52894,7 +52914,7 @@
 	}));
 
 /***/ },
-/* 265 */
+/* 266 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52904,7 +52924,7 @@
 	//! author : Mikolaj Dadela : https://github.com/mik01aj
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52976,7 +52996,7 @@
 	}));
 
 /***/ },
-/* 266 */
+/* 267 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -52987,7 +53007,7 @@
 	//! author : Mikolaj Dadela : https://github.com/mik01aj
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53059,7 +53079,7 @@
 	}));
 
 /***/ },
-/* 267 */
+/* 268 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53067,7 +53087,7 @@
 	//! author : Jawish Hameed : https://github.com/jawish
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53162,7 +53182,7 @@
 	}));
 
 /***/ },
-/* 268 */
+/* 269 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53170,7 +53190,7 @@
 	//! author : Aggelos Karalias : https://github.com/mehiel
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53264,14 +53284,14 @@
 	}));
 
 /***/ },
-/* 269 */
+/* 270 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : australian english (en-au)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53334,7 +53354,7 @@
 	}));
 
 /***/ },
-/* 270 */
+/* 271 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53342,7 +53362,7 @@
 	//! author : Jonathan Abourbih : https://github.com/jonbca
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53401,7 +53421,7 @@
 	}));
 
 /***/ },
-/* 271 */
+/* 272 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53409,7 +53429,7 @@
 	//! author : Chris Gedrim : https://github.com/chrisgedrim
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53472,7 +53492,7 @@
 	}));
 
 /***/ },
-/* 272 */
+/* 273 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53480,7 +53500,7 @@
 	//! author : Chris Cartlidge : https://github.com/chriscartlidge
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53543,14 +53563,14 @@
 	}));
 
 /***/ },
-/* 273 */
+/* 274 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : New Zealand english (en-nz)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53613,7 +53633,7 @@
 	}));
 
 /***/ },
-/* 274 */
+/* 275 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53623,7 +53643,7 @@
 	//!          Se ne, bonvolu korekti kaj avizi min por ke mi povas lerni!
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53690,7 +53710,7 @@
 	}));
 
 /***/ },
-/* 275 */
+/* 276 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53698,7 +53718,7 @@
 	//! author : Julio Napurí : https://github.com/julionc
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53775,7 +53795,7 @@
 	}));
 
 /***/ },
-/* 276 */
+/* 277 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53784,7 +53804,7 @@
 	//! improvements : Illimar Tambek : https://github.com/ragulka
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53859,7 +53879,7 @@
 	}));
 
 /***/ },
-/* 277 */
+/* 278 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53867,7 +53887,7 @@
 	//! author : Eneko Illarramendi : https://github.com/eillarra
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53929,7 +53949,7 @@
 	}));
 
 /***/ },
-/* 278 */
+/* 279 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -53937,7 +53957,7 @@
 	//! author : Ebrahim Byagowi : https://github.com/ebraminio
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54039,7 +54059,7 @@
 	}));
 
 /***/ },
-/* 279 */
+/* 280 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54047,7 +54067,7 @@
 	//! author : Tarmo Aidantausta : https://github.com/bleadof
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54150,7 +54170,7 @@
 	}));
 
 /***/ },
-/* 280 */
+/* 281 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54158,7 +54178,7 @@
 	//! author : Ragnar Johannesen : https://github.com/ragnar123
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54214,7 +54234,7 @@
 	}));
 
 /***/ },
-/* 281 */
+/* 282 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54222,7 +54242,7 @@
 	//! author : John Fischer : https://github.com/jfroffice
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54282,7 +54302,7 @@
 	}));
 
 /***/ },
-/* 282 */
+/* 283 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54290,7 +54310,7 @@
 	//! author : Jonathan Abourbih : https://github.com/jonbca
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54346,7 +54366,7 @@
 	}));
 
 /***/ },
-/* 283 */
+/* 284 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54354,7 +54374,7 @@
 	//! author : Gaspard Bucher : https://github.com/gaspard
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54414,7 +54434,7 @@
 	}));
 
 /***/ },
-/* 284 */
+/* 285 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54422,7 +54442,7 @@
 	//! author : Robin van der Vliet : https://github.com/robin0van0der0v
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54491,7 +54511,7 @@
 	}));
 
 /***/ },
-/* 285 */
+/* 286 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54499,7 +54519,7 @@
 	//! author : Jon Ashdown : https://github.com/jonashdown
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54571,7 +54591,7 @@
 	}));
 
 /***/ },
-/* 286 */
+/* 287 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54579,7 +54599,7 @@
 	//! author : Juan G. Hurtado : https://github.com/juanghurtado
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54652,7 +54672,7 @@
 	}));
 
 /***/ },
-/* 287 */
+/* 288 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54662,7 +54682,7 @@
 	//! author : Tal Ater : https://github.com/TalAter
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54755,7 +54775,7 @@
 	}));
 
 /***/ },
-/* 288 */
+/* 289 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54763,7 +54783,7 @@
 	//! author : Mayank Singhal : https://github.com/mayanksinghal
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54883,7 +54903,7 @@
 	}));
 
 /***/ },
-/* 289 */
+/* 290 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -54891,7 +54911,7 @@
 	//! author : Bojan Marković : https://github.com/bmarkovic
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55032,7 +55052,7 @@
 	}));
 
 /***/ },
-/* 290 */
+/* 291 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55040,7 +55060,7 @@
 	//! author : Adam Brunner : https://github.com/adambrunner
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55145,7 +55165,7 @@
 	}));
 
 /***/ },
-/* 291 */
+/* 292 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55153,7 +55173,7 @@
 	//! author : Armendarabyan : https://github.com/armendarabyan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55244,7 +55264,7 @@
 	}));
 
 /***/ },
-/* 292 */
+/* 293 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55253,7 +55273,7 @@
 	//! reference: http://id.wikisource.org/wiki/Pedoman_Umum_Ejaan_Bahasa_Indonesia_yang_Disempurnakan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55331,7 +55351,7 @@
 	}));
 
 /***/ },
-/* 293 */
+/* 294 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55339,7 +55359,7 @@
 	//! author : Hinrik Örn Sigurðsson : https://github.com/hinrik
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55462,7 +55482,7 @@
 	}));
 
 /***/ },
-/* 294 */
+/* 295 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55471,7 +55491,7 @@
 	//! author: Mattia Larentis: https://github.com/nostalgiaz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55536,7 +55556,7 @@
 	}));
 
 /***/ },
-/* 295 */
+/* 296 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55544,7 +55564,7 @@
 	//! author : LI Long : https://github.com/baryon
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55616,7 +55636,7 @@
 	}));
 
 /***/ },
-/* 296 */
+/* 297 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55625,7 +55645,7 @@
 	//! reference: http://jv.wikipedia.org/wiki/Basa_Jawa
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55703,7 +55723,7 @@
 	}));
 
 /***/ },
-/* 297 */
+/* 298 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55711,7 +55731,7 @@
 	//! author : Irakli Janiashvili : https://github.com/irakli-janiashvili
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55796,7 +55816,7 @@
 	}));
 
 /***/ },
-/* 298 */
+/* 299 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55804,7 +55824,7 @@
 	//! authors : Nurlan Rakhimzhanov : https://github.com/nurlan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55887,7 +55907,7 @@
 	}));
 
 /***/ },
-/* 299 */
+/* 300 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55895,7 +55915,7 @@
 	//! author : Kruy Vanna : https://github.com/kruyvanna
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55949,7 +55969,7 @@
 	}));
 
 /***/ },
-/* 300 */
+/* 301 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -55961,7 +55981,7 @@
 	//! - Jeeeyul Lee <jeeeyul@gmail.com>
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56021,7 +56041,7 @@
 	}));
 
 /***/ },
-/* 301 */
+/* 302 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56029,7 +56049,7 @@
 	//! author : Chyngyz Arystan uulu : https://github.com/chyngyz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56113,7 +56133,7 @@
 	}));
 
 /***/ },
-/* 302 */
+/* 303 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56121,7 +56141,7 @@
 	//! author : mweimerskirch : https://github.com/mweimerskirch, David Raison : https://github.com/kwisatz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56253,7 +56273,7 @@
 	}));
 
 /***/ },
-/* 303 */
+/* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56261,7 +56281,7 @@
 	//! author : Ryan Hart : https://github.com/ryanhart2
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56327,7 +56347,7 @@
 	}));
 
 /***/ },
-/* 304 */
+/* 305 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56335,7 +56355,7 @@
 	//! author : Mindaugas Mozūras : https://github.com/mmozuras
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56447,7 +56467,7 @@
 	}));
 
 /***/ },
-/* 305 */
+/* 306 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56456,7 +56476,7 @@
 	//! author : Jānis Elmeris : https://github.com/JanisE
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56548,7 +56568,7 @@
 	}));
 
 /***/ },
-/* 306 */
+/* 307 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56556,7 +56576,7 @@
 	//! author : Miodrag Nikač <miodrag@restartit.me> : https://github.com/miodragnikac
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56663,7 +56683,7 @@
 	}));
 
 /***/ },
-/* 307 */
+/* 308 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56671,7 +56691,7 @@
 	//! author : Borislav Mickov : https://github.com/B0k0
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56757,7 +56777,7 @@
 	}));
 
 /***/ },
-/* 308 */
+/* 309 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56765,7 +56785,7 @@
 	//! author : Floyd Pink : https://github.com/floydpink
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56842,7 +56862,7 @@
 	}));
 
 /***/ },
-/* 309 */
+/* 310 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -56851,7 +56871,7 @@
 	//! author : Vivek Athalye : https://github.com/vnathalye
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57005,7 +57025,7 @@
 	}));
 
 /***/ },
-/* 310 */
+/* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57013,7 +57033,7 @@
 	//! author : Weldan Jamili : https://github.com/weldan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57091,7 +57111,7 @@
 	}));
 
 /***/ },
-/* 311 */
+/* 312 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57099,7 +57119,7 @@
 	//! author : Weldan Jamili : https://github.com/weldan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57177,7 +57197,7 @@
 	}));
 
 /***/ },
-/* 312 */
+/* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57185,7 +57205,7 @@
 	//! author : Squar team, mysquar.com
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57274,7 +57294,7 @@
 	}));
 
 /***/ },
-/* 313 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57283,7 +57303,7 @@
 	//!           Sigurd Gartmann : https://github.com/sigurdga
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57341,7 +57361,7 @@
 	}));
 
 /***/ },
-/* 314 */
+/* 315 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57349,7 +57369,7 @@
 	//! author : suvash : https://github.com/suvash
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57468,7 +57488,7 @@
 	}));
 
 /***/ },
-/* 315 */
+/* 316 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57476,7 +57496,7 @@
 	//! author : Joris Röling : https://github.com/jjupiter
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57545,7 +57565,7 @@
 	}));
 
 /***/ },
-/* 316 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57553,7 +57573,7 @@
 	//! author : https://github.com/mechuwind
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57609,7 +57629,7 @@
 	}));
 
 /***/ },
-/* 317 */
+/* 318 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57617,7 +57637,7 @@
 	//! author : Harpreet Singh : https://github.com/harpreetkhalsagtbit
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57737,7 +57757,7 @@
 	}));
 
 /***/ },
-/* 318 */
+/* 319 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57745,7 +57765,7 @@
 	//! author : Rafal Hirsz : https://github.com/evoL
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57846,7 +57866,7 @@
 	}));
 
 /***/ },
-/* 319 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57854,7 +57874,7 @@
 	//! author : Jefferson : https://github.com/jalex79
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57915,7 +57935,7 @@
 	}));
 
 /***/ },
-/* 320 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57923,7 +57943,7 @@
 	//! author : Caio Ribeiro Pereira : https://github.com/caio-ribeiro-pereira
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57980,7 +58000,7 @@
 	}));
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -57989,7 +58009,7 @@
 	//! author : Valentin Agachi : https://github.com/avaly
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58059,7 +58079,7 @@
 	}));
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58069,7 +58089,7 @@
 	//! author : Коренберг Марк : https://github.com/socketpair
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58238,7 +58258,7 @@
 	}));
 
 /***/ },
-/* 323 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58246,7 +58266,7 @@
 	//! authors : Bård Rolstad Henriksen : https://github.com/karamell
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58303,7 +58323,7 @@
 	}));
 
 /***/ },
-/* 324 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58311,7 +58331,7 @@
 	//! author : Sampath Sitinamaluwa : https://github.com/sampathsris
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58378,7 +58398,7 @@
 	}));
 
 /***/ },
-/* 325 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58387,7 +58407,7 @@
 	//! based on work of petrbela : https://github.com/petrbela
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58532,7 +58552,7 @@
 	}));
 
 /***/ },
-/* 326 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58540,7 +58560,7 @@
 	//! author : Robert Sedovšek : https://github.com/sedovsek
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58698,7 +58718,7 @@
 	}));
 
 /***/ },
-/* 327 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58708,7 +58728,7 @@
 	//! author : Oerd Cukalla : https://github.com/oerd (fixes)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58772,7 +58792,7 @@
 	}));
 
 /***/ },
-/* 328 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58780,7 +58800,7 @@
 	//! author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58886,7 +58906,7 @@
 	}));
 
 /***/ },
-/* 329 */
+/* 330 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -58894,7 +58914,7 @@
 	//! author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59000,7 +59020,7 @@
 	}));
 
 /***/ },
-/* 330 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59008,7 +59028,7 @@
 	//! author : Nicolai Davies<mail@nicolai.io> : https://github.com/nicolaidavies
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59093,7 +59113,7 @@
 	}));
 
 /***/ },
-/* 331 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59101,7 +59121,7 @@
 	//! author : Jens Alm : https://github.com/ulmus
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59166,7 +59186,7 @@
 	}));
 
 /***/ },
-/* 332 */
+/* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59174,7 +59194,7 @@
 	//! author : Fahad Kassim : https://github.com/fadsel
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59229,7 +59249,7 @@
 	}));
 
 /***/ },
-/* 333 */
+/* 334 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59237,7 +59257,7 @@
 	//! author : Arjunkumar Krishnamoorthy : https://github.com/tk120404
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59362,7 +59382,7 @@
 	}));
 
 /***/ },
-/* 334 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59370,7 +59390,7 @@
 	//! author : Krishna Chaitanya Thota : https://github.com/kcthota
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59455,7 +59475,7 @@
 	}));
 
 /***/ },
-/* 335 */
+/* 336 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59463,7 +59483,7 @@
 	//! author : Kridsada Thanabulpong : https://github.com/sirn
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59526,7 +59546,7 @@
 	}));
 
 /***/ },
-/* 336 */
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59534,7 +59554,7 @@
 	//! author : Dan Hagman
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59592,7 +59612,7 @@
 	}));
 
 /***/ },
-/* 337 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59600,7 +59620,7 @@
 	//! author : Dominika Kruk : https://github.com/amaranthrose
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59716,7 +59736,7 @@
 	}));
 
 /***/ },
-/* 338 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59725,7 +59745,7 @@
 	//!           Burak Yiğit Kaya: https://github.com/BYK
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59810,7 +59830,7 @@
 	}));
 
 /***/ },
-/* 339 */
+/* 340 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59818,7 +59838,7 @@
 	//! author : Robin van der Vliet : https://github.com/robin0van0der0v with the help of Iustì Canun
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59905,7 +59925,7 @@
 	}));
 
 /***/ },
-/* 340 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59913,7 +59933,7 @@
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59967,7 +59987,7 @@
 	}));
 
 /***/ },
-/* 341 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -59975,7 +59995,7 @@
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60029,7 +60049,7 @@
 	}));
 
 /***/ },
-/* 342 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60038,7 +60058,7 @@
 	//! Author : Menelion Elensúle : https://github.com/Oire
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60179,7 +60199,7 @@
 	}));
 
 /***/ },
-/* 343 */
+/* 344 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60187,7 +60207,7 @@
 	//! author : Sardor Muminov : https://github.com/muminoff
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60241,7 +60261,7 @@
 	}));
 
 /***/ },
-/* 344 */
+/* 345 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60249,7 +60269,7 @@
 	//! author : Bang Nguyen : https://github.com/bangnk
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60324,7 +60344,7 @@
 	}));
 
 /***/ },
-/* 345 */
+/* 346 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60332,7 +60352,7 @@
 	//! author : Andrew Hood : https://github.com/andrewhood125
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60396,7 +60416,7 @@
 	}));
 
 /***/ },
-/* 346 */
+/* 347 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60405,7 +60425,7 @@
 	//! author : Zeno Zeng : https://github.com/zenozeng
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60527,7 +60547,7 @@
 	}));
 
 /***/ },
-/* 347 */
+/* 348 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
@@ -60535,7 +60555,7 @@
 	//! author : Ben : https://github.com/ben-lin
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(246)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60632,7 +60652,7 @@
 	}));
 
 /***/ },
-/* 348 */
+/* 349 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -60725,12 +60745,12 @@
 	module.exports = dhis2Map;
 
 /***/ },
-/* 349 */
+/* 350 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _graphlib = __webpack_require__(350);
+	var _graphlib = __webpack_require__(351);
 
 	var _graphlib2 = _interopRequireDefault(_graphlib);
 
@@ -60738,7 +60758,7 @@
 
 	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
 
-	var _turf = __webpack_require__(371);
+	var _turf = __webpack_require__(372);
 
 	var _turf2 = _interopRequireDefault(_turf);
 
@@ -60974,7 +60994,7 @@
 	function buildCoordinates(data, coord) {}
 
 /***/ },
-/* 350 */
+/* 351 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -61007,24 +61027,13 @@
 	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	var lib = __webpack_require__(351);
+	var lib = __webpack_require__(352);
 
 	module.exports = {
 	  Graph: lib.Graph,
-	  json: __webpack_require__(356),
-	  alg: __webpack_require__(357),
+	  json: __webpack_require__(357),
+	  alg: __webpack_require__(358),
 	  version: lib.version
-	};
-
-
-/***/ },
-/* 351 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Includes only the "core" of graphlib
-	module.exports = {
-	  Graph: __webpack_require__(352),
-	  version: __webpack_require__(355)
 	};
 
 
@@ -61032,9 +61041,20 @@
 /* 352 */
 /***/ function(module, exports, __webpack_require__) {
 
+	// Includes only the "core" of graphlib
+	module.exports = {
+	  Graph: __webpack_require__(353),
+	  version: __webpack_require__(356)
+	};
+
+
+/***/ },
+/* 353 */
+/***/ function(module, exports, __webpack_require__) {
+
 	"use strict";
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = Graph;
 
@@ -61554,7 +61574,7 @@
 
 
 /***/ },
-/* 353 */
+/* 354 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global window */
@@ -61563,7 +61583,7 @@
 
 	if (true) {
 	  try {
-	    lodash = __webpack_require__(354);
+	    lodash = __webpack_require__(355);
 	  } catch (e) {}
 	}
 
@@ -61575,7 +61595,7 @@
 
 
 /***/ },
-/* 354 */
+/* 355 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -78663,21 +78683,21 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(246)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(247)(module)))
 
 /***/ },
-/* 355 */
+/* 356 */
 /***/ function(module, exports) {
 
 	module.exports = '2.1.1';
 
 
 /***/ },
-/* 356 */
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    Graph = __webpack_require__(352);
+	var _ = __webpack_require__(354),
+	    Graph = __webpack_require__(353);
 
 	module.exports = {
 	  write: write,
@@ -78745,29 +78765,29 @@
 
 
 /***/ },
-/* 357 */
+/* 358 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  components: __webpack_require__(358),
-	  dijkstra: __webpack_require__(359),
-	  dijkstraAll: __webpack_require__(361),
-	  findCycles: __webpack_require__(362),
-	  floydWarshall: __webpack_require__(364),
-	  isAcyclic: __webpack_require__(365),
-	  postorder: __webpack_require__(367),
-	  preorder: __webpack_require__(369),
-	  prim: __webpack_require__(370),
-	  tarjan: __webpack_require__(363),
-	  topsort: __webpack_require__(366)
+	  components: __webpack_require__(359),
+	  dijkstra: __webpack_require__(360),
+	  dijkstraAll: __webpack_require__(362),
+	  findCycles: __webpack_require__(363),
+	  floydWarshall: __webpack_require__(365),
+	  isAcyclic: __webpack_require__(366),
+	  postorder: __webpack_require__(368),
+	  preorder: __webpack_require__(370),
+	  prim: __webpack_require__(371),
+	  tarjan: __webpack_require__(364),
+	  topsort: __webpack_require__(367)
 	};
 
 
 /***/ },
-/* 358 */
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = components;
 
@@ -78797,11 +78817,11 @@
 
 
 /***/ },
-/* 359 */
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    PriorityQueue = __webpack_require__(360);
+	var _ = __webpack_require__(354),
+	    PriorityQueue = __webpack_require__(361);
 
 	module.exports = dijkstra;
 
@@ -78857,10 +78877,10 @@
 
 
 /***/ },
-/* 360 */
+/* 361 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = PriorityQueue;
 
@@ -79015,11 +79035,11 @@
 
 
 /***/ },
-/* 361 */
+/* 362 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var dijkstra = __webpack_require__(359),
-	    _ = __webpack_require__(353);
+	var dijkstra = __webpack_require__(360),
+	    _ = __webpack_require__(354);
 
 	module.exports = dijkstraAll;
 
@@ -79031,11 +79051,11 @@
 
 
 /***/ },
-/* 362 */
+/* 363 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    tarjan = __webpack_require__(363);
+	var _ = __webpack_require__(354),
+	    tarjan = __webpack_require__(364);
 
 	module.exports = findCycles;
 
@@ -79047,10 +79067,10 @@
 
 
 /***/ },
-/* 363 */
+/* 364 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = tarjan;
 
@@ -79100,10 +79120,10 @@
 
 
 /***/ },
-/* 364 */
+/* 365 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = floydWarshall;
 
@@ -79156,10 +79176,10 @@
 
 
 /***/ },
-/* 365 */
+/* 366 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var topsort = __webpack_require__(366);
+	var topsort = __webpack_require__(367);
 
 	module.exports = isAcyclic;
 
@@ -79177,10 +79197,10 @@
 
 
 /***/ },
-/* 366 */
+/* 367 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = topsort;
 	topsort.CycleException = CycleException;
@@ -79217,10 +79237,10 @@
 
 
 /***/ },
-/* 367 */
+/* 368 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(368);
+	var dfs = __webpack_require__(369);
 
 	module.exports = postorder;
 
@@ -79230,10 +79250,10 @@
 
 
 /***/ },
-/* 368 */
+/* 369 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(354);
 
 	module.exports = dfs;
 
@@ -79278,10 +79298,10 @@
 
 
 /***/ },
-/* 369 */
+/* 370 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(368);
+	var dfs = __webpack_require__(369);
 
 	module.exports = preorder;
 
@@ -79291,12 +79311,12 @@
 
 
 /***/ },
-/* 370 */
+/* 371 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    Graph = __webpack_require__(352),
-	    PriorityQueue = __webpack_require__(360);
+	var _ = __webpack_require__(354),
+	    Graph = __webpack_require__(353),
+	    PriorityQueue = __webpack_require__(361);
 
 	module.exports = prim;
 
@@ -79349,7 +79369,7 @@
 
 
 /***/ },
-/* 371 */
+/* 372 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*eslint global-require: 0*/
@@ -79361,57 +79381,60 @@
 	 * @module turf
 	 * @summary Geospatial analysis for JavaScript
 	 */
-	var helpers = __webpack_require__(372);
-	var invariant = __webpack_require__(373);
+	var helpers = __webpack_require__(373);
+	var invariant = __webpack_require__(374);
 
 	var turf = {
-	    isolines: __webpack_require__(374),
-	    convex: __webpack_require__(384),
-	    within: __webpack_require__(401),
-	    concave: __webpack_require__(402),
-	    difference: __webpack_require__(405),
-	    collect: __webpack_require__(406),
-	    flip: __webpack_require__(407),
-	    simplify: __webpack_require__(408),
-	    bezier: __webpack_require__(410),
-	    tag: __webpack_require__(412),
-	    sample: __webpack_require__(413),
-	    envelope: __webpack_require__(414),
-	    square: __webpack_require__(382),
-	    circle: __webpack_require__(416),
-	    midpoint: __webpack_require__(418),
-	    buffer: __webpack_require__(420),
-	    center: __webpack_require__(422),
-	    centerOfMass: __webpack_require__(423),
-	    centroid: __webpack_require__(424),
-	    combine: __webpack_require__(426),
-	    distance: __webpack_require__(378),
-	    explode: __webpack_require__(425),
-	    bbox: __webpack_require__(379),
-	    tesselate: __webpack_require__(427),
-	    bboxPolygon: __webpack_require__(415),
-	    inside: __webpack_require__(376),
-	    intersect: __webpack_require__(429),
-	    nearest: __webpack_require__(430),
-	    planepoint: __webpack_require__(381),
-	    random: __webpack_require__(431),
-	    tin: __webpack_require__(375),
-	    union: __webpack_require__(403),
-	    bearing: __webpack_require__(419),
-	    destination: __webpack_require__(417),
-	    kinks: __webpack_require__(433),
-	    pointOnSurface: __webpack_require__(434),
-	    area: __webpack_require__(435),
-	    along: __webpack_require__(438),
-	    lineDistance: __webpack_require__(439),
-	    lineSlice: __webpack_require__(440),
-	    lineSliceAlong: __webpack_require__(442),
-	    pointOnLine: __webpack_require__(441),
-	    pointGrid: __webpack_require__(377),
-	    squareGrid: __webpack_require__(443),
-	    triangleGrid: __webpack_require__(444),
-	    hexGrid: __webpack_require__(445),
-	    idw: __webpack_require__(446),
+	    isolines: __webpack_require__(375),
+	    convex: __webpack_require__(385),
+	    within: __webpack_require__(402),
+	    concave: __webpack_require__(403),
+	    difference: __webpack_require__(406),
+	    dissolve: __webpack_require__(407),
+	    collect: __webpack_require__(415),
+	    flip: __webpack_require__(416),
+	    simplify: __webpack_require__(417),
+	    bezier: __webpack_require__(419),
+	    tag: __webpack_require__(421),
+	    sample: __webpack_require__(422),
+	    envelope: __webpack_require__(423),
+	    square: __webpack_require__(383),
+	    circle: __webpack_require__(425),
+	    midpoint: __webpack_require__(427),
+	    buffer: __webpack_require__(429),
+	    center: __webpack_require__(431),
+	    centerOfMass: __webpack_require__(432),
+	    centroid: __webpack_require__(433),
+	    combine: __webpack_require__(435),
+	    distance: __webpack_require__(379),
+	    explode: __webpack_require__(434),
+	    bbox: __webpack_require__(380),
+	    tesselate: __webpack_require__(436),
+	    bboxPolygon: __webpack_require__(424),
+	    inside: __webpack_require__(377),
+	    intersect: __webpack_require__(438),
+	    nearest: __webpack_require__(439),
+	    planepoint: __webpack_require__(382),
+	    random: __webpack_require__(440),
+	    tin: __webpack_require__(376),
+	    union: __webpack_require__(404),
+	    bearing: __webpack_require__(428),
+	    destination: __webpack_require__(426),
+	    kinks: __webpack_require__(442),
+	    pointOnSurface: __webpack_require__(443),
+	    area: __webpack_require__(444),
+	    along: __webpack_require__(447),
+	    lineDistance: __webpack_require__(448),
+	    lineSlice: __webpack_require__(449),
+	    lineSliceAlong: __webpack_require__(451),
+	    pointOnLine: __webpack_require__(450),
+	    pointGrid: __webpack_require__(378),
+	    squareGrid: __webpack_require__(452),
+	    triangleGrid: __webpack_require__(453),
+	    hexGrid: __webpack_require__(454),
+	    idw: __webpack_require__(455),
+	    truncate: __webpack_require__(456),
+	    flatten: __webpack_require__(458),
 	    point: helpers.point,
 	    polygon: helpers.polygon,
 	    lineString: helpers.lineString,
@@ -79434,7 +79457,7 @@
 
 
 /***/ },
-/* 372 */
+/* 373 */
 /***/ function(module, exports) {
 
 	/**
@@ -79654,7 +79677,7 @@
 	 * @returns {Feature<MultiPolygon>} a multipolygon feature
 	 * @throws {Error} if no coordinates are passed
 	 * @example
-	 * var multiPoly = turf.multiPolygon([[[[0,0],[0,10],[10,10],[10,0],[0,0]]]);
+	 * var multiPoly = turf.multiPolygon([[[[0,0],[0,10],[10,10],[10,0],[0,0]]]]);
 	 *
 	 * //=multiPoly
 	 *
@@ -79764,7 +79787,7 @@
 
 
 /***/ },
-/* 373 */
+/* 374 */
 /***/ function(module, exports) {
 
 	/**
@@ -79863,22 +79886,22 @@
 
 
 /***/ },
-/* 374 */
+/* 375 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//https://github.com/jasondavies/conrec.js
 	//http://stackoverflow.com/questions/263305/drawing-a-topographical-map
-	var tin = __webpack_require__(375);
-	var inside = __webpack_require__(376);
-	var grid = __webpack_require__(377);
-	var distance = __webpack_require__(378);
-	var bbox = __webpack_require__(379);
-	var planepoint = __webpack_require__(381);
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var linestring = __webpack_require__(372).lineString;
-	var point = __webpack_require__(372).point;
-	var square = __webpack_require__(382);
-	var Conrec = __webpack_require__(383);
+	var tin = __webpack_require__(376);
+	var inside = __webpack_require__(377);
+	var grid = __webpack_require__(378);
+	var distance = __webpack_require__(379);
+	var bbox = __webpack_require__(380);
+	var planepoint = __webpack_require__(382);
+	var featurecollection = __webpack_require__(373).featureCollection;
+	var linestring = __webpack_require__(373).lineString;
+	var point = __webpack_require__(373).point;
+	var square = __webpack_require__(383);
+	var Conrec = __webpack_require__(384);
 
 	/**
 	 * Takes {@link Point|points} with z-values and an array of
@@ -79968,13 +79991,13 @@
 
 
 /***/ },
-/* 375 */
+/* 376 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Delaunay_triangulation
 	//https://github.com/ironwallaby/delaunay
-	var polygon = __webpack_require__(372).polygon;
-	var featurecollection = __webpack_require__(372).featureCollection;
+	var polygon = __webpack_require__(373).polygon;
+	var featurecollection = __webpack_require__(373).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and the name of a z-value property and
@@ -80216,10 +80239,10 @@
 
 
 /***/ },
-/* 376 */
+/* 377 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var invariant = __webpack_require__(373);
+	var invariant = __webpack_require__(374);
 
 	// http://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
 	// modified from: https://github.com/substack/point-in-polygon/blob/master/index.js
@@ -80234,8 +80257,8 @@
 	 * @param {Feature<(Polygon|MultiPolygon)>} polygon input polygon or multipolygon
 	 * @return {boolean} `true` if the Point is inside the Polygon; `false` if the Point is not inside the Polygon
 	 * @example
-	 * var pt = point([-77, 44]);
-	 * var poly = polygon([[
+	 * var pt = turf.point([-77, 44]);
+	 * var poly = turf.polygon([[
 	 *   [-81, 41],
 	 *   [-81, 47],
 	 *   [-72, 47],
@@ -80260,7 +80283,7 @@
 	            var k = 1;
 	            // check for the point in any of the holes
 	            while (k < polys[i].length && !inHole) {
-	                if (inRing(pt, polys[i][k])) {
+	                if (inRing(pt, polys[i][k], true)) {
 	                    inHole = true;
 	                }
 	                k++;
@@ -80272,12 +80295,16 @@
 	};
 
 	// pt is [x,y] and ring is [[x,y], [x,y],..]
-	function inRing(pt, ring) {
+	function inRing(pt, ring, ignoreBoundary) {
 	    var isInside = false;
+	    if (ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]) ring = ring.slice(0, ring.length - 1);
+
 	    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
 	        var xi = ring[i][0], yi = ring[i][1];
 	        var xj = ring[j][0], yj = ring[j][1];
-	        if ((xi == pt[0] && yi == pt[1]) || (xj == pt[0] && yj == pt[1])) return true;
+	        var onBoundary = (pt[1] * (xi - xj) + yi * (xj - pt[0]) + yj * (pt[0] - xi) === 0) &&
+	            ((xi - pt[0]) * (xj - pt[0]) <= 0) && ((yi - pt[1]) * (yj - pt[1]) <= 0);
+	        if (onBoundary) return !ignoreBoundary;
 	        var intersect = ((yi > pt[1]) !== (yj > pt[1])) &&
 	        (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi);
 	        if (intersect) isInside = !isInside;
@@ -80287,12 +80314,12 @@
 
 
 /***/ },
-/* 377 */
+/* 378 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(372).point;
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var distance = __webpack_require__(378);
+	var point = __webpack_require__(373).point;
+	var featurecollection = __webpack_require__(373).featureCollection;
+	var distance = __webpack_require__(379);
 	/**
 	 * Takes a bounding box and a cell depth and returns a set of {@link Point|points} in a grid.
 	 *
@@ -80333,11 +80360,11 @@
 
 
 /***/ },
-/* 378 */
+/* 379 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(373).getCoord;
-	var radiansToDistance = __webpack_require__(372).radiansToDistance;
+	var getCoord = __webpack_require__(374).getCoord;
+	var radiansToDistance = __webpack_require__(373).radiansToDistance;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -80399,10 +80426,10 @@
 
 
 /***/ },
-/* 379 */
+/* 380 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
+	var each = __webpack_require__(381).coordEach;
 
 	/**
 	 * Takes a set of features, calculates the bbox of all input features, and returns a bounding box.
@@ -80411,12 +80438,12 @@
 	 * @param {(Feature|FeatureCollection)} geojson input features
 	 * @return {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
 	 * @example
-	 * var pt1 = point([114.175329, 22.2524])
-	 * var pt2 = point([114.170007, 22.267969])
-	 * var pt3 = point([114.200649, 22.274641])
-	 * var pt4 = point([114.200649, 22.274641])
-	 * var pt5 = point([114.186744, 22.265745])
-	 * var features = featureCollection([pt1, pt2, pt3, pt4, pt5])
+	 * var pt1 = turf.point([114.175329, 22.2524])
+	 * var pt2 = turf.point([114.170007, 22.267969])
+	 * var pt3 = turf.point([114.200649, 22.274641])
+	 * var pt4 = turf.point([114.200649, 22.274641])
+	 * var pt5 = turf.point([114.186744, 22.265745])
+	 * var features = turf.featureCollection([pt1, pt2, pt3, pt4, pt5])
 	 *
 	 * var bbox = turf.bbox(features);
 	 *
@@ -80439,7 +80466,7 @@
 
 
 /***/ },
-/* 380 */
+/* 381 */
 /***/ function(module, exports) {
 
 	/**
@@ -80453,7 +80480,7 @@
 	 * the final coordinate of LinearRings that wraps the ring in its iteration.
 	 * @example
 	 * var point = { type: 'Point', coordinates: [0, 0] };
-	 * coordEach(point, function(coords) {
+	 * turfMeta.coordEach(point, function(coords) {
 	 *   // coords is equal to [0, 0]
 	 * });
 	 */
@@ -80549,7 +80576,7 @@
 	 * @param {Function} callback a method that takes (value)
 	 * @example
 	 * var point = { type: 'Feature', geometry: null, properties: { foo: 1 } };
-	 * propEach(point, function(props) {
+	 * turfMeta.propEach(point, function(props) {
 	 *   // props is equal to { foo: 1}
 	 * });
 	 */
@@ -80584,7 +80611,7 @@
 	 * // javascript type of each property of every feature
 	 * function propTypes (layer) {
 	 *   opts = opts || {}
-	 *   return propReduce(layer, function (prev, props) {
+	 *   return turfMeta.propReduce(layer, function (prev, props) {
 	 *     for (var prop in props) {
 	 *       if (prev[prop]) continue
 	 *       prev[prop] = typeof props[prop]
@@ -80609,7 +80636,7 @@
 	 * @param {Function} callback a method that takes (value)
 	 * @example
 	 * var feature = { type: 'Feature', geometry: null, properties: {} };
-	 * featureEach(feature, function(feature) {
+	 * turfMeta.featureEach(feature, function(feature) {
 	 *   // feature == feature
 	 * });
 	 */
@@ -80654,7 +80681,7 @@
 	 *   geometry: { type: 'Point', coordinates: [0, 0] },
 	 *   properties: {}
 	 * };
-	 * geomEach(point, function(geom) {
+	 * turfMeta.geomEach(point, function(geom) {
 	 *   // geom is the point geometry
 	 * });
 	 */
@@ -80709,7 +80736,7 @@
 
 
 /***/ },
-/* 381 */
+/* 382 */
 /***/ function(module, exports) {
 
 	/**
@@ -80787,10 +80814,10 @@
 
 
 /***/ },
-/* 382 */
+/* 383 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes a bounding box and calculates the minimum square bounding box that
@@ -80838,7 +80865,7 @@
 
 
 /***/ },
-/* 383 */
+/* 384 */
 /***/ function(module, exports) {
 
 	/* eslint-disable */
@@ -81361,12 +81388,12 @@
 
 
 /***/ },
-/* 384 */
+/* 385 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    convexHull = __webpack_require__(385),
-	    polygon = __webpack_require__(372).polygon;
+	var each = __webpack_require__(381).coordEach,
+	    convexHull = __webpack_require__(386),
+	    polygon = __webpack_require__(373).polygon;
 
 	/**
 	 * Takes a [feature](http://geojson.org/geojson-spec.html#feature-objects)
@@ -81464,14 +81491,14 @@
 
 
 /***/ },
-/* 385 */
+/* 386 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var convexHull1d = __webpack_require__(386)
-	var convexHull2d = __webpack_require__(387)
-	var convexHullnd = __webpack_require__(395)
+	var convexHull1d = __webpack_require__(387)
+	var convexHull2d = __webpack_require__(388)
+	var convexHullnd = __webpack_require__(396)
 
 	module.exports = convexHull
 
@@ -81494,7 +81521,7 @@
 	}
 
 /***/ },
-/* 386 */
+/* 387 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -81522,14 +81549,14 @@
 	}
 
 /***/ },
-/* 387 */
+/* 388 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHull2D
 
-	var monotoneHull = __webpack_require__(388)
+	var monotoneHull = __webpack_require__(389)
 
 	function convexHull2D(points) {
 	  var hull = monotoneHull(points)
@@ -81549,14 +81576,14 @@
 
 
 /***/ },
-/* 388 */
+/* 389 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = monotoneConvexHull2D
 
-	var orient = __webpack_require__(389)[3]
+	var orient = __webpack_require__(390)[3]
 
 	function monotoneConvexHull2D(points) {
 	  var n = points.length
@@ -81635,15 +81662,15 @@
 	}
 
 /***/ },
-/* 389 */
+/* 390 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(390)
-	var robustSum = __webpack_require__(391)
-	var robustScale = __webpack_require__(392)
-	var robustSubtract = __webpack_require__(394)
+	var twoProduct = __webpack_require__(391)
+	var robustSum = __webpack_require__(392)
+	var robustScale = __webpack_require__(393)
+	var robustSubtract = __webpack_require__(395)
 
 	var NUM_EXPAND = 5
 
@@ -81830,7 +81857,7 @@
 	generateOrientationProc()
 
 /***/ },
-/* 390 */
+/* 391 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -81868,7 +81895,7 @@
 	}
 
 /***/ },
-/* 391 */
+/* 392 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -82029,13 +82056,13 @@
 	}
 
 /***/ },
-/* 392 */
+/* 393 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(390)
-	var twoSum = __webpack_require__(393)
+	var twoProduct = __webpack_require__(391)
+	var twoSum = __webpack_require__(394)
 
 	module.exports = scaleLinearExpansion
 
@@ -82084,7 +82111,7 @@
 	}
 
 /***/ },
-/* 393 */
+/* 394 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -82106,7 +82133,7 @@
 	}
 
 /***/ },
-/* 394 */
+/* 395 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -82267,15 +82294,15 @@
 	}
 
 /***/ },
-/* 395 */
+/* 396 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHullnD
 
-	var ich = __webpack_require__(396)
-	var aff = __webpack_require__(400)
+	var ich = __webpack_require__(397)
+	var aff = __webpack_require__(401)
 
 	function permute(points, front) {
 	  var n = points.length
@@ -82332,7 +82359,7 @@
 	}
 
 /***/ },
-/* 396 */
+/* 397 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
@@ -82343,8 +82370,8 @@
 
 	module.exports = incrementalConvexHull
 
-	var orient = __webpack_require__(389)
-	var compareCell = __webpack_require__(397).compareCells
+	var orient = __webpack_require__(390)
+	var compareCell = __webpack_require__(398).compareCells
 
 	function compareInt(a, b) {
 	  return a - b
@@ -82783,13 +82810,13 @@
 	}
 
 /***/ },
-/* 397 */
+/* 398 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"; "use restrict";
 
-	var bits      = __webpack_require__(398)
-	  , UnionFind = __webpack_require__(399)
+	var bits      = __webpack_require__(399)
+	  , UnionFind = __webpack_require__(400)
 
 	//Returns the dimension of a cell complex
 	function dimension(cells) {
@@ -83131,7 +83158,7 @@
 
 
 /***/ },
-/* 398 */
+/* 399 */
 /***/ function(module, exports) {
 
 	/**
@@ -83341,7 +83368,7 @@
 
 
 /***/ },
-/* 399 */
+/* 400 */
 /***/ function(module, exports) {
 
 	"use strict"; "use restrict";
@@ -83408,14 +83435,14 @@
 	}
 
 /***/ },
-/* 400 */
+/* 401 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = affineHull
 
-	var orient = __webpack_require__(389)
+	var orient = __webpack_require__(390)
 
 	function linearlyIndependent(points, d) {
 	  var nhull = new Array(d+1)
@@ -83464,11 +83491,11 @@
 	}
 
 /***/ },
-/* 401 */
+/* 402 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
-	var featureCollection = __webpack_require__(372).featureCollection;
+	var inside = __webpack_require__(377);
+	var featureCollection = __webpack_require__(373).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and returns the points that fall within the polygons.
@@ -83564,7 +83591,7 @@
 
 
 /***/ },
-/* 402 */
+/* 403 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 1. run tin on points
@@ -83572,9 +83599,9 @@
 	// 3. remove triangles that fail the max length test
 	// 4. buffer the results slightly
 	// 5. merge the results
-	var tin = __webpack_require__(375);
-	var union = __webpack_require__(403);
-	var distance = __webpack_require__(378);
+	var tin = __webpack_require__(376);
+	var union = __webpack_require__(404);
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes a set of {@link Point|points} and returns a concave hull polygon.
@@ -83586,7 +83613,7 @@
 	 * hull to become concave (in miles)
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
 	 * @returns {Feature<Polygon>} a concave hull
-	 * @throws {Error} if maxEdge parameter is missing
+	 * @throws {Error} if maxEdge parameter is missing or unable to compute hull
 	 * @example
 	 * var points = {
 	 *   "type": "FeatureCollection",
@@ -83653,6 +83680,9 @@
 	    var tinPolys = tin(points);
 	    var filteredPolys = tinPolys.features.filter(filterTriangles);
 	    tinPolys.features = filteredPolys;
+	    if (tinPolys.features.length < 1) {
+	        throw new Error('too few polygons found to compute concave hull');
+	    }
 
 	    function filterTriangles(triangle) {
 	        var pt1 = triangle.geometry.coordinates[0][0];
@@ -83684,7 +83714,7 @@
 
 
 /***/ },
-/* 403 */
+/* 404 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// look here for help http://svn.osgeo.org/grass/grass/branches/releasebranch_6_4/vector/v.overlay/main.c
@@ -83692,7 +83722,7 @@
 
 	// depend on jsts for now https://github.com/bjornharrtell/jsts/blob/master/examples/overlay.html
 
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(405);
 
 	/**
 	 * Takes two or more {@link Polygon|polygons} and returns a combined polygon. If the input polygons are not contiguous, this function returns a {@link MultiPolygon} feature.
@@ -83764,7 +83794,7 @@
 
 
 /***/ },
-/* 404 */
+/* 405 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// JSTS. See https://github.com/bjornharrtell/jsts
@@ -83789,11 +83819,11 @@
 
 
 /***/ },
-/* 405 */
+/* 406 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now https://github.com/bjornharrtell/jsts/blob/master/examples/overlay.html
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(405);
 
 	/**
 	 * Finds the difference between two {@link Polygon|polygons} by clipping the second
@@ -83889,10 +83919,1928 @@
 
 
 /***/ },
-/* 406 */
+/* 407 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
+	var turfUnion = __webpack_require__(404);
+	var turfOverlaps = __webpack_require__(408);
+	var turfbbox = __webpack_require__(380);
+	var Rbush = __webpack_require__(410);
+	var gju = __webpack_require__(412);
+	var getClosest = __webpack_require__(413);
+
+	/**
+	 * Dissolves a FeatureCollection of polygons based on a property. Note that multipart features within the collection are not supported
+	 *
+	 * @name dissolve
+	 * @param {FeatureCollection<Polygon>} featureCollection input feature collection to be dissolved
+	 * @param {string} [propertyName] property name on which to dissolve features
+	 * @returns {FeatureCollection<Polygon>} a FeatureCollection containing the dissolved polygons
+	 * @example
+	 * var features = {
+	 * "type": "FeatureCollection",
+	 * "features": [
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "yes"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+	 *     }
+	 *   },
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "yes"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[0, -1], [0, 0], [1, 0], [1, -1], [0,-1]]]
+	 *     }
+	 *   },
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "no"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[1,-1],[1, 0], [2, 0], [2, -1], [1, -1]]]
+	 *     }
+	 *   }
+	 *  ]
+	 * }
+	 *
+	 * var dissolved = turf.dissolve(features, 'combine');
+	 *
+	 * //=dissolved
+	 */
+	module.exports = function (featureCollection, propertyName) {
+
+	    var originalIndexOfItemsRemoved = [];
+	    var treeItems = [];
+	    var rtree = new Rbush();
+	    for (var polyIndex = 0; polyIndex < featureCollection.features.length; polyIndex++) {
+	        var inputFeatureBbox = turfbbox(featureCollection.features[polyIndex]);
+	        var treeObj = {
+	            minX: inputFeatureBbox[0],
+	            minY: inputFeatureBbox[1],
+	            maxX: inputFeatureBbox[2],
+	            maxY: inputFeatureBbox[3],
+	            origIndexPosition: polyIndex
+	        };
+	        treeItems.push(treeObj);
+	    }
+	    rtree.load(treeItems);
+
+	    for (var i = 0; i < featureCollection.features.length; i++) {
+	        var polygon = featureCollection.features[i];
+
+	        var polyBoundingBox = turfbbox(polygon);
+	        var searchObj = {
+	            minX: polyBoundingBox[0],
+	            minY: polyBoundingBox[1],
+	            maxX: polyBoundingBox[2],
+	            maxY: polyBoundingBox[3]
+	        };
+	        var potentialMatchingFeatures = rtree.search(searchObj);
+
+	        var featureChanged = false;
+
+	        for (var searchIndex = 0; searchIndex < potentialMatchingFeatures.length; searchIndex++) {
+	            polygon = featureCollection.features[i];
+
+	            var matchFeaturePosition = potentialMatchingFeatures[searchIndex].origIndexPosition;
+
+	            if (originalIndexOfItemsRemoved.length > 0 && matchFeaturePosition !== 0) {
+	                if (matchFeaturePosition > originalIndexOfItemsRemoved[originalIndexOfItemsRemoved.length - 1]) {
+	                    matchFeaturePosition = matchFeaturePosition - (originalIndexOfItemsRemoved.length);
+	                } else {
+	                    var closestNumber = getClosest.greaterNumber(matchFeaturePosition, originalIndexOfItemsRemoved);
+	                    if (closestNumber !== 0) {
+	                        matchFeaturePosition = matchFeaturePosition - closestNumber;
+	                    }
+	                }
+	            }
+
+	            if (matchFeaturePosition === i) {
+	                continue;
+	            }
+	            var matchFeature = featureCollection.features[matchFeaturePosition];
+
+	            if (typeof propertyName !== undefined) {
+	                if (matchFeature.properties[propertyName] !== polygon.properties[propertyName]) {
+	                    continue;
+	                }
+	            }
+
+	            var overlapCheck = turfOverlaps(polygon, matchFeature);
+
+	            if (!overlapCheck) {
+	                var polyClone = JSON.stringify(polygon);
+	                var polyBeingCheckedClone = JSON.stringify(matchFeature);
+	                var linestring1 = toLinestring(JSON.parse(polyClone));
+	                var linestring2 = toLinestring(JSON.parse(polyBeingCheckedClone));
+	                overlapCheck = gju.lineStringsIntersect(linestring1.geometry, linestring2.geometry);
+	            }
+	            if (!overlapCheck) {
+	                continue;
+	            }
+
+	            featureCollection.features[i] = turfUnion(polygon, matchFeature);
+	            originalIndexOfItemsRemoved.push(potentialMatchingFeatures[searchIndex].origIndexPosition);
+	            originalIndexOfItemsRemoved.sort(function (a, b) {
+	                return a - b;
+	            });
+
+	            rtree.remove(potentialMatchingFeatures[searchIndex]);
+	            featureCollection.features.splice(matchFeaturePosition, 1);
+	            searchObj.origIndexPosition = i;
+	            rtree.remove(searchObj, function (a, b) {
+	                return a.origIndexPosition === b.origIndexPosition;
+	            });
+	            featureChanged = true;
+	        }
+	        if (featureChanged) {
+	            var newBoundingBox = turfbbox(polygon);
+	            rtree.insert({
+	                minX: newBoundingBox[0],
+	                minY: newBoundingBox[1],
+	                maxX: newBoundingBox[2],
+	                maxY: newBoundingBox[3],
+	                origIndexPosition: i
+	            });
+	            i--;
+	        }
+	    }
+	    return featureCollection;
+	};
+
+	function toLinestring(polygon) {
+	    if (polygon === null || polygon === undefined) throw new Error('No polygon was passed');
+	    polygon.geometry.type = 'LineString';
+	    var flat_arr = [].concat.apply([], polygon.geometry.coordinates);
+	    polygon.geometry.coordinates = flat_arr;
+	    return polygon;
+	}
+
+
+/***/ },
+/* 408 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var clockwise = __webpack_require__(409);
+
+	function doLinesIntersect(line1, line2) {
+	  var p1 = line1[0],
+	    p2 = line1[1],
+	    p3 = line2[0],
+	    p4 = line2[1];
+
+	  return (clockwise([p1, p3, p4, p1]) != clockwise([p2, p3, p4, p2]))
+	    && (clockwise([p1, p2, p3, p1]) != clockwise([p1, p2, p4, p1]));
+	}
+
+	function testLines(ring1, ring2) {
+	  for (var p1_ind = 0; p1_ind < (ring1.length - 1); p1_ind++) {
+	    var p1_line = [ring1[p1_ind], ring1[p1_ind + 1]];
+	    for (var p2_ind = 0; p2_ind < (ring2.length - 1); p2_ind++) {
+	      var p2_line = [ring2[p2_ind], ring2[p2_ind + 1]];
+
+	      if (doLinesIntersect(p1_line, p2_line)) {
+	        return true;
+	      }
+	    }
+	  }
+	  return false;
+	}
+
+	function getCoordinates(polygon) {
+	  var coords = [[[]]];
+
+	  switch (polygon.geometry.type) {
+	    case 'LineString':
+	      coords = [[polygon.geometry.coordinates]];
+	      break;
+	    case 'Polygon':
+	      coords = [polygon.geometry.coordinates];
+	      break;
+	    case 'MultiPolygon':
+	      coords = polygon.geometry.coordinates;
+	      break;
+	  }
+	  return coords;
+	}
+
+	/**
+	 * Since we don't care about the overlap amount,
+	 * or it's geometry, but rather just whether overlap
+	 * occurs, polygon overlap can most simply be expressed
+	 * by testing whether any pair of edges on the two polygons
+	 * intersect. If there are any edge intersections, the
+	 * polygons overlap.
+	 *
+	 * @param  {[type]} poly1 [description]
+	 * @param  {[type]} poly2 [description]
+	 * @return {[type]}       [description]
+	 */
+	module.exports = function (poly1, poly2) {
+	  var coords1 = getCoordinates(poly1),
+	    coords2 = getCoordinates(poly2);
+
+	  // This looks completely stupid ridiculous to
+	  // have so many nested loops, but it supports
+	  // multipolygons nicely. In the case of polygons
+	  // or linestrings, the outer loops are only one
+	  // iteration.
+	  return coords1.some(function (rings1) {
+	    return coords2.some(function (rings2) {
+	      return rings1.some(function(ring1) {
+	        return rings2.some(function(ring2) {
+	          return testLines(ring1, ring2);
+	        });
+	      });
+	    });
+	  });
+	};
+
+
+/***/ },
+/* 409 */
+/***/ function(module, exports) {
+
+	module.exports = function(ring){
+	  var sum = 0;
+	  var i = 1;
+	  var len = ring.length;
+	  var prev,cur;
+	  while(i<len){
+	    prev = cur||ring[0];
+	    cur = ring[i];
+	    sum += ((cur[0]-prev[0])*(cur[1]+prev[1]));
+	    i++;
+	  }
+	  return sum > 0;
+	}
+
+/***/ },
+/* 410 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = rbush;
+
+	var quickselect = __webpack_require__(411);
+
+	function rbush(maxEntries, format) {
+	    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
+
+	    // max entries in a node is 9 by default; min node fill is 40% for best performance
+	    this._maxEntries = Math.max(4, maxEntries || 9);
+	    this._minEntries = Math.max(2, Math.ceil(this._maxEntries * 0.4));
+
+	    if (format) {
+	        this._initFormat(format);
+	    }
+
+	    this.clear();
+	}
+
+	rbush.prototype = {
+
+	    all: function () {
+	        return this._all(this.data, []);
+	    },
+
+	    search: function (bbox) {
+
+	        var node = this.data,
+	            result = [],
+	            toBBox = this.toBBox;
+
+	        if (!intersects(bbox, node)) return result;
+
+	        var nodesToSearch = [],
+	            i, len, child, childBBox;
+
+	        while (node) {
+	            for (i = 0, len = node.children.length; i < len; i++) {
+
+	                child = node.children[i];
+	                childBBox = node.leaf ? toBBox(child) : child;
+
+	                if (intersects(bbox, childBBox)) {
+	                    if (node.leaf) result.push(child);
+	                    else if (contains(bbox, childBBox)) this._all(child, result);
+	                    else nodesToSearch.push(child);
+	                }
+	            }
+	            node = nodesToSearch.pop();
+	        }
+
+	        return result;
+	    },
+
+	    collides: function (bbox) {
+
+	        var node = this.data,
+	            toBBox = this.toBBox;
+
+	        if (!intersects(bbox, node)) return false;
+
+	        var nodesToSearch = [],
+	            i, len, child, childBBox;
+
+	        while (node) {
+	            for (i = 0, len = node.children.length; i < len; i++) {
+
+	                child = node.children[i];
+	                childBBox = node.leaf ? toBBox(child) : child;
+
+	                if (intersects(bbox, childBBox)) {
+	                    if (node.leaf || contains(bbox, childBBox)) return true;
+	                    nodesToSearch.push(child);
+	                }
+	            }
+	            node = nodesToSearch.pop();
+	        }
+
+	        return false;
+	    },
+
+	    load: function (data) {
+	        if (!(data && data.length)) return this;
+
+	        if (data.length < this._minEntries) {
+	            for (var i = 0, len = data.length; i < len; i++) {
+	                this.insert(data[i]);
+	            }
+	            return this;
+	        }
+
+	        // recursively build the tree with the given data from stratch using OMT algorithm
+	        var node = this._build(data.slice(), 0, data.length - 1, 0);
+
+	        if (!this.data.children.length) {
+	            // save as is if tree is empty
+	            this.data = node;
+
+	        } else if (this.data.height === node.height) {
+	            // split root if trees have the same height
+	            this._splitRoot(this.data, node);
+
+	        } else {
+	            if (this.data.height < node.height) {
+	                // swap trees if inserted one is bigger
+	                var tmpNode = this.data;
+	                this.data = node;
+	                node = tmpNode;
+	            }
+
+	            // insert the small tree into the large tree at appropriate level
+	            this._insert(node, this.data.height - node.height - 1, true);
+	        }
+
+	        return this;
+	    },
+
+	    insert: function (item) {
+	        if (item) this._insert(item, this.data.height - 1);
+	        return this;
+	    },
+
+	    clear: function () {
+	        this.data = createNode([]);
+	        return this;
+	    },
+
+	    remove: function (item, equalsFn) {
+	        if (!item) return this;
+
+	        var node = this.data,
+	            bbox = this.toBBox(item),
+	            path = [],
+	            indexes = [],
+	            i, parent, index, goingUp;
+
+	        // depth-first iterative tree traversal
+	        while (node || path.length) {
+
+	            if (!node) { // go up
+	                node = path.pop();
+	                parent = path[path.length - 1];
+	                i = indexes.pop();
+	                goingUp = true;
+	            }
+
+	            if (node.leaf) { // check current node
+	                index = findItem(item, node.children, equalsFn);
+
+	                if (index !== -1) {
+	                    // item found, remove the item and condense tree upwards
+	                    node.children.splice(index, 1);
+	                    path.push(node);
+	                    this._condense(path);
+	                    return this;
+	                }
+	            }
+
+	            if (!goingUp && !node.leaf && contains(node, bbox)) { // go down
+	                path.push(node);
+	                indexes.push(i);
+	                i = 0;
+	                parent = node;
+	                node = node.children[0];
+
+	            } else if (parent) { // go right
+	                i++;
+	                node = parent.children[i];
+	                goingUp = false;
+
+	            } else node = null; // nothing found
+	        }
+
+	        return this;
+	    },
+
+	    toBBox: function (item) { return item; },
+
+	    compareMinX: compareNodeMinX,
+	    compareMinY: compareNodeMinY,
+
+	    toJSON: function () { return this.data; },
+
+	    fromJSON: function (data) {
+	        this.data = data;
+	        return this;
+	    },
+
+	    _all: function (node, result) {
+	        var nodesToSearch = [];
+	        while (node) {
+	            if (node.leaf) result.push.apply(result, node.children);
+	            else nodesToSearch.push.apply(nodesToSearch, node.children);
+
+	            node = nodesToSearch.pop();
+	        }
+	        return result;
+	    },
+
+	    _build: function (items, left, right, height) {
+
+	        var N = right - left + 1,
+	            M = this._maxEntries,
+	            node;
+
+	        if (N <= M) {
+	            // reached leaf level; return leaf
+	            node = createNode(items.slice(left, right + 1));
+	            calcBBox(node, this.toBBox);
+	            return node;
+	        }
+
+	        if (!height) {
+	            // target height of the bulk-loaded tree
+	            height = Math.ceil(Math.log(N) / Math.log(M));
+
+	            // target number of root entries to maximize storage utilization
+	            M = Math.ceil(N / Math.pow(M, height - 1));
+	        }
+
+	        node = createNode([]);
+	        node.leaf = false;
+	        node.height = height;
+
+	        // split the items into M mostly square tiles
+
+	        var N2 = Math.ceil(N / M),
+	            N1 = N2 * Math.ceil(Math.sqrt(M)),
+	            i, j, right2, right3;
+
+	        multiSelect(items, left, right, N1, this.compareMinX);
+
+	        for (i = left; i <= right; i += N1) {
+
+	            right2 = Math.min(i + N1 - 1, right);
+
+	            multiSelect(items, i, right2, N2, this.compareMinY);
+
+	            for (j = i; j <= right2; j += N2) {
+
+	                right3 = Math.min(j + N2 - 1, right2);
+
+	                // pack each entry recursively
+	                node.children.push(this._build(items, j, right3, height - 1));
+	            }
+	        }
+
+	        calcBBox(node, this.toBBox);
+
+	        return node;
+	    },
+
+	    _chooseSubtree: function (bbox, node, level, path) {
+
+	        var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
+
+	        while (true) {
+	            path.push(node);
+
+	            if (node.leaf || path.length - 1 === level) break;
+
+	            minArea = minEnlargement = Infinity;
+
+	            for (i = 0, len = node.children.length; i < len; i++) {
+	                child = node.children[i];
+	                area = bboxArea(child);
+	                enlargement = enlargedArea(bbox, child) - area;
+
+	                // choose entry with the least area enlargement
+	                if (enlargement < minEnlargement) {
+	                    minEnlargement = enlargement;
+	                    minArea = area < minArea ? area : minArea;
+	                    targetNode = child;
+
+	                } else if (enlargement === minEnlargement) {
+	                    // otherwise choose one with the smallest area
+	                    if (area < minArea) {
+	                        minArea = area;
+	                        targetNode = child;
+	                    }
+	                }
+	            }
+
+	            node = targetNode || node.children[0];
+	        }
+
+	        return node;
+	    },
+
+	    _insert: function (item, level, isNode) {
+
+	        var toBBox = this.toBBox,
+	            bbox = isNode ? item : toBBox(item),
+	            insertPath = [];
+
+	        // find the best node for accommodating the item, saving all nodes along the path too
+	        var node = this._chooseSubtree(bbox, this.data, level, insertPath);
+
+	        // put the item into the node
+	        node.children.push(item);
+	        extend(node, bbox);
+
+	        // split on node overflow; propagate upwards if necessary
+	        while (level >= 0) {
+	            if (insertPath[level].children.length > this._maxEntries) {
+	                this._split(insertPath, level);
+	                level--;
+	            } else break;
+	        }
+
+	        // adjust bboxes along the insertion path
+	        this._adjustParentBBoxes(bbox, insertPath, level);
+	    },
+
+	    // split overflowed node into two
+	    _split: function (insertPath, level) {
+
+	        var node = insertPath[level],
+	            M = node.children.length,
+	            m = this._minEntries;
+
+	        this._chooseSplitAxis(node, m, M);
+
+	        var splitIndex = this._chooseSplitIndex(node, m, M);
+
+	        var newNode = createNode(node.children.splice(splitIndex, node.children.length - splitIndex));
+	        newNode.height = node.height;
+	        newNode.leaf = node.leaf;
+
+	        calcBBox(node, this.toBBox);
+	        calcBBox(newNode, this.toBBox);
+
+	        if (level) insertPath[level - 1].children.push(newNode);
+	        else this._splitRoot(node, newNode);
+	    },
+
+	    _splitRoot: function (node, newNode) {
+	        // split root node
+	        this.data = createNode([node, newNode]);
+	        this.data.height = node.height + 1;
+	        this.data.leaf = false;
+	        calcBBox(this.data, this.toBBox);
+	    },
+
+	    _chooseSplitIndex: function (node, m, M) {
+
+	        var i, bbox1, bbox2, overlap, area, minOverlap, minArea, index;
+
+	        minOverlap = minArea = Infinity;
+
+	        for (i = m; i <= M - m; i++) {
+	            bbox1 = distBBox(node, 0, i, this.toBBox);
+	            bbox2 = distBBox(node, i, M, this.toBBox);
+
+	            overlap = intersectionArea(bbox1, bbox2);
+	            area = bboxArea(bbox1) + bboxArea(bbox2);
+
+	            // choose distribution with minimum overlap
+	            if (overlap < minOverlap) {
+	                minOverlap = overlap;
+	                index = i;
+
+	                minArea = area < minArea ? area : minArea;
+
+	            } else if (overlap === minOverlap) {
+	                // otherwise choose distribution with minimum area
+	                if (area < minArea) {
+	                    minArea = area;
+	                    index = i;
+	                }
+	            }
+	        }
+
+	        return index;
+	    },
+
+	    // sorts node children by the best axis for split
+	    _chooseSplitAxis: function (node, m, M) {
+
+	        var compareMinX = node.leaf ? this.compareMinX : compareNodeMinX,
+	            compareMinY = node.leaf ? this.compareMinY : compareNodeMinY,
+	            xMargin = this._allDistMargin(node, m, M, compareMinX),
+	            yMargin = this._allDistMargin(node, m, M, compareMinY);
+
+	        // if total distributions margin value is minimal for x, sort by minX,
+	        // otherwise it's already sorted by minY
+	        if (xMargin < yMargin) node.children.sort(compareMinX);
+	    },
+
+	    // total margin of all possible split distributions where each node is at least m full
+	    _allDistMargin: function (node, m, M, compare) {
+
+	        node.children.sort(compare);
+
+	        var toBBox = this.toBBox,
+	            leftBBox = distBBox(node, 0, m, toBBox),
+	            rightBBox = distBBox(node, M - m, M, toBBox),
+	            margin = bboxMargin(leftBBox) + bboxMargin(rightBBox),
+	            i, child;
+
+	        for (i = m; i < M - m; i++) {
+	            child = node.children[i];
+	            extend(leftBBox, node.leaf ? toBBox(child) : child);
+	            margin += bboxMargin(leftBBox);
+	        }
+
+	        for (i = M - m - 1; i >= m; i--) {
+	            child = node.children[i];
+	            extend(rightBBox, node.leaf ? toBBox(child) : child);
+	            margin += bboxMargin(rightBBox);
+	        }
+
+	        return margin;
+	    },
+
+	    _adjustParentBBoxes: function (bbox, path, level) {
+	        // adjust bboxes along the given tree path
+	        for (var i = level; i >= 0; i--) {
+	            extend(path[i], bbox);
+	        }
+	    },
+
+	    _condense: function (path) {
+	        // go through the path, removing empty nodes and updating bboxes
+	        for (var i = path.length - 1, siblings; i >= 0; i--) {
+	            if (path[i].children.length === 0) {
+	                if (i > 0) {
+	                    siblings = path[i - 1].children;
+	                    siblings.splice(siblings.indexOf(path[i]), 1);
+
+	                } else this.clear();
+
+	            } else calcBBox(path[i], this.toBBox);
+	        }
+	    },
+
+	    _initFormat: function (format) {
+	        // data format (minX, minY, maxX, maxY accessors)
+
+	        // uses eval-type function compilation instead of just accepting a toBBox function
+	        // because the algorithms are very sensitive to sorting functions performance,
+	        // so they should be dead simple and without inner calls
+
+	        var compareArr = ['return a', ' - b', ';'];
+
+	        this.compareMinX = new Function('a', 'b', compareArr.join(format[0]));
+	        this.compareMinY = new Function('a', 'b', compareArr.join(format[1]));
+
+	        this.toBBox = new Function('a',
+	            'return {minX: a' + format[0] +
+	            ', minY: a' + format[1] +
+	            ', maxX: a' + format[2] +
+	            ', maxY: a' + format[3] + '};');
+	    }
+	};
+
+	function findItem(item, items, equalsFn) {
+	    if (!equalsFn) return items.indexOf(item);
+
+	    for (var i = 0; i < items.length; i++) {
+	        if (equalsFn(item, items[i])) return i;
+	    }
+	    return -1;
+	}
+
+	// calculate node's bbox from bboxes of its children
+	function calcBBox(node, toBBox) {
+	    distBBox(node, 0, node.children.length, toBBox, node);
+	}
+
+	// min bounding rectangle of node children from k to p-1
+	function distBBox(node, k, p, toBBox, destNode) {
+	    if (!destNode) destNode = createNode(null);
+	    destNode.minX = Infinity;
+	    destNode.minY = Infinity;
+	    destNode.maxX = -Infinity;
+	    destNode.maxY = -Infinity;
+
+	    for (var i = k, child; i < p; i++) {
+	        child = node.children[i];
+	        extend(destNode, node.leaf ? toBBox(child) : child);
+	    }
+
+	    return destNode;
+	}
+
+	function extend(a, b) {
+	    a.minX = Math.min(a.minX, b.minX);
+	    a.minY = Math.min(a.minY, b.minY);
+	    a.maxX = Math.max(a.maxX, b.maxX);
+	    a.maxY = Math.max(a.maxY, b.maxY);
+	    return a;
+	}
+
+	function compareNodeMinX(a, b) { return a.minX - b.minX; }
+	function compareNodeMinY(a, b) { return a.minY - b.minY; }
+
+	function bboxArea(a)   { return (a.maxX - a.minX) * (a.maxY - a.minY); }
+	function bboxMargin(a) { return (a.maxX - a.minX) + (a.maxY - a.minY); }
+
+	function enlargedArea(a, b) {
+	    return (Math.max(b.maxX, a.maxX) - Math.min(b.minX, a.minX)) *
+	           (Math.max(b.maxY, a.maxY) - Math.min(b.minY, a.minY));
+	}
+
+	function intersectionArea(a, b) {
+	    var minX = Math.max(a.minX, b.minX),
+	        minY = Math.max(a.minY, b.minY),
+	        maxX = Math.min(a.maxX, b.maxX),
+	        maxY = Math.min(a.maxY, b.maxY);
+
+	    return Math.max(0, maxX - minX) *
+	           Math.max(0, maxY - minY);
+	}
+
+	function contains(a, b) {
+	    return a.minX <= b.minX &&
+	           a.minY <= b.minY &&
+	           b.maxX <= a.maxX &&
+	           b.maxY <= a.maxY;
+	}
+
+	function intersects(a, b) {
+	    return b.minX <= a.maxX &&
+	           b.minY <= a.maxY &&
+	           b.maxX >= a.minX &&
+	           b.maxY >= a.minY;
+	}
+
+	function createNode(children) {
+	    return {
+	        children: children,
+	        height: 1,
+	        leaf: true,
+	        minX: Infinity,
+	        minY: Infinity,
+	        maxX: -Infinity,
+	        maxY: -Infinity
+	    };
+	}
+
+	// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
+	// combines selection algorithm with binary divide & conquer approach
+
+	function multiSelect(arr, left, right, n, compare) {
+	    var stack = [left, right],
+	        mid;
+
+	    while (stack.length) {
+	        right = stack.pop();
+	        left = stack.pop();
+
+	        if (right - left <= n) continue;
+
+	        mid = left + Math.ceil((right - left) / n / 2) * n;
+	        quickselect(arr, mid, left, right, compare);
+
+	        stack.push(left, mid, mid, right);
+	    }
+	}
+
+
+/***/ },
+/* 411 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	module.exports = partialSort;
+
+	// Floyd-Rivest selection algorithm:
+	// Rearrange items so that all items in the [left, k] range are smaller than all items in (k, right];
+	// The k-th element will have the (k - left + 1)th smallest value in [left, right]
+
+	function partialSort(arr, k, left, right, compare) {
+	    left = left || 0;
+	    right = right || (arr.length - 1);
+	    compare = compare || defaultCompare;
+
+	    while (right > left) {
+	        if (right - left > 600) {
+	            var n = right - left + 1;
+	            var m = k - left + 1;
+	            var z = Math.log(n);
+	            var s = 0.5 * Math.exp(2 * z / 3);
+	            var sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+	            var newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+	            var newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+	            partialSort(arr, k, newLeft, newRight, compare);
+	        }
+
+	        var t = arr[k];
+	        var i = left;
+	        var j = right;
+
+	        swap(arr, left, k);
+	        if (compare(arr[right], t) > 0) swap(arr, left, right);
+
+	        while (i < j) {
+	            swap(arr, i, j);
+	            i++;
+	            j--;
+	            while (compare(arr[i], t) < 0) i++;
+	            while (compare(arr[j], t) > 0) j--;
+	        }
+
+	        if (compare(arr[left], t) === 0) swap(arr, left, j);
+	        else {
+	            j++;
+	            swap(arr, j, right);
+	        }
+
+	        if (j <= k) left = j + 1;
+	        if (k <= j) right = j - 1;
+	    }
+	}
+
+	function swap(arr, i, j) {
+	    var tmp = arr[i];
+	    arr[i] = arr[j];
+	    arr[j] = tmp;
+	}
+
+	function defaultCompare(a, b) {
+	    return a < b ? -1 : a > b ? 1 : 0;
+	}
+
+
+/***/ },
+/* 412 */
+/***/ function(module, exports) {
+
+	(function () {
+	  var gju = this.gju = {};
+
+	  // Export the geojson object for **CommonJS**
+	  if (typeof module !== 'undefined' && module.exports) {
+	    module.exports = gju;
+	  }
+
+	  // adapted from http://www.kevlindev.com/gui/math/intersection/Intersection.js
+	  gju.lineStringsIntersect = function (l1, l2) {
+	    var intersects = [];
+	    for (var i = 0; i <= l1.coordinates.length - 2; ++i) {
+	      for (var j = 0; j <= l2.coordinates.length - 2; ++j) {
+	        var a1 = {
+	          x: l1.coordinates[i][1],
+	          y: l1.coordinates[i][0]
+	        },
+	          a2 = {
+	            x: l1.coordinates[i + 1][1],
+	            y: l1.coordinates[i + 1][0]
+	          },
+	          b1 = {
+	            x: l2.coordinates[j][1],
+	            y: l2.coordinates[j][0]
+	          },
+	          b2 = {
+	            x: l2.coordinates[j + 1][1],
+	            y: l2.coordinates[j + 1][0]
+	          },
+	          ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
+	          ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
+	          u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+	        if (u_b != 0) {
+	          var ua = ua_t / u_b,
+	            ub = ub_t / u_b;
+	          if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+	            intersects.push({
+	              'type': 'Point',
+	              'coordinates': [a1.x + ua * (a2.x - a1.x), a1.y + ua * (a2.y - a1.y)]
+	            });
+	          }
+	        }
+	      }
+	    }
+	    if (intersects.length == 0) intersects = false;
+	    return intersects;
+	  }
+
+	  // Bounding Box
+
+	  function boundingBoxAroundPolyCoords (coords) {
+	    var xAll = [], yAll = []
+
+	    for (var i = 0; i < coords[0].length; i++) {
+	      xAll.push(coords[0][i][1])
+	      yAll.push(coords[0][i][0])
+	    }
+
+	    xAll = xAll.sort(function (a,b) { return a - b })
+	    yAll = yAll.sort(function (a,b) { return a - b })
+
+	    return [ [xAll[0], yAll[0]], [xAll[xAll.length - 1], yAll[yAll.length - 1]] ]
+	  }
+
+	  gju.pointInBoundingBox = function (point, bounds) {
+	    return !(point.coordinates[1] < bounds[0][0] || point.coordinates[1] > bounds[1][0] || point.coordinates[0] < bounds[0][1] || point.coordinates[0] > bounds[1][1]) 
+	  }
+
+	  // Point in Polygon
+	  // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#Listing the Vertices
+
+	  function pnpoly (x,y,coords) {
+	    var vert = [ [0,0] ]
+
+	    for (var i = 0; i < coords.length; i++) {
+	      for (var j = 0; j < coords[i].length; j++) {
+	        vert.push(coords[i][j])
+	      }
+		  vert.push(coords[i][0])
+	      vert.push([0,0])
+	    }
+
+	    var inside = false
+	    for (var i = 0, j = vert.length - 1; i < vert.length; j = i++) {
+	      if (((vert[i][0] > y) != (vert[j][0] > y)) && (x < (vert[j][1] - vert[i][1]) * (y - vert[i][0]) / (vert[j][0] - vert[i][0]) + vert[i][1])) inside = !inside
+	    }
+
+	    return inside
+	  }
+
+	  gju.pointInPolygon = function (p, poly) {
+	    var coords = (poly.type == "Polygon") ? [ poly.coordinates ] : poly.coordinates
+
+	    var insideBox = false
+	    for (var i = 0; i < coords.length; i++) {
+	      if (gju.pointInBoundingBox(p, boundingBoxAroundPolyCoords(coords[i]))) insideBox = true
+	    }
+	    if (!insideBox) return false
+
+	    var insidePoly = false
+	    for (var i = 0; i < coords.length; i++) {
+	      if (pnpoly(p.coordinates[1], p.coordinates[0], coords[i])) insidePoly = true
+	    }
+
+	    return insidePoly
+	  }
+
+	  // support multi (but not donut) polygons
+	  gju.pointInMultiPolygon = function (p, poly) {
+	    var coords_array = (poly.type == "MultiPolygon") ? [ poly.coordinates ] : poly.coordinates
+
+	    var insideBox = false
+	    var insidePoly = false
+	    for (var i = 0; i < coords_array.length; i++){
+	      var coords = coords_array[i];
+	      for (var j = 0; j < coords.length; j++) {
+	        if (!insideBox){
+	          if (gju.pointInBoundingBox(p, boundingBoxAroundPolyCoords(coords[j]))) {
+	            insideBox = true
+	          }
+	        }
+	      }
+	      if (!insideBox) return false
+	      for (var j = 0; j < coords.length; j++) {
+	        if (!insidePoly){
+	          if (pnpoly(p.coordinates[1], p.coordinates[0], coords[j])) {
+	            insidePoly = true
+	          }
+	        }
+	      }
+	    }
+
+	    return insidePoly
+	  }
+
+	  gju.numberToRadius = function (number) {
+	    return number * Math.PI / 180;
+	  }
+
+	  gju.numberToDegree = function (number) {
+	    return number * 180 / Math.PI;
+	  }
+
+	  // written with help from @tautologe
+	  gju.drawCircle = function (radiusInMeters, centerPoint, steps) {
+	    var center = [centerPoint.coordinates[1], centerPoint.coordinates[0]],
+	      dist = (radiusInMeters / 1000) / 6371,
+	      // convert meters to radiant
+	      radCenter = [gju.numberToRadius(center[0]), gju.numberToRadius(center[1])],
+	      steps = steps || 15,
+	      // 15 sided circle
+	      poly = [[center[0], center[1]]];
+	    for (var i = 0; i < steps; i++) {
+	      var brng = 2 * Math.PI * i / steps;
+	      var lat = Math.asin(Math.sin(radCenter[0]) * Math.cos(dist)
+	              + Math.cos(radCenter[0]) * Math.sin(dist) * Math.cos(brng));
+	      var lng = radCenter[1] + Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(radCenter[0]),
+	                                          Math.cos(dist) - Math.sin(radCenter[0]) * Math.sin(lat));
+	      poly[i] = [];
+	      poly[i][1] = gju.numberToDegree(lat);
+	      poly[i][0] = gju.numberToDegree(lng);
+	    }
+	    return {
+	      "type": "Polygon",
+	      "coordinates": [poly]
+	    };
+	  }
+
+	  // assumes rectangle starts at lower left point
+	  gju.rectangleCentroid = function (rectangle) {
+	    var bbox = rectangle.coordinates[0];
+	    var xmin = bbox[0][0],
+	      ymin = bbox[0][1],
+	      xmax = bbox[2][0],
+	      ymax = bbox[2][1];
+	    var xwidth = xmax - xmin;
+	    var ywidth = ymax - ymin;
+	    return {
+	      'type': 'Point',
+	      'coordinates': [xmin + xwidth / 2, ymin + ywidth / 2]
+	    };
+	  }
+
+	  // from http://www.movable-type.co.uk/scripts/latlong.html
+	  gju.pointDistance = function (pt1, pt2) {
+	    var lon1 = pt1.coordinates[0],
+	      lat1 = pt1.coordinates[1],
+	      lon2 = pt2.coordinates[0],
+	      lat2 = pt2.coordinates[1],
+	      dLat = gju.numberToRadius(lat2 - lat1),
+	      dLon = gju.numberToRadius(lon2 - lon1),
+	      a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(gju.numberToRadius(lat1))
+	        * Math.cos(gju.numberToRadius(lat2)) * Math.pow(Math.sin(dLon / 2), 2),
+	      c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	    return (6371 * c) * 1000; // returns meters
+	  },
+
+	  // checks if geometry lies entirely within a circle
+	  // works with Point, LineString, Polygon
+	  gju.geometryWithinRadius = function (geometry, center, radius) {
+	    if (geometry.type == 'Point') {
+	      return gju.pointDistance(geometry, center) <= radius;
+	    } else if (geometry.type == 'LineString' || geometry.type == 'Polygon') {
+	      var point = {};
+	      var coordinates;
+	      if (geometry.type == 'Polygon') {
+	        // it's enough to check the exterior ring of the Polygon
+	        coordinates = geometry.coordinates[0];
+	      } else {
+	        coordinates = geometry.coordinates;
+	      }
+	      for (var i in coordinates) {
+	        point.coordinates = coordinates[i];
+	        if (gju.pointDistance(point, center) > radius) {
+	          return false;
+	        }
+	      }
+	    }
+	    return true;
+	  }
+
+	  // adapted from http://paulbourke.net/geometry/polyarea/javascript.txt
+	  gju.area = function (polygon) {
+	    var area = 0;
+	    // TODO: polygon holes at coordinates[1]
+	    var points = polygon.coordinates[0];
+	    var j = points.length - 1;
+	    var p1, p2;
+
+	    for (var i = 0; i < points.length; j = i++) {
+	      var p1 = {
+	        x: points[i][1],
+	        y: points[i][0]
+	      };
+	      var p2 = {
+	        x: points[j][1],
+	        y: points[j][0]
+	      };
+	      area += p1.x * p2.y;
+	      area -= p1.y * p2.x;
+	    }
+
+	    area /= 2;
+	    return area;
+	  },
+
+	  // adapted from http://paulbourke.net/geometry/polyarea/javascript.txt
+	  gju.centroid = function (polygon) {
+	    var f, x = 0,
+	      y = 0;
+	    // TODO: polygon holes at coordinates[1]
+	    var points = polygon.coordinates[0];
+	    var j = points.length - 1;
+	    var p1, p2;
+
+	    for (var i = 0; i < points.length; j = i++) {
+	      var p1 = {
+	        x: points[i][1],
+	        y: points[i][0]
+	      };
+	      var p2 = {
+	        x: points[j][1],
+	        y: points[j][0]
+	      };
+	      f = p1.x * p2.y - p2.x * p1.y;
+	      x += (p1.x + p2.x) * f;
+	      y += (p1.y + p2.y) * f;
+	    }
+
+	    f = gju.area(polygon) * 6;
+	    return {
+	      'type': 'Point',
+	      'coordinates': [y / f, x / f]
+	    };
+	  },
+
+	  gju.simplify = function (source, kink) { /* source[] array of geojson points */
+	    /* kink	in metres, kinks above this depth kept  */
+	    /* kink depth is the height of the triangle abc where a-b and b-c are two consecutive line segments */
+	    kink = kink || 20;
+	    source = source.map(function (o) {
+	      return {
+	        lng: o.coordinates[0],
+	        lat: o.coordinates[1]
+	      }
+	    });
+
+	    var n_source, n_stack, n_dest, start, end, i, sig;
+	    var dev_sqr, max_dev_sqr, band_sqr;
+	    var x12, y12, d12, x13, y13, d13, x23, y23, d23;
+	    var F = (Math.PI / 180.0) * 0.5;
+	    var index = new Array(); /* aray of indexes of source points to include in the reduced line */
+	    var sig_start = new Array(); /* indices of start & end of working section */
+	    var sig_end = new Array();
+
+	    /* check for simple cases */
+
+	    if (source.length < 3) return (source); /* one or two points */
+
+	    /* more complex case. initialize stack */
+
+	    n_source = source.length;
+	    band_sqr = kink * 360.0 / (2.0 * Math.PI * 6378137.0); /* Now in degrees */
+	    band_sqr *= band_sqr;
+	    n_dest = 0;
+	    sig_start[0] = 0;
+	    sig_end[0] = n_source - 1;
+	    n_stack = 1;
+
+	    /* while the stack is not empty  ... */
+	    while (n_stack > 0) {
+
+	      /* ... pop the top-most entries off the stacks */
+
+	      start = sig_start[n_stack - 1];
+	      end = sig_end[n_stack - 1];
+	      n_stack--;
+
+	      if ((end - start) > 1) { /* any intermediate points ? */
+
+	        /* ... yes, so find most deviant intermediate point to
+	        either side of line joining start & end points */
+
+	        x12 = (source[end].lng() - source[start].lng());
+	        y12 = (source[end].lat() - source[start].lat());
+	        if (Math.abs(x12) > 180.0) x12 = 360.0 - Math.abs(x12);
+	        x12 *= Math.cos(F * (source[end].lat() + source[start].lat())); /* use avg lat to reduce lng */
+	        d12 = (x12 * x12) + (y12 * y12);
+
+	        for (i = start + 1, sig = start, max_dev_sqr = -1.0; i < end; i++) {
+
+	          x13 = source[i].lng() - source[start].lng();
+	          y13 = source[i].lat() - source[start].lat();
+	          if (Math.abs(x13) > 180.0) x13 = 360.0 - Math.abs(x13);
+	          x13 *= Math.cos(F * (source[i].lat() + source[start].lat()));
+	          d13 = (x13 * x13) + (y13 * y13);
+
+	          x23 = source[i].lng() - source[end].lng();
+	          y23 = source[i].lat() - source[end].lat();
+	          if (Math.abs(x23) > 180.0) x23 = 360.0 - Math.abs(x23);
+	          x23 *= Math.cos(F * (source[i].lat() + source[end].lat()));
+	          d23 = (x23 * x23) + (y23 * y23);
+
+	          if (d13 >= (d12 + d23)) dev_sqr = d23;
+	          else if (d23 >= (d12 + d13)) dev_sqr = d13;
+	          else dev_sqr = (x13 * y12 - y13 * x12) * (x13 * y12 - y13 * x12) / d12; // solve triangle
+	          if (dev_sqr > max_dev_sqr) {
+	            sig = i;
+	            max_dev_sqr = dev_sqr;
+	          }
+	        }
+
+	        if (max_dev_sqr < band_sqr) { /* is there a sig. intermediate point ? */
+	          /* ... no, so transfer current start point */
+	          index[n_dest] = start;
+	          n_dest++;
+	        } else { /* ... yes, so push two sub-sections on stack for further processing */
+	          n_stack++;
+	          sig_start[n_stack - 1] = sig;
+	          sig_end[n_stack - 1] = end;
+	          n_stack++;
+	          sig_start[n_stack - 1] = start;
+	          sig_end[n_stack - 1] = sig;
+	        }
+	      } else { /* ... no intermediate points, so transfer current start point */
+	        index[n_dest] = start;
+	        n_dest++;
+	      }
+	    }
+
+	    /* transfer last point */
+	    index[n_dest] = n_source - 1;
+	    n_dest++;
+
+	    /* make return array */
+	    var r = new Array();
+	    for (var i = 0; i < n_dest; i++)
+	      r.push(source[index[i]]);
+
+	    return r.map(function (o) {
+	      return {
+	        type: "Point",
+	        coordinates: [o.lng, o.lat]
+	      }
+	    });
+	  }
+
+	  // http://www.movable-type.co.uk/scripts/latlong.html#destPoint
+	  gju.destinationPoint = function (pt, brng, dist) {
+	    dist = dist/6371;  // convert dist to angular distance in radians
+	    brng = gju.numberToRadius(brng);
+
+	    var lon1 = gju.numberToRadius(pt.coordinates[0]);
+	    var lat1 = gju.numberToRadius(pt.coordinates[1]);
+
+	    var lat2 = Math.asin( Math.sin(lat1)*Math.cos(dist) +
+	                          Math.cos(lat1)*Math.sin(dist)*Math.cos(brng) );
+	    var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(dist)*Math.cos(lat1),
+	                                 Math.cos(dist)-Math.sin(lat1)*Math.sin(lat2));
+	    lon2 = (lon2+3*Math.PI) % (2*Math.PI) - Math.PI;  // normalise to -180..+180º
+
+	    return {
+	      'type': 'Point',
+	      'coordinates': [gju.numberToDegree(lon2), gju.numberToDegree(lat2)]
+	    };
+	  };
+
+	})();
+
+
+/***/ },
+/* 413 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	* @license get-closest https://github.com/cosmosio/get-closest
+	*
+	* The MIT License (MIT)
+	*
+	* Copyright (c) 2014 Olivier Scherrer <pode.fr@gmail.com>
+	*/
+	"use strict";
+
+	var assert = __webpack_require__(414);
+
+	/**
+	 * Get the closest number in an array
+	 * @param {Number} item the base number
+	 * @param {Array} array the array to search into
+	 * @param {Function} getDiff returns the difference between the base number and
+	 *   and the currently read item in the array. The item which returned the smallest difference wins.
+	 * @private
+	 */
+	function _getClosest(item, array, getDiff) {
+	    var closest,
+	        diff;
+
+	    assert(Array.isArray(array), "Get closest expects an array as second argument");
+
+	    array.forEach(function (comparedItem, comparedItemIndex) {
+	        var thisDiff = getDiff(comparedItem, item);
+
+	        if (thisDiff >= 0 && (typeof diff == "undefined" || thisDiff < diff)) {
+	            diff = thisDiff;
+	            closest = comparedItemIndex;
+	        }
+	    });
+
+	    return closest;
+	}
+
+	module.exports = {
+
+	  /**
+	   * Get the closest number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 3 as 29 is the closest item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  number: function closestNumber(item, array) {
+	      return _getClosest(item, array, function (comparedItem, item) {
+	          return Math.abs(comparedItem - item);
+	      });
+	  },
+
+	  /**
+	   * Get the closest greater number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 2 as 50 is the closest greater item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  greaterNumber: function closestGreaterNumber(item, array) {
+	      return _getClosest(item, array, function (comparedItem, item) {
+	          return comparedItem - item;
+	      });
+	  },
+
+	  /**
+	   * Get the closest lower number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 0 as 20 is the closest lower item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  lowerNumber: function closestLowerNumber(item, array) {
+	    return _getClosest(item, array, function (comparedItem, item) {
+	        return item - comparedItem;
+	    });
+	  },
+
+	  /**
+	   * Get the closest item in an array given a base item and a comparator function
+	   * Example (closest("lundi", ["mundi", "mardi"], getLevenshteinDistance)) will return 0 for "lundi"
+	   * @param {*} item the base item
+	   * @param {Array} array an array of items
+	   * @param {Function} comparator a comparatof function to compare the items
+	   *
+	   * The function looks like:
+	   *
+	   * // comparedItem comes from the array
+	   * // baseItem is the item to compare the others to
+	   * // It returns a number
+	   * function comparator(comparedItem, baseItem) {
+	   *     return comparedItem - baseItem;
+	   * }
+	   */
+	  custom: function closestCustom(item, array, comparator) {
+	    return _getClosest(item, array, comparator);
+	  }
+
+	};
+
+
+/***/ },
+/* 414 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
+
+	// compare and isBuffer taken from https://github.com/feross/buffer/blob/680e9e5e488f22aac27599a57dc844a6315928dd/index.js
+	// original notice:
+
+	/*!
+	 * The buffer module from node.js, for the browser.
+	 *
+	 * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+	 * @license  MIT
+	 */
+	function compare(a, b) {
+	  if (a === b) {
+	    return 0;
+	  }
+
+	  var x = a.length;
+	  var y = b.length;
+
+	  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+	    if (a[i] !== b[i]) {
+	      x = a[i];
+	      y = b[i];
+	      break;
+	    }
+	  }
+
+	  if (x < y) {
+	    return -1;
+	  }
+	  if (y < x) {
+	    return 1;
+	  }
+	  return 0;
+	}
+	function isBuffer(b) {
+	  if (global.Buffer && typeof global.Buffer.isBuffer === 'function') {
+	    return global.Buffer.isBuffer(b);
+	  }
+	  return !!(b != null && b._isBuffer);
+	}
+
+	// based on node assert, original notice:
+
+	// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
+	//
+	// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
+	//
+	// Originally from narwhal.js (http://narwhaljs.org)
+	// Copyright (c) 2009 Thomas Robinson <280north.com>
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a copy
+	// of this software and associated documentation files (the 'Software'), to
+	// deal in the Software without restriction, including without limitation the
+	// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+	// sell copies of the Software, and to permit persons to whom the Software is
+	// furnished to do so, subject to the following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included in
+	// all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+	// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	var util = __webpack_require__(195);
+	var hasOwn = Object.prototype.hasOwnProperty;
+	var pSlice = Array.prototype.slice;
+	var functionsHaveNames = (function () {
+	  return function foo() {}.name === 'foo';
+	}());
+	function pToString (obj) {
+	  return Object.prototype.toString.call(obj);
+	}
+	function isView(arrbuf) {
+	  if (isBuffer(arrbuf)) {
+	    return false;
+	  }
+	  if (typeof global.ArrayBuffer !== 'function') {
+	    return false;
+	  }
+	  if (typeof ArrayBuffer.isView === 'function') {
+	    return ArrayBuffer.isView(arrbuf);
+	  }
+	  if (!arrbuf) {
+	    return false;
+	  }
+	  if (arrbuf instanceof DataView) {
+	    return true;
+	  }
+	  if (arrbuf.buffer && arrbuf.buffer instanceof ArrayBuffer) {
+	    return true;
+	  }
+	  return false;
+	}
+	// 1. The assert module provides functions that throw
+	// AssertionError's when particular conditions are not met. The
+	// assert module must conform to the following interface.
+
+	var assert = module.exports = ok;
+
+	// 2. The AssertionError is defined in assert.
+	// new assert.AssertionError({ message: message,
+	//                             actual: actual,
+	//                             expected: expected })
+
+	var regex = /\s*function\s+([^\(\s]*)\s*/;
+	// based on https://github.com/ljharb/function.prototype.name/blob/adeeeec8bfcc6068b187d7d9fb3d5bb1d3a30899/implementation.js
+	function getName(func) {
+	  if (!util.isFunction(func)) {
+	    return;
+	  }
+	  if (functionsHaveNames) {
+	    return func.name;
+	  }
+	  var str = func.toString();
+	  var match = str.match(regex);
+	  return match && match[1];
+	}
+	assert.AssertionError = function AssertionError(options) {
+	  this.name = 'AssertionError';
+	  this.actual = options.actual;
+	  this.expected = options.expected;
+	  this.operator = options.operator;
+	  if (options.message) {
+	    this.message = options.message;
+	    this.generatedMessage = false;
+	  } else {
+	    this.message = getMessage(this);
+	    this.generatedMessage = true;
+	  }
+	  var stackStartFunction = options.stackStartFunction || fail;
+	  if (Error.captureStackTrace) {
+	    Error.captureStackTrace(this, stackStartFunction);
+	  } else {
+	    // non v8 browsers so we can have a stacktrace
+	    var err = new Error();
+	    if (err.stack) {
+	      var out = err.stack;
+
+	      // try to strip useless frames
+	      var fn_name = getName(stackStartFunction);
+	      var idx = out.indexOf('\n' + fn_name);
+	      if (idx >= 0) {
+	        // once we have located the function frame
+	        // we need to strip out everything before it (and its line)
+	        var next_line = out.indexOf('\n', idx + 1);
+	        out = out.substring(next_line + 1);
+	      }
+
+	      this.stack = out;
+	    }
+	  }
+	};
+
+	// assert.AssertionError instanceof Error
+	util.inherits(assert.AssertionError, Error);
+
+	function truncate(s, n) {
+	  if (typeof s === 'string') {
+	    return s.length < n ? s : s.slice(0, n);
+	  } else {
+	    return s;
+	  }
+	}
+	function inspect(something) {
+	  if (functionsHaveNames || !util.isFunction(something)) {
+	    return util.inspect(something);
+	  }
+	  var rawname = getName(something);
+	  var name = rawname ? ': ' + rawname : '';
+	  return '[Function' +  name + ']';
+	}
+	function getMessage(self) {
+	  return truncate(inspect(self.actual), 128) + ' ' +
+	         self.operator + ' ' +
+	         truncate(inspect(self.expected), 128);
+	}
+
+	// At present only the three keys mentioned above are used and
+	// understood by the spec. Implementations or sub modules can pass
+	// other keys to the AssertionError's constructor - they will be
+	// ignored.
+
+	// 3. All of the following functions must throw an AssertionError
+	// when a corresponding condition is not met, with a message that
+	// may be undefined if not provided.  All assertion methods provide
+	// both the actual and expected values to the assertion error for
+	// display purposes.
+
+	function fail(actual, expected, message, operator, stackStartFunction) {
+	  throw new assert.AssertionError({
+	    message: message,
+	    actual: actual,
+	    expected: expected,
+	    operator: operator,
+	    stackStartFunction: stackStartFunction
+	  });
+	}
+
+	// EXTENSION! allows for well behaved errors defined elsewhere.
+	assert.fail = fail;
+
+	// 4. Pure assertion tests whether a value is truthy, as determined
+	// by !!guard.
+	// assert.ok(guard, message_opt);
+	// This statement is equivalent to assert.equal(true, !!guard,
+	// message_opt);. To test strictly for the value true, use
+	// assert.strictEqual(true, guard, message_opt);.
+
+	function ok(value, message) {
+	  if (!value) fail(value, true, message, '==', assert.ok);
+	}
+	assert.ok = ok;
+
+	// 5. The equality assertion tests shallow, coercive equality with
+	// ==.
+	// assert.equal(actual, expected, message_opt);
+
+	assert.equal = function equal(actual, expected, message) {
+	  if (actual != expected) fail(actual, expected, message, '==', assert.equal);
+	};
+
+	// 6. The non-equality assertion tests for whether two objects are not equal
+	// with != assert.notEqual(actual, expected, message_opt);
+
+	assert.notEqual = function notEqual(actual, expected, message) {
+	  if (actual == expected) {
+	    fail(actual, expected, message, '!=', assert.notEqual);
+	  }
+	};
+
+	// 7. The equivalence assertion tests a deep equality relation.
+	// assert.deepEqual(actual, expected, message_opt);
+
+	assert.deepEqual = function deepEqual(actual, expected, message) {
+	  if (!_deepEqual(actual, expected, false)) {
+	    fail(actual, expected, message, 'deepEqual', assert.deepEqual);
+	  }
+	};
+
+	assert.deepStrictEqual = function deepStrictEqual(actual, expected, message) {
+	  if (!_deepEqual(actual, expected, true)) {
+	    fail(actual, expected, message, 'deepStrictEqual', assert.deepStrictEqual);
+	  }
+	};
+
+	function _deepEqual(actual, expected, strict, memos) {
+	  // 7.1. All identical values are equivalent, as determined by ===.
+	  if (actual === expected) {
+	    return true;
+	  } else if (isBuffer(actual) && isBuffer(expected)) {
+	    return compare(actual, expected) === 0;
+
+	  // 7.2. If the expected value is a Date object, the actual value is
+	  // equivalent if it is also a Date object that refers to the same time.
+	  } else if (util.isDate(actual) && util.isDate(expected)) {
+	    return actual.getTime() === expected.getTime();
+
+	  // 7.3 If the expected value is a RegExp object, the actual value is
+	  // equivalent if it is also a RegExp object with the same source and
+	  // properties (`global`, `multiline`, `lastIndex`, `ignoreCase`).
+	  } else if (util.isRegExp(actual) && util.isRegExp(expected)) {
+	    return actual.source === expected.source &&
+	           actual.global === expected.global &&
+	           actual.multiline === expected.multiline &&
+	           actual.lastIndex === expected.lastIndex &&
+	           actual.ignoreCase === expected.ignoreCase;
+
+	  // 7.4. Other pairs that do not both pass typeof value == 'object',
+	  // equivalence is determined by ==.
+	  } else if ((actual === null || typeof actual !== 'object') &&
+	             (expected === null || typeof expected !== 'object')) {
+	    return strict ? actual === expected : actual == expected;
+
+	  // If both values are instances of typed arrays, wrap their underlying
+	  // ArrayBuffers in a Buffer each to increase performance
+	  // This optimization requires the arrays to have the same type as checked by
+	  // Object.prototype.toString (aka pToString). Never perform binary
+	  // comparisons for Float*Arrays, though, since e.g. +0 === -0 but their
+	  // bit patterns are not identical.
+	  } else if (isView(actual) && isView(expected) &&
+	             pToString(actual) === pToString(expected) &&
+	             !(actual instanceof Float32Array ||
+	               actual instanceof Float64Array)) {
+	    return compare(new Uint8Array(actual.buffer),
+	                   new Uint8Array(expected.buffer)) === 0;
+
+	  // 7.5 For all other Object pairs, including Array objects, equivalence is
+	  // determined by having the same number of owned properties (as verified
+	  // with Object.prototype.hasOwnProperty.call), the same set of keys
+	  // (although not necessarily the same order), equivalent values for every
+	  // corresponding key, and an identical 'prototype' property. Note: this
+	  // accounts for both named and indexed properties on Arrays.
+	  } else if (isBuffer(actual) !== isBuffer(expected)) {
+	    return false;
+	  } else {
+	    memos = memos || {actual: [], expected: []};
+
+	    var actualIndex = memos.actual.indexOf(actual);
+	    if (actualIndex !== -1) {
+	      if (actualIndex === memos.expected.indexOf(expected)) {
+	        return true;
+	      }
+	    }
+
+	    memos.actual.push(actual);
+	    memos.expected.push(expected);
+
+	    return objEquiv(actual, expected, strict, memos);
+	  }
+	}
+
+	function isArguments(object) {
+	  return Object.prototype.toString.call(object) == '[object Arguments]';
+	}
+
+	function objEquiv(a, b, strict, actualVisitedObjects) {
+	  if (a === null || a === undefined || b === null || b === undefined)
+	    return false;
+	  // if one is a primitive, the other must be same
+	  if (util.isPrimitive(a) || util.isPrimitive(b))
+	    return a === b;
+	  if (strict && Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+	    return false;
+	  var aIsArgs = isArguments(a);
+	  var bIsArgs = isArguments(b);
+	  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
+	    return false;
+	  if (aIsArgs) {
+	    a = pSlice.call(a);
+	    b = pSlice.call(b);
+	    return _deepEqual(a, b, strict);
+	  }
+	  var ka = objectKeys(a);
+	  var kb = objectKeys(b);
+	  var key, i;
+	  // having the same number of owned properties (keys incorporates
+	  // hasOwnProperty)
+	  if (ka.length !== kb.length)
+	    return false;
+	  //the same set of keys (although not necessarily the same order),
+	  ka.sort();
+	  kb.sort();
+	  //~~~cheap key test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    if (ka[i] !== kb[i])
+	      return false;
+	  }
+	  //equivalent values for every corresponding key, and
+	  //~~~possibly expensive deep test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    key = ka[i];
+	    if (!_deepEqual(a[key], b[key], strict, actualVisitedObjects))
+	      return false;
+	  }
+	  return true;
+	}
+
+	// 8. The non-equivalence assertion tests for any deep inequality.
+	// assert.notDeepEqual(actual, expected, message_opt);
+
+	assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
+	  if (_deepEqual(actual, expected, false)) {
+	    fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
+	  }
+	};
+
+	assert.notDeepStrictEqual = notDeepStrictEqual;
+	function notDeepStrictEqual(actual, expected, message) {
+	  if (_deepEqual(actual, expected, true)) {
+	    fail(actual, expected, message, 'notDeepStrictEqual', notDeepStrictEqual);
+	  }
+	}
+
+
+	// 9. The strict equality assertion tests strict equality, as determined by ===.
+	// assert.strictEqual(actual, expected, message_opt);
+
+	assert.strictEqual = function strictEqual(actual, expected, message) {
+	  if (actual !== expected) {
+	    fail(actual, expected, message, '===', assert.strictEqual);
+	  }
+	};
+
+	// 10. The strict non-equality assertion tests for strict inequality, as
+	// determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
+
+	assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
+	  if (actual === expected) {
+	    fail(actual, expected, message, '!==', assert.notStrictEqual);
+	  }
+	};
+
+	function expectedException(actual, expected) {
+	  if (!actual || !expected) {
+	    return false;
+	  }
+
+	  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+	    return expected.test(actual);
+	  }
+
+	  try {
+	    if (actual instanceof expected) {
+	      return true;
+	    }
+	  } catch (e) {
+	    // Ignore.  The instanceof check doesn't work for arrow functions.
+	  }
+
+	  if (Error.isPrototypeOf(expected)) {
+	    return false;
+	  }
+
+	  return expected.call({}, actual) === true;
+	}
+
+	function _tryBlock(block) {
+	  var error;
+	  try {
+	    block();
+	  } catch (e) {
+	    error = e;
+	  }
+	  return error;
+	}
+
+	function _throws(shouldThrow, block, expected, message) {
+	  var actual;
+
+	  if (typeof block !== 'function') {
+	    throw new TypeError('"block" argument must be a function');
+	  }
+
+	  if (typeof expected === 'string') {
+	    message = expected;
+	    expected = null;
+	  }
+
+	  actual = _tryBlock(block);
+
+	  message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
+	            (message ? ' ' + message : '.');
+
+	  if (shouldThrow && !actual) {
+	    fail(actual, expected, 'Missing expected exception' + message);
+	  }
+
+	  var userProvidedMessage = typeof message === 'string';
+	  var isUnwantedException = !shouldThrow && util.isError(actual);
+	  var isUnexpectedException = !shouldThrow && actual && !expected;
+
+	  if ((isUnwantedException &&
+	      userProvidedMessage &&
+	      expectedException(actual, expected)) ||
+	      isUnexpectedException) {
+	    fail(actual, expected, 'Got unwanted exception' + message);
+	  }
+
+	  if ((shouldThrow && actual && expected &&
+	      !expectedException(actual, expected)) || (!shouldThrow && actual)) {
+	    throw actual;
+	  }
+	}
+
+	// 11. Expected to throw an error:
+	// assert.throws(block, Error_opt, message_opt);
+
+	assert.throws = function(block, /*optional*/error, /*optional*/message) {
+	  _throws(true, block, error, message);
+	};
+
+	// EXTENSION! This is annoying to write outside this module.
+	assert.doesNotThrow = function(block, /*optional*/error, /*optional*/message) {
+	  _throws(false, block, error, message);
+	};
+
+	assert.ifError = function(err) { if (err) throw err; };
+
+	var objectKeys = Object.keys || function (obj) {
+	  var keys = [];
+	  for (var key in obj) {
+	    if (hasOwn.call(obj, key)) keys.push(key);
+	  }
+	  return keys;
+	};
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 415 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var turfbbox = __webpack_require__(380);
+	var inside = __webpack_require__(377);
+	var rbush = __webpack_require__(410);
 
 	/**
 	 * Merges a specified property from a FeatureCollection of points into a
@@ -83921,17 +85869,33 @@
 	 *
 	 * collected.features[0].properties.values // => [200, 600]);
 	 */
-	module.exports = function collect(polygons, points, inProperty, outProperty) {
+	module.exports = function (polygons, points, inProperty, outProperty) {
+	    var rtree = rbush(6);
+
+	    var treeItems = points.features.map(function (item) {
+	        return {
+	            minX: item.geometry.coordinates[0],
+	            minY: item.geometry.coordinates[1],
+	            maxX: item.geometry.coordinates[0],
+	            maxY: item.geometry.coordinates[1],
+	            property: item.properties[inProperty]
+	        };
+	    });
+
+	    rtree.load(treeItems);
 	    polygons.features.forEach(function (poly) {
-	        var values = points.features.filter(function (pt) {
-	            return inside(pt, poly);
-	        }).map(function (pt) {
-	            return pt.properties[inProperty];
-	        });
 
 	        if (!poly.properties) {
 	            poly.properties = {};
 	        }
+	        var bbox = turfbbox(poly);
+	        var potentialPoints = rtree.search({minX: bbox[0], minY: bbox[1], maxX: bbox[2], maxY: bbox[3]});
+	        var values = [];
+	        potentialPoints.forEach(function (pt) {
+	            if (inside({'type': 'Point', 'coordinates': [pt.minX, pt.minY]}, poly)) {
+	                values.push(pt.property);
+	            }
+	        });
 
 	        poly.properties[outProperty] = values;
 	    });
@@ -83941,10 +85905,10 @@
 
 
 /***/ },
-/* 407 */
+/* 416 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var coordEach = __webpack_require__(380).coordEach;
+	var coordEach = __webpack_require__(381).coordEach;
 
 	/**
 	 * Takes input features and flips all of their coordinates
@@ -83983,10 +85947,10 @@
 
 
 /***/ },
-/* 408 */
+/* 417 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var simplify = __webpack_require__(409);
+	var simplify = __webpack_require__(418);
 
 	// supported GeoJSON geometries, used to check whether to wrap in simpleFeature()
 	var supportedTypes = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
@@ -84135,9 +86099,9 @@
 
 	function simplifyLine(coordinates, tolerance, highQuality) {
 	    return simplify(coordinates.map(function (coord) {
-	        return {x: coord[0], y: coord[1]};
+	        return {x: coord[0], y: coord[1], z: coord[2]};
 	    }), tolerance, highQuality).map(function (coords) {
-	        return [coords.x, coords.y];
+	        return (coords.z) ? [coords.x, coords.y, coords.z] : [coords.x, coords.y];
 	    });
 	}
 
@@ -84170,7 +86134,7 @@
 
 
 /***/ },
-/* 409 */
+/* 418 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -84307,11 +86271,11 @@
 
 
 /***/ },
-/* 410 */
+/* 419 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(372).lineString;
-	var Spline = __webpack_require__(411);
+	var linestring = __webpack_require__(373).lineString;
+	var Spline = __webpack_require__(420);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a curved version
@@ -84379,7 +86343,7 @@
 
 
 /***/ },
-/* 411 */
+/* 420 */
 /***/ function(module, exports) {
 
 	/* eslint-disable */
@@ -84519,10 +86483,10 @@
 
 
 /***/ },
-/* 412 */
+/* 421 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
+	var inside = __webpack_require__(377);
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and performs a spatial join.
@@ -84534,16 +86498,16 @@
 	 * @param {string} outField property in `points` in which to store joined property from `polygons`
 	 * @return {FeatureCollection<Point>} points with `containingPolyId` property containing values from `polyId`
 	 * @example
-	 * var pt1 = point([-77, 44]);
-	 * var pt2 = point([-77, 38]);
-	 * var poly1 = polygon([[
+	 * var pt1 = turf.point([-77, 44]);
+	 * var pt2 = turf.point([-77, 38]);
+	 * var poly1 = turf.polygon([[
 	 *   [-81, 41],
 	 *   [-81, 47],
 	 *   [-72, 47],
 	 *   [-72, 41],
 	 *   [-81, 41]
 	 * ]], {pop: 3000});
-	 * var poly2 = polygon([[
+	 * var poly2 = turf.polygon([[
 	 *   [-81, 35],
 	 *   [-81, 41],
 	 *   [-72, 41],
@@ -84551,8 +86515,8 @@
 	 *   [-81, 35]
 	 * ]], {pop: 1000});
 	 *
-	 * var points = featureCollection([pt1, pt2]);
-	 * var polygons = featureCollection([poly1, poly2]);
+	 * var points = turf.featureCollection([pt1, pt2]);
+	 * var polygons = turf.featureCollection([poly1, poly2]);
 	 *
 	 * var tagged = turf.tag(points, polygons,
 	 *                       'pop', 'population');
@@ -84581,11 +86545,11 @@
 
 
 /***/ },
-/* 413 */
+/* 422 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/11935175/sampling-a-random-subset-from-an-array
-	var featureCollection = __webpack_require__(372).featureCollection;
+	var featureCollection = __webpack_require__(373).featureCollection;
 
 	/**
 	 * Takes a {@link FeatureCollection} and returns a FeatureCollection with given number of {@link Feature|features} at random.
@@ -84621,11 +86585,11 @@
 
 
 /***/ },
-/* 414 */
+/* 423 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(379);
-	var bboxPolygon = __webpack_require__(415);
+	var bbox = __webpack_require__(380);
+	var bboxPolygon = __webpack_require__(424);
 
 	/**
 	 * Takes any number of features and returns a rectangular {@link Polygon} that encompasses all vertices.
@@ -84685,10 +86649,10 @@
 
 
 /***/ },
-/* 415 */
+/* 424 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(372).polygon;
+	var polygon = __webpack_require__(373).polygon;
 
 	/**
 	 * Takes a bbox and returns an equivalent {@link Polygon|polygon}.
@@ -84721,11 +86685,11 @@
 
 
 /***/ },
-/* 416 */
+/* 425 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var destination = __webpack_require__(417);
-	var helpers = __webpack_require__(372);
+	var destination = __webpack_require__(426);
+	var helpers = __webpack_require__(373);
 	var polygon = helpers.polygon;
 
 	/**
@@ -84738,7 +86702,7 @@
 	 * @param {string} [units=kilometers] miles, kilometers, degrees, or radians
 	 * @returns {Feature<Polygon>} circle polygon
 	 * @example
-	 * var center = point([-75.343, 39.984]);
+	 * var center = turf.point([-75.343, 39.984]);
 	 * var radius = 5;
 	 * var steps = 10;
 	 * var units = 'kilometers';
@@ -84762,13 +86726,13 @@
 
 
 /***/ },
-/* 417 */
+/* 426 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
-	var getCoord = __webpack_require__(373).getCoord;
-	var helpers = __webpack_require__(372);
+	var getCoord = __webpack_require__(374).getCoord;
+	var helpers = __webpack_require__(373);
 	var point = helpers.point;
 	var distanceToRadians = helpers.distanceToRadians;
 
@@ -84827,12 +86791,12 @@
 
 
 /***/ },
-/* 418 */
+/* 427 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
-	var distance = __webpack_require__(378);
+	var bearing = __webpack_require__(428);
+	var destination = __webpack_require__(426);
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes two {@link Point|points} and returns a point midway between them.
@@ -84881,10 +86845,10 @@
 
 
 /***/ },
-/* 419 */
+/* 428 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(373).getCoord;
+	var getCoord = __webpack_require__(374).getCoord;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -84949,17 +86913,17 @@
 
 
 /***/ },
-/* 420 */
+/* 429 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/839899/how-do-i-calculate-a-point-on-a-circles-circumference
 	// radians = degrees * (pi/180)
 	// https://github.com/bjornharrtell/jsts/blob/master/examples/buffer.html
 
-	var helpers = __webpack_require__(372);
+	var helpers = __webpack_require__(373);
 	var featureCollection = helpers.featureCollection;
-	var jsts = __webpack_require__(404);
-	var normalize = __webpack_require__(421);
+	var jsts = __webpack_require__(405);
+	var normalize = __webpack_require__(430);
 
 	/**
 	 * Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.
@@ -84982,7 +86946,7 @@
 	 * var unit = 'miles';
 	 *
 	 * var buffered = turf.buffer(pt, 500, unit);
-	 * var result = turf.featurecollection([buffered, pt]);
+	 * var result = turf.featureCollection([buffered, pt]);
 	 *
 	 * //=result
 	 */
@@ -85015,7 +86979,7 @@
 
 
 /***/ },
-/* 421 */
+/* 430 */
 /***/ function(module, exports) {
 
 	module.exports = normalize;
@@ -85064,11 +87028,11 @@
 
 
 /***/ },
-/* 422 */
+/* 431 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(379),
-	    point = __webpack_require__(372).point;
+	var bbox = __webpack_require__(380),
+	    point = __webpack_require__(373).point;
 
 	/**
 	 * Takes a {@link Feature} or {@link FeatureCollection} and returns the absolute center point of all features.
@@ -85190,14 +87154,14 @@
 
 
 /***/ },
-/* 423 */
+/* 432 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    centroid = __webpack_require__(424),
-	    convex = __webpack_require__(384),
-	    explode = __webpack_require__(425),
-	    point = __webpack_require__(372).point;
+	var each = __webpack_require__(381).coordEach,
+	    centroid = __webpack_require__(433),
+	    convex = __webpack_require__(385),
+	    explode = __webpack_require__(434),
+	    point = __webpack_require__(373).point;
 
 	/**
 	 * Takes a [feature](http://geojson.org/geojson-spec.html#feature-objects)
@@ -85380,11 +87344,11 @@
 
 
 /***/ },
-/* 424 */
+/* 433 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(372).point;
+	var each = __webpack_require__(381).coordEach;
+	var point = __webpack_require__(373).point;
 
 	/**
 	 * Takes one or more features and calculates the centroid using
@@ -85432,12 +87396,13 @@
 
 
 /***/ },
-/* 425 */
+/* 434 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(372).featureCollection;
-	var each = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(372).point;
+	var featureCollection = __webpack_require__(373).featureCollection;
+	var featureEach = __webpack_require__(381).featureEach;
+	var coordEach = __webpack_require__(381).coordEach;
+	var point = __webpack_require__(373).point;
 
 	/**
 	 * Takes a feature or set of features and returns all positions as
@@ -85473,18 +87438,26 @@
 	 */
 	module.exports = function (geojson) {
 	    var points = [];
-	    each(geojson, function (coord) {
-	        points.push(point(coord));
-	    });
+	    if (geojson.type === 'FeatureCollection') {
+	        featureEach(geojson, function (feature) {
+	            coordEach(feature, function (coord) {
+	                points.push(point(coord, feature.properties));
+	            });
+	        });
+	    } else {
+	        coordEach(geojson, function (coord) {
+	            points.push(point(coord, geojson.properties));
+	        });
+	    }
 	    return featureCollection(points);
 	};
 
 
 /***/ },
-/* 426 */
+/* 435 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var meta = __webpack_require__(380);
+	var meta = __webpack_require__(381);
 
 	/**
 	 * Combines a {@link FeatureCollection} of {@link Point},
@@ -85576,11 +87549,11 @@
 
 
 /***/ },
-/* 427 */
+/* 436 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(372).polygon;
-	var earcut = __webpack_require__(428);
+	var polygon = __webpack_require__(373).polygon;
+	var earcut = __webpack_require__(437);
 
 
 	/**
@@ -85657,7 +87630,7 @@
 
 
 /***/ },
-/* 428 */
+/* 437 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -86307,11 +88280,11 @@
 
 
 /***/ },
-/* 429 */
+/* 438 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now http://bjornharrtell.github.io/jsts/
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(405);
 
 	/**
 	 * Takes two {@link Polygon|polygons} and finds their intersection. If they share a border, returns the border; if they don't intersect, returns undefined.
@@ -86321,7 +88294,7 @@
 	 * @param {Feature<Polygon>} poly2 the second polygon
 	 * @return {(Feature|undefined)} returns a feature representing the point(s) they share (in case of a {@link Point}  or {@link MultiPoint}), the borders they share (in case of a {@link LineString} or a {@link MultiLineString}), the area they share (in case of {@link Polygon} or {@link MultiPolygon}). If they do not share any point, returns `undefined`.
 	 * @example
-	 * var poly1 = polygon([[
+	 * var poly1 = turf.polygon([[
 	 *   [-122.801742, 45.48565],
 	 *   [-122.801742, 45.60491],
 	 *   [-122.584762, 45.60491],
@@ -86329,7 +88302,7 @@
 	 *   [-122.801742, 45.48565]
 	 * ]]);
 	 *
-	 * var poly2 = polygon([[
+	 * var poly2 = turf.polygon([[
 	 *   [-122.520217, 45.535693],
 	 *   [-122.64038, 45.553967],
 	 *   [-122.720031, 45.526554],
@@ -86371,10 +88344,10 @@
 
 
 /***/ },
-/* 430 */
+/* 439 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes a reference {@link Point|point} and a FeatureCollection of Features
@@ -86450,10 +88423,10 @@
 
 
 /***/ },
-/* 431 */
+/* 440 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var random = __webpack_require__(432);
+	var random = __webpack_require__(441);
 
 	/**
 	 * Generates random {@link GeoJSON} data, including {@link Point|Points} and {@link Polygon|Polygons}, for testing
@@ -86507,7 +88480,7 @@
 
 
 /***/ },
-/* 432 */
+/* 441 */
 /***/ function(module, exports) {
 
 	module.exports = function() {
@@ -86616,14 +88589,14 @@
 
 
 /***/ },
-/* 433 */
+/* 442 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Takes a {@link Polygon|polygon} and returns {@link Point|points} at all self-intersections.
+	 * Takes a {@link LineString|linestring}, {@link MultiLineString|multi-linestring}, {@link MultiPolygon|multi-polygon}, or {@link Polygon|polygon} and returns {@link Point|points} at all self-intersections.
 	 *
 	 * @name kinks
-	 * @param {Feature<Polygon>|Polygon} polygon input polygon
+	 * @param {Feature<LineString|MultiLineString|MultiPolygon|Polygon>} feature input feature
 	 * @returns {FeatureCollection<Point>} self-intersections
 	 * @example
 	 * var poly = {
@@ -86643,7 +88616,7 @@
 	 *
 	 * var kinks = turf.kinks(poly);
 	 *
-	 * var resultFeatures = kinks.intersections.features.concat(poly);
+	 * var resultFeatures = kinks.features.concat(poly);
 	 * var result = {
 	 *   "type": "FeatureCollection",
 	 *   "features": resultFeatures
@@ -86652,30 +88625,43 @@
 	 * //=result
 	 */
 
-	var point = __webpack_require__(372).point;
+	var point = __webpack_require__(373).point;
 
-	module.exports = function (polyIn) {
-	    var poly;
+	module.exports = function (featureIn) {
+	    var coordinates;
+	    var feature;
 	    var results = {
 	        type: 'FeatureCollection',
 	        features: []
 	    };
-	    if (polyIn.type === 'Feature') {
-	        poly = polyIn.geometry;
+	    if (featureIn.type === 'Feature') {
+	        feature = featureIn.geometry;
 	    } else {
-	        poly = polyIn;
+	        feature = featureIn;
 	    }
-	    poly.coordinates.forEach(function (ring1) {
-	        poly.coordinates.forEach(function (ring2) {
-	            for (var i = 0; i < ring1.length - 1; i++) {
-	                for (var k = 0; k < ring2.length - 1; k++) {
-	                    // don't check adjacent sides of a given ring, since of course they intersect in a vertex.
-	                    if (ring1 === ring2 && (Math.abs(i - k) === 1 || Math.abs(i - k) === ring1.length - 2)) {
+	    if (feature.type === 'LineString') {
+	        coordinates = [feature.coordinates];
+	    } else if (feature.type === 'MultiLineString') {
+	        coordinates = feature.coordinates;
+	    } else if (feature.type === 'MultiPolygon') {
+	        coordinates = [].concat.apply([], feature.coordinates);
+	    } else if (feature.type === 'Polygon') {
+	        coordinates = feature.coordinates;
+	    } else {
+	        throw new Error('Input must be a LineString, MultiLineString, ' +
+	            'Polygon, or MultiPolygon Feature or Geometry');
+	    }
+	    coordinates.forEach(function (segment1) {
+	        coordinates.forEach(function (segment2) {
+	            for (var i = 0; i < segment1.length - 1; i++) {
+	                for (var k = 0; k < segment2.length - 1; k++) {
+	                    // don't check adjacent sides of a given segment, since of course they intersect in a vertex.
+	                    if (segment1 === segment2 && (Math.abs(i - k) === 1 || Math.abs(i - k) === segment1.length - 2)) {
 	                        continue;
 	                    }
 
-	                    var intersection = lineIntersects(ring1[i][0], ring1[i][1], ring1[i + 1][0], ring1[i + 1][1],
-	                        ring2[k][0], ring2[k][1], ring2[k + 1][0], ring2[k + 1][1]);
+	                    var intersection = lineIntersects(segment1[i][0], segment1[i][1], segment1[i + 1][0], segment1[i + 1][1],
+	                        segment2[k][0], segment2[k][1], segment2[k + 1][0], segment2[k + 1][1]);
 	                    if (intersection) {
 	                        results.features.push(point([intersection[0], intersection[1]]));
 	                    }
@@ -86734,14 +88720,14 @@
 
 
 /***/ },
-/* 434 */
+/* 443 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(372).featureCollection;
-	var centroid = __webpack_require__(422);
-	var distance = __webpack_require__(378);
-	var inside = __webpack_require__(376);
-	var explode = __webpack_require__(425);
+	var featureCollection = __webpack_require__(373).featureCollection;
+	var centroid = __webpack_require__(431);
+	var distance = __webpack_require__(379);
+	var inside = __webpack_require__(377);
+	var explode = __webpack_require__(434);
 
 	/**
 	 * Takes a feature and returns a {@link Point} guaranteed to be on the surface of the feature.
@@ -86888,10 +88874,10 @@
 
 
 /***/ },
-/* 435 */
+/* 444 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var geometryArea = __webpack_require__(436).geometry;
+	var geometryArea = __webpack_require__(445).geometry;
 
 	/**
 	 * Takes one or more features and returns their area
@@ -86955,10 +88941,10 @@
 
 
 /***/ },
-/* 436 */
+/* 445 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var wgs84 = __webpack_require__(437);
+	var wgs84 = __webpack_require__(446);
 
 	module.exports.geometry = geometry;
 	module.exports.ring = ringArea;
@@ -87049,7 +89035,7 @@
 	}
 
 /***/ },
-/* 437 */
+/* 446 */
 /***/ function(module, exports) {
 
 	module.exports.RADIUS = 6378137;
@@ -87058,13 +89044,13 @@
 
 
 /***/ },
-/* 438 */
+/* 447 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var measureDistance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
+	var measureDistance = __webpack_require__(379);
+	var point = __webpack_require__(373).point;
+	var bearing = __webpack_require__(428);
+	var destination = __webpack_require__(426);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a {@link Point|point} at a specified distance along the line.
@@ -87126,11 +89112,11 @@
 
 
 /***/ },
-/* 439 */
+/* 448 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
+	var distance = __webpack_require__(379);
+	var point = __webpack_require__(373).point;
 
 	/**
 	 * Takes a {@link LineString} or {@link Polygon} and measures its length in the specified units.
@@ -87213,11 +89199,11 @@
 
 
 /***/ },
-/* 440 */
+/* 449 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(372).lineString;
-	var pointOnLine = __webpack_require__(441);
+	var linestring = __webpack_require__(373).lineString;
+	var pointOnLine = __webpack_require__(450);
 
 	/**
 	 * Takes a {@link LineString|line}, a start {@link Point}, and a stop point
@@ -87299,13 +89285,13 @@
 
 
 /***/ },
-/* 441 */
+/* 450 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
+	var distance = __webpack_require__(379);
+	var point = __webpack_require__(373).point;
+	var bearing = __webpack_require__(428);
+	var destination = __webpack_require__(426);
 
 	/**
 	 * Takes a {@link Point} and a {@link LineString} and calculates the closest Point on the LineString.
@@ -87314,7 +89300,7 @@
 	 * @param {Feature<LineString>} line line to snap to
 	 * @param {Feature<Point>} pt point to snap from
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {Feature<Point>} closest point on the `line` to `point`
+	 * @return {Feature<Point>} closest point on the `line` to `point`. The properties object will contain three values: `index`: closest point was found on nth line part, `dist`: distance between pt and the closest point, `location`: distance along the line between start and the closest point.
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -87364,6 +89350,7 @@
 	    var closestPt = point([Infinity, Infinity], {
 	        dist: Infinity
 	    });
+	    var length = 0.0;
 	    for (var i = 0; i < coords.length - 1; i++) {
 	        var start = point(coords[i]);
 	        var stop = point(coords[i + 1]);
@@ -87371,6 +89358,8 @@
 	        start.properties.dist = distance(pt, start, units);
 	        //stop
 	        stop.properties.dist = distance(pt, stop, units);
+	        // sectionLength
+	        var sectionLength = distance(start, stop, units);
 	        //perpendicular
 	        var heightDistance = Math.max(start.properties.dist, stop.properties.dist);
 	        var direction = bearing(start, stop);
@@ -87390,20 +89379,25 @@
 	        if (intersect) {
 	            intersectPt = point(intersect);
 	            intersectPt.properties.dist = distance(pt, intersectPt, units);
+	            intersectPt.properties.location = length + distance(start, closestPt, units);
 	        }
 
 	        if (start.properties.dist < closestPt.properties.dist) {
 	            closestPt = start;
 	            closestPt.properties.index = i;
+	            closestPt.properties.location = length;
 	        }
 	        if (stop.properties.dist < closestPt.properties.dist) {
 	            closestPt = stop;
-	            closestPt.properties.index = i;
+	            closestPt.properties.index = i + 1;
+	            closestPt.properties.location = length + sectionLength;
 	        }
 	        if (intersectPt && intersectPt.properties.dist < closestPt.properties.dist) {
 	            closestPt = intersectPt;
 	            closestPt.properties.index = i;
 	        }
+	        // update length
+	        length += sectionLength;
 	    }
 
 	    return closestPt;
@@ -87456,13 +89450,13 @@
 
 
 /***/ },
-/* 442 */
+/* 451 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(419);
-	var distance = __webpack_require__(378);
-	var destination = __webpack_require__(417);
-	var lineString = __webpack_require__(372).lineString;
+	var bearing = __webpack_require__(428);
+	var distance = __webpack_require__(379);
+	var destination = __webpack_require__(426);
+	var lineString = __webpack_require__(373).lineString;
 
 
 	/**
@@ -87502,7 +89496,7 @@
 	 *
 	 * var units = 'miles';
 	 *
-	 * var sliced = turf.lineSliceAlong(start, stop, line, units);
+	 * var sliced = turf.lineSliceAlong(line, start, stop, units);
 	 *
 	 * //=line
 	 *
@@ -87546,6 +89540,10 @@
 	            slice.push(coords[i]);
 	        }
 
+	        if (i === coords.length - 1) {
+	            return lineString(slice);
+	        }
+
 	        travelled += distance(coords[i], coords[i + 1], units);
 	    }
 	    return lineString(coords[coords.length - 1]);
@@ -87553,13 +89551,13 @@
 
 
 /***/ },
-/* 443 */
+/* 452 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var point = __webpack_require__(372).point;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
+	var featurecollection = __webpack_require__(373).featureCollection;
+	var point = __webpack_require__(373).point;
+	var polygon = __webpack_require__(373).polygon;
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes a bounding box and a cell depth and returns a set of square {@link Polygon|polygons} in a grid.
@@ -87608,12 +89606,12 @@
 
 
 /***/ },
-/* 444 */
+/* 453 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
+	var featurecollection = __webpack_require__(373).featureCollection;
+	var polygon = __webpack_require__(373).polygon;
+	var distance = __webpack_require__(379);
 
 	/**
 	 * Takes a bounding box and a cell depth and returns a set of triangular {@link Polygon|polygons} in a grid.
@@ -87628,7 +89626,7 @@
 	 * var cellSize = 10;
 	 * var units = 'miles';
 	 *
-	 * var triangleGrid = turf.triangleGrid(extent, cellSize, units);
+	 * var triangleGrid = turf.triangleGrid(bbox, cellSize, units);
 	 *
 	 * //=triangleGrid
 	 */
@@ -87706,13 +89704,13 @@
 
 
 /***/ },
-/* 445 */
+/* 454 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(372).point;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
-	var featurecollection = __webpack_require__(372).featureCollection;
+	var point = __webpack_require__(373).point;
+	var polygon = __webpack_require__(373).polygon;
+	var distance = __webpack_require__(379);
+	var featurecollection = __webpack_require__(373).featureCollection;
 
 	//Precompute cosines and sines of angles used in hexagon creation
 	// for performance gain
@@ -87842,13 +89840,13 @@
 
 
 /***/ },
-/* 446 */
+/* 455 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var squareGrid = __webpack_require__(443);
-	var centroid = __webpack_require__(424);
-	var bbox = __webpack_require__(379);
+	var distance = __webpack_require__(379);
+	var squareGrid = __webpack_require__(452);
+	var centroid = __webpack_require__(433);
+	var bbox = __webpack_require__(380);
 
 	/**
 	 *
@@ -87857,6 +89855,7 @@
 	 * It finds application when in need of creating a continuous surface (i.e. rainfall, temperature, chemical dispersion surface...)
 	 * from a set of spatially scattered points.
 	 *
+	 * @name   idw
 	 * @param  {FeatureCollection<Point>} controlPoints Sampled points with known value
 	 * @param  {string} valueField    GeoJSON field containing the known value to interpolate on
 	 * @param  {number} b             Exponent regulating the distance-decay weighting
@@ -87864,7 +89863,7 @@
 	 * @param  {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
 	 * @return {FeatureCollection<Polygon>} grid A grid of polygons with a property field "IDW"
 	 */
-	module.exports = function (controlPoints, valueField, b, cellWidth, units) {
+	module.exports = function idw(controlPoints, valueField, b, cellWidth, units) {
 	    // check if field containing data exists..
 	    var filtered = controlPoints.features.filter(function (feature) {
 	        return feature.properties &&
@@ -87899,7 +89898,175 @@
 
 
 /***/ },
-/* 447 */
+/* 456 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var deepSlice = __webpack_require__(457);
+
+	/**
+	 * Takes a GeoJSON Feature or FeatureCollection and truncates the precision of the geometry.
+	 *
+	 * @name truncate
+	 * @param {(Feature|FeatureCollection)} layer any GeoJSON Feature or FeatureCollection
+	 * @param {number} [precision=6] coordinate decimal precision
+	 * @param {number} [coordinates=2] maximum number of coordinates (primarly used to remove z coordinates)
+	 * @returns {(Feature|FeatureCollection)} layer with truncated geometry
+	 * @example
+	 * var point = {
+	 *     "type": "Feature",
+	 *     "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [
+	 *             70.46923055566859,
+	 *             58.11088890802906,
+	 *             1508
+	 *         ]
+	 *     },
+	 *     "properties": {}
+	 * };
+	 * var pointTrunc = turf.truncate(point);
+	 * //= pointTrunc
+	 */
+	module.exports = function (layer, precision, coordinates) {
+	    precision = precision || 6;
+	    coordinates = coordinates || 2;
+
+	    if (layer === undefined) { throw new Error('layer is required'); }
+
+	    switch (layer.type) {
+	    case 'FeatureCollection': {
+	        layer.features = layer.features.map(function (feature) {
+	            return truncate(feature, precision, coordinates);
+	        });
+	        return layer;
+	    }
+	    case 'Feature':
+	        return truncate(layer, precision, coordinates);
+	    default:
+	        throw new Error('invalid type');
+	    }
+	};
+
+	function truncate(feature, precision, coordinates) {
+	    if (coordinates !== undefined) { feature.geometry.coordinates = deepSlice(feature.geometry.coordinates, 0, coordinates); }
+	    feature.geometry.coordinates = toFix(feature.geometry.coordinates, precision);
+	    return feature;
+	}
+
+	function toFix(array, precision) {
+	    return array.map(function (value) {
+	        if (typeof value === 'object') { return toFix(value, precision); }
+	        return Number(value.toFixed(precision));
+	    });
+	}
+
+
+/***/ },
+/* 457 */
+/***/ function(module, exports) {
+
+	/**
+	 * Recursive Array.prototype.slice()
+	 *
+	 * @param {Array} items Array input
+	 * @param {number} start The beginning of the specified portion of the array.
+	 * @param {number} end The end of the specified portion of the array.
+	 * @returns {Array} Returns a section of an array.
+	 * @example
+	 * deepSlice([[10, 20, 30], [40, 50, 60]], 0, 2)
+	 * //=[[10, 20], [40, 50]]
+	 */
+	function deepSlice (items, start, end) {
+	  if (typeof items[0] !== 'object') { return items.slice(start, end) }
+	  return items.map(function (item) {
+	    return deepSlice(item, start, end)
+	  })
+	}
+	module.exports = deepSlice
+
+
+/***/ },
+/* 458 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var flatten = __webpack_require__(459);
+	var featurecollection = __webpack_require__(373).featureCollection;
+
+	/**
+	 * Flattens any {@link GeoJSON} to a {@link FeatureCollection} using [geojson-flatten](https://github.com/mapbox/geojson-flatten).
+	 *
+	 * @name flatten
+	 * @param {Feature} geojson any valid {@link GeoJSON} with multi-geometry {@link Feature}s
+	 * @return {FeatureCollection} a flattened {@link FeatureCollection}
+	 * @example
+	 * var geometry = {
+	 *   "type": "MultiPolygon",
+	 *   "coordinates": [
+	 *     [[[102.0, 2.0], [103.0, 2.0], [103.0, 3.0], [102.0, 3.0], [102.0, 2.0]]],
+	 *      [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]],
+	 *      [[100.2, 0.2], [100.8, 0.2], [100.8, 0.8], [100.2, 0.8], [100.2, 0.2]]]
+	 *    ]
+	 *  };
+	 *
+	 * var flattened = turf.flatten(geometry);
+	 *
+	 * //=flattened
+	 */
+
+	module.exports = function (geojson) {
+	    var flattened = flatten(geojson);
+	    if (flattened.type === 'FeatureCollection') return flattened;
+	    else return featurecollection(flatten(geojson));
+	};
+
+
+/***/ },
+/* 459 */
+/***/ function(module, exports) {
+
+	module.exports = flatten;
+
+	function flatten(gj, up) {
+	    switch ((gj && gj.type) || null) {
+	        case 'FeatureCollection':
+	            gj.features = gj.features.reduce(function(mem, feature) {
+	                return mem.concat(flatten(feature));
+	            }, []);
+	            return gj;
+	        case 'Feature':
+	            return flatten(gj.geometry).map(function(geom) {
+	                return {
+	                    type: 'Feature',
+	                    properties: JSON.parse(JSON.stringify(gj.properties)),
+	                    geometry: geom
+	                };
+	            });
+	        case 'MultiPoint':
+	            return gj.coordinates.map(function(_) {
+	                return { type: 'Point', coordinates: _ };
+	            });
+	        case 'MultiPolygon':
+	            return gj.coordinates.map(function(_) {
+	                return { type: 'Polygon', coordinates: _ };
+	            });
+	        case 'MultiLineString':
+	            return gj.coordinates.map(function(_) {
+	                return { type: 'LineString', coordinates: _ };
+	            });
+	        case 'GeometryCollection':
+	            return gj.geometries;
+	        case 'Point':
+	        case 'Polygon':
+	        case 'LineString':
+	            return [gj];
+	        default:
+	            return gj;
+	    }
+	}
+
+
+/***/ },
+/* 460 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -87915,7 +90082,7 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _lodash = __webpack_require__(354);
+	var _lodash = __webpack_require__(355);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -87953,7 +90120,7 @@
 	function MapContainer() {}
 
 /***/ },
-/* 448 */
+/* 461 */
 /***/ function(module, exports) {
 
 	"use strict";
