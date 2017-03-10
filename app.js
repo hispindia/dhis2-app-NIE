@@ -103,7 +103,7 @@ $('document').ready(function(){
     startDate.setDate(startDate.getDate() - 5);
     $('#edate').val(moment(startDate).format(format));
 
-    map.init("mapid",[13.23521,80.3332],9);
+    map.init("mapid",[ 20.78823603948452003,85.27305991460282542],7);
     addLegend(map.getMap())
 
     // control that shows state info on hover
@@ -135,11 +135,11 @@ $('document').ready(function(){
 
                 }
 
-    addOrgUnitLayer(5,Object.assign({},style));
+    addOrgUnitLayer(3,Object.assign({},style));
     style.weight =0.95;
     style.color = "black";
     style.opacity = 0.25;
-    addOrgUnitLayer(8,Object.assign({},style));
+    addOrgUnitLayer(4,Object.assign({},style));
 
     // coordinates to be filtered here.
     var startDate = $('#sdate').val();
@@ -195,25 +195,13 @@ function extractCoordsFromEvents(events){
     for (var i=0;i<events.length;i++){       
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                if (events[i].program == "xqoEn6Je5Kj"){
-                    var type = "unknown";
-                    if (events[i].programStage == "Fy9tjDYgdBi"){
-                        var val = findValueAgainstId(events[i].dataValues,"dataElement","ylhxXcMMuZC","value");
-                        if (val == "AFI" || val == "ADD"){
-                            type = val;
-                        }else{continue;}
-                    }else 
-                        if (events[i].programStage == "jo25vJdB3qx"){
-                            if (events[i].dataValues.length>0){
-                                type="LAB";
-                            }else{continue;}
-                        }
+                if (events[i].program == "MRx5pXRJtfv"){
                     
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
-                        type : type,
+                        type : "",
                         trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
