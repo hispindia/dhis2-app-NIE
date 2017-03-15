@@ -196,12 +196,12 @@ function extractCoordsFromEvents(events){
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
                 if (events[i].program == "MRx5pXRJtfv"){
-                    
+                    var type = "AFI"
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
-                        type : "",
+                        type : type,
                         trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
@@ -374,9 +374,8 @@ function addLegend(map){
 
 	var div = L.DomUtil.create('div', 'info legend');
         var height = 15,width=15;
-        var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
-	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
-	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+        var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  Malaria<br>'+
+	   
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
@@ -445,13 +444,13 @@ function addClustergons(map,gjson){
             
             var str = feature.properties;
             str = utility.shadowStringify(str);
-            layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
+            layer.bindPopup('<div id="alert"> Cluster Found</div>');
             layer.on({
 	        //  mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,
 	        click: panToFeature
 	    });
-            return;   
+            return;
         }
         
         layer.on({
@@ -482,7 +481,7 @@ function addClustergons(map,gjson){
         pointToLayer : pointToLayer
     }).addTo(map);
 
-    //zoomToBiggestCluster(map,geojson._layers);
+    zoomToBiggestCluster(map,geojson._layers);
 }
 
 function zoomToBiggestCluster(map,layers){

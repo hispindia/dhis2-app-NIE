@@ -7,14 +7,14 @@
     }
   },
   "appType": "APP",
-  "name": "#XL Import",
+  "name": "GIS Alerts App",
   "version": "1.0.0",
-  "description": "Excel based input interface for DHIS2",
+  "description": "Alerts",
   "developer": {
     "name": "harsh",
     "email": "harsh.atal@gmail.com"
   },
   "icons": {
-    "48": "icon.png"
+    "48": "images/logo.png"
   }
 }

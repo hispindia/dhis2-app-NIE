@@ -264,12 +264,12 @@
 	        if (events[i].coordinate) {
 	            if (events[i].coordinate.latitude != 0 && events[i].coordinate.longitude != 0) {
 	                if (events[i].program == "MRx5pXRJtfv") {
-
+	                    var type = "AFI";
 	                    result.push({
 	                        id: events[i].event,
 	                        coordinates: events[i].coordinate,
 	                        orgUnit: events[i].orgUnitName,
-	                        type: "",
+	                        type: type,
 	                        trackedEntityInstance: events[i].trackedEntityInstance
 
 	                    });
@@ -440,7 +440,7 @@
 	        var div = L.DomUtil.create('div', 'info legend');
 	        var height = 15,
 	            width = 15;
-	        var html = '<img src="' + imgpath_afi + '"  height="' + height + '" width="' + width + '">  AFI<br>' + '<img src="' + imgpath_add + '"  height="' + height + '" width="' + width + '">  ADD<br>' + '<img src="' + imgpath_lab + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
+	        var html = '<img src="' + imgpath_afi + '"  height="' + height + '" width="' + width + '">  Malaria<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
 	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
@@ -504,7 +504,7 @@
 
 	            var str = feature.properties;
 	            str = _utilityFunctions2.default.shadowStringify(str);
-	            layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\'' + str + '\')" value="Save"/></div>');
+	            layer.bindPopup('<div id="alert"> Cluster Found</div>');
 	            layer.on({
 	                //  mouseover: highlightFeature,
 	                //  mouseout: resetHighlight,
@@ -536,7 +536,7 @@
 	        pointToLayer: pointToLayer
 	    }).addTo(map);
 
-	    //zoomToBiggestCluster(map,geojson._layers);
+	    zoomToBiggestCluster(map, geojson._layers);
 	}
 
 	function zoomToBiggestCluster(map, layers) {

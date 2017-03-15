@@ -7,9 +7,9 @@
     }
   },
   "appType": "APP",
-  "name": "NIE App",
+  "name": "GIS Alerts App",
   "version": "1.0.0",
-  "description": "Fever Alerts",
+  "description": "Alerts",
   "developer": {
     "name": "harsh",
     "email": "harsh.atal@gmail.com"
