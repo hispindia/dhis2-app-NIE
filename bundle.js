@@ -42,7 +42,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -50,41 +50,41 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactDom = __webpack_require__(32);
+	var _reactDom = __webpack_require__(36);
 
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 
-	var _ajaxWrapper = __webpack_require__(178);
+	var _ajaxWrapper = __webpack_require__(182);
 
 	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
 
-	var _jquery = __webpack_require__(179);
+	var _jquery = __webpack_require__(183);
 
 	var _jquery2 = _interopRequireDefault(_jquery);
 
-	var _dhis2API = __webpack_require__(180);
+	var _dhis2API = __webpack_require__(184);
 
 	var _dhis2API2 = _interopRequireDefault(_dhis2API);
 
-	var _moment = __webpack_require__(245);
+	var _moment = __webpack_require__(250);
 
 	var _moment2 = _interopRequireDefault(_moment);
 
-	var _map = __webpack_require__(348);
+	var _map = __webpack_require__(353);
 
 	var _map2 = _interopRequireDefault(_map);
 
-	var _mapUtilities = __webpack_require__(349);
+	var _mapUtilities = __webpack_require__(354);
 
 	var _mapUtilities2 = _interopRequireDefault(_mapUtilities);
 
-	var _components = __webpack_require__(447);
+	var _components = __webpack_require__(475);
 
-	var _nieConstants = __webpack_require__(448);
+	var _nieConstants = __webpack_require__(476);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
-	var _utilityFunctions = __webpack_require__(181);
+	var _utilityFunctions = __webpack_require__(185);
 
 	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
 
@@ -102,10 +102,11 @@
 	var previousClusterLayer;
 	var info;
 
-	var imgpath_afi = "images/yellow-point.png";
-	var imgpath_lab = "images/violet-point.png";
-	var imgpath_add = "images/orange-point.png";
+	var imgpath_polygon_5_sided = "images/afi_3.PNG";
+	var imgpath_red_circle = "images/lab_1.PNG";
+	var imgpath_star = "images/afi_5.PNG";
 	var imgpath_cluster = "images/marker-icon-red.png";
+	var imgpath_yellow_triangle = "images/yellow-triangle.PNG";
 
 	function saveClusterFoo(args) {
 
@@ -156,8 +157,8 @@
 	    var diff = (0, _moment2.default)(new Date()).diff(startDate, 'days');
 
 	    (0, _jquery2.default)('#movingPeriod').text(diff);
-	    getEvents(startDate, endDate).then(function (events) {
-	        var coords = extractCoordsFromEvents(events);
+	    getTEI(startDate, endDate).then(function (teis) {
+	        var coords = extractCoordsFromTEI(teis);
 	        buildMap(coords, c_dist, threshold);
 	    });
 	};
@@ -170,10 +171,11 @@
 	    map = new _map2.default();
 
 	    var startDate = new Date();
+	    var endDate = new Date();
 	    var format = "YYYY-MM-DD";
+	    startDate.setDate(endDate.getDate() - 5);
 	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
-	    startDate.setDate(startDate.getDate() - 5);
-	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(startDate).format(format));
+	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(endDate).format(format));
 
 	    map.init("mapid", [13.23521, 80.3332], 9);
 	    addLegend(map.getMap());
@@ -215,8 +217,8 @@
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
 
-	    getEvents(startDate, endDate).then(function (events) {
-	        var coords = extractCoordsFromEvents(events);
+	    getTEI(startDate, endDate).then(function (teis) {
+	        var coords = extractCoordsFromTEI(teis);debugger;
 	        buildMap(coords, 5, 3);
 	    });
 	});
@@ -234,7 +236,7 @@
 	        }
 	    });
 	}
-	function getEvents(startDate, endDate) {
+	function getTEI(startDate, endDate) {
 	    var def = _jquery2.default.Deferred();
 
 	    //    var endDate = new Date();
@@ -244,52 +246,70 @@
 	        type: "GET",
 	        async: true,
 	        contentType: "application/json",
-	        url: "../../events?orgUnit=" + api.getRootOrgUnitUid() + "&ouMode=DESCENDANTS&startDate=" + (0, _moment2.default)(startDate).format(format) + "&endDate=" + (0, _moment2.default)(endDate).format(format) + "&skipPaging=true"
+	        url: "../../trackedEntityInstances?ou=" + NIE.ROOT_OU_UID + "&ouMode=DESCENDANTS&programStartDate=" + (0, _moment2.default)(startDate).format(format) + "&programEndDate=" + (0, _moment2.default)(endDate).format(format) + "&program=" + NIE.Cluster_ProgramUID + "&skipPaging=true"
 	    }, function (error, response) {
 	        if (error) {
 	            def.resolve(null);
 	        } else {
-	            def.resolve(response.events);
+	            def.resolve(response.trackedEntityInstances);
 	        }
 	    });
 	    return def.promise();
 	}
 
-	function extractCoordsFromEvents(events) {
+	function extractCoordsFromTEI(teis) {
 
 	    var result = [];
-	    for (var i = 0; i < events.length; i++) {
-	        if (events[i].coordinate) {
-	            if (events[i].coordinate.latitude != 0 && events[i].coordinate.longitude != 0) {
-	                if (events[i].program == "xqoEn6Je5Kj") {
-	                    var type = "unknown";
-	                    if (events[i].programStage == "Fy9tjDYgdBi") {
-	                        var val = findValueAgainstId(events[i].dataValues, "dataElement", "ylhxXcMMuZC", "value");
-	                        if (val == "AFI" || val == "ADD") {
-	                            type = val;
-	                        } else {
-	                            continue;
-	                        }
-	                    } else if (events[i].programStage == "jo25vJdB3qx") {
-	                        if (events[i].dataValues.length > 0) {
-	                            type = "LAB";
-	                        } else {
-	                            continue;
-	                        }
-	                    }
 
-	                    result.push({
-	                        id: events[i].event,
-	                        coordinates: events[i].coordinate,
-	                        orgUnit: events[i].orgUnitName,
-	                        type: type,
-	                        trackedEntityInstance: events[i].trackedEntityInstance
+	    for (var i = 0; i < teis.length; i++) {
+	        var type = "unknown";
 
-	                    });
-	                }
+	        var coord = findValueAgainstId(teis[i].attributes, "attribute", "ALvy8yTD1Np", "value");
+
+	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", "sP8CfjSrtRq", "value");
+
+	        if (coord && isActive) {
+
+	            coord = JSON.parse(coord);
+	            var facility = findValueAgainstId(teis[i].attributes, "attribute", "AqHMFVqkwOG", "value");
+
+	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", "oqTYHlWrWBh", "value");
+
+	            if (afi3_5) {
+	                result.push({
+	                    id: teis[i].trackedEntityInstance + NIE.AFI_DE_3_5,
+	                    coordinates: coord,
+	                    orgUnit: facility,
+	                    type: "AFI3",
+	                    trackedEntityInstance: teis[i].trackedEntityInstance
+
+	                });
 	            }
+	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", "oDg3FLcVw0R", "value");
+	            if (afi5_7) {
+	                result.push({
+	                    id: teis[i].trackedEntityInstance + NIE.AFI_DE_5_7,
+	                    coordinates: coord,
+	                    orgUnit: facility,
+	                    type: "AFI5",
+	                    trackedEntityInstance: teis[i].trackedEntityInstance
+
+	                });
+	            }
+
+	            var add2_5 = findValueAgainstId(teis[i].attributes, "attribute", "k3C0dkjcSg2", "value");
+
+	            result.push({
+	                id: teis[i].trackedEntityInstance + NIE.ADD_DE_2_3,
+	                coordinates: coord,
+	                orgUnit: facility,
+	                type: "ADD2",
+	                trackedEntityInstance: teis[i].trackedEntityInstance
+
+	            });
 	        }
 	    }
+
 	    return result;
 	}
 	function findValueAgainstId(data, idKey, id, valKey) {
@@ -383,16 +403,20 @@
 	                    });
 	                case 'LAB':
 	                    return L.marker(latlng, {
-	                        icon: getCustomIcon2(imgpath_lab)
+	                        icon: getCustomIcon2(imgpath_red_circle)
 	                    });
 
-	                case 'AFI':
+	                case 'AFI3':
 	                    return L.marker(latlng, {
-	                        icon: getCustomIcon2(imgpath_afi)
+	                        icon: getCustomIcon2(imgpath_polygon_5_sided, [20, 20], [15, 0])
 	                    });
-	                case 'ADD':
+	                case 'AFI5':
 	                    return L.marker(latlng, {
-	                        icon: getCustomIcon2(imgpath_add)
+	                        icon: getCustomIcon2(imgpath_star, [25, 25], [0, 0])
+	                    });
+	                case 'ADD2':
+	                    return L.marker(latlng, {
+	                        icon: getCustomIcon2(imgpath_yellow_triangle, [17, 17], [0, 15])
 	                    });
 
 	            }
@@ -419,6 +443,7 @@
 	        var marker = pointToLayer(data.features[i], loc);
 
 	        marker.desc = data.features[i].properties.label;
+	        marker.feature = { properties: data.features[i].properties };
 	        map.getMap().addLayer(marker);
 	        oms.addMarker(marker);
 	    }
@@ -438,7 +463,7 @@
 	         // var onEachFeature = onEachFeature;
 	         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
 	    */
-	    addClustergons(map.getMap(), featureCollection.geoJsonPolygonFeatures);
+	    //addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
 
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
@@ -453,7 +478,7 @@
 	        var div = L.DomUtil.create('div', 'info legend');
 	        var height = 15,
 	            width = 15;
-	        var html = '<img src="' + imgpath_afi + '"  height="' + height + '" width="' + width + '">  AFI<br>' + '<img src="' + imgpath_add + '"  height="' + height + '" width="' + width + '">  ADD<br>' + '<img src="' + imgpath_lab + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
+	        var html = '<img src="' + imgpath_polygon_5_sided + '"  height="' + height + '" width="' + width + '">  AFI 3 cases in 5 days<br>' + '<img src="' + imgpath_star + '"  height="' + height + '" width="' + width + '">  AFI 5 cases in 7 days<br>' + '<img src="' + imgpath_yellow_triangle + '"  height="' + height + '" width="' + width + '">  ADD 2 cases in 3 days<br>' + '<img src="' + imgpath_red_circle + '"  height="' + height + '" width="' + width + '">  LAB<br>';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
 	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
@@ -603,17 +628,26 @@
 	    });
 	}
 
-	function getCustomIcon2(iconUrl) {
+	function getCustomIcon2(iconUrl, iconSize, iconAnchor) {
+
+	    if (!iconSize) {
+	        iconSize = [15, 15];
+	    }
+
+	    if (!iconAnchor) {
+	        iconAnchor = [6, 1];
+	    }
+
 	    return new L.Icon({
 	        //  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
 	        iconUrl: iconUrl,
 	        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
 	        shadowUrl: 'images/point-shadow.png',
-	        iconSize: [15, 15],
+	        iconSize: iconSize,
 	        //        iconSize: [25, 41],
 
 	        //        iconAnchor: [12, 41],
-	        iconAnchor: [6, 1],
+	        iconAnchor: iconAnchor,
 
 	        popupAnchor: [1, -34],
 	        shadowSize: [16, 20]
@@ -628,18 +662,18 @@
 	    });
 	}
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	module.exports = __webpack_require__(2);
 
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -662,9 +696,9 @@
 	var ReactDOMFactories = __webpack_require__(24);
 	var ReactElement = __webpack_require__(9);
 	var ReactPropTypes = __webpack_require__(29);
-	var ReactVersion = __webpack_require__(30);
+	var ReactVersion = __webpack_require__(34);
 
-	var onlyChild = __webpack_require__(31);
+	var onlyChild = __webpack_require__(35);
 	var warning = __webpack_require__(11);
 
 	var createElement = ReactElement.createElement;
@@ -672,7 +706,9 @@
 	var cloneElement = ReactElement.cloneElement;
 
 	if (process.env.NODE_ENV !== 'production') {
+	  var canDefineProperty = __webpack_require__(13);
 	  var ReactElementValidator = __webpack_require__(25);
+	  var didWarnPropTypesDeprecated = false;
 	  createElement = ReactElementValidator.createElement;
 	  createFactory = ReactElementValidator.createFactory;
 	  cloneElement = ReactElementValidator.cloneElement;
@@ -728,12 +764,25 @@
 	  __spread: __spread
 	};
 
+	// TODO: Fix tests so that this deprecation warning doesn't cause failures.
+	if (process.env.NODE_ENV !== 'production') {
+	  if (canDefineProperty) {
+	    Object.defineProperty(React, 'PropTypes', {
+	      get: function () {
+	        process.env.NODE_ENV !== 'production' ? warning(didWarnPropTypesDeprecated, 'Accessing PropTypes via the main React package is deprecated. Use ' + 'the prop-types package from npm instead.') : void 0;
+	        didWarnPropTypesDeprecated = true;
+	        return ReactPropTypes;
+	      }
+	    });
+	  }
+	}
+
 	module.exports = React;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	// shim for using process in browser
 	var process = module.exports = {};
@@ -905,6 +954,10 @@
 	process.removeListener = noop;
 	process.removeAllListeners = noop;
 	process.emit = noop;
+	process.prependListener = noop;
+	process.prependOnceListener = noop;
+
+	process.listeners = function (name) { return [] }
 
 	process.binding = function (name) {
 	    throw new Error('process.binding is not supported');
@@ -917,12 +970,19 @@
 	process.umask = function() { return 0; };
 
 
-/***/ },
+/***/ }),
 /* 4 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
+
+	/*
+	object-assign
+	(c) Sindre Sorhus
+	@license MIT
+	*/
 
 	'use strict';
 	/* eslint-disable no-unused-vars */
+	var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
 	var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -943,7 +1003,7 @@
 			// Detect buggy property enumeration order in older V8 versions.
 
 			// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-			var test1 = new String('abc');  // eslint-disable-line
+			var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
 			test1[5] = 'de';
 			if (Object.getOwnPropertyNames(test1)[0] === '5') {
 				return false;
@@ -972,7 +1032,7 @@
 			}
 
 			return true;
-		} catch (e) {
+		} catch (err) {
 			// We don't expect any of the above to throw, but better to be safe.
 			return false;
 		}
@@ -992,8 +1052,8 @@
 				}
 			}
 
-			if (Object.getOwnPropertySymbols) {
-				symbols = Object.getOwnPropertySymbols(from);
+			if (getOwnPropertySymbols) {
+				symbols = getOwnPropertySymbols(from);
 				for (var i = 0; i < symbols.length; i++) {
 					if (propIsEnumerable.call(from, symbols[i])) {
 						to[symbols[i]] = from[symbols[i]];
@@ -1006,9 +1066,9 @@
 	};
 
 
-/***/ },
+/***/ }),
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -1201,9 +1261,9 @@
 
 	module.exports = ReactChildren;
 
-/***/ },
+/***/ }),
 /* 6 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -1318,9 +1378,9 @@
 	module.exports = PooledClass;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 7 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -1361,9 +1421,9 @@
 
 	module.exports = reactProdInvariant;
 
-/***/ },
+/***/ }),
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -1422,9 +1482,9 @@
 	module.exports = invariant;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -1768,9 +1828,9 @@
 	module.exports = ReactElement;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 10 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -1803,9 +1863,9 @@
 
 	module.exports = ReactCurrentOwner;
 
-/***/ },
+/***/ }),
 /* 11 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-2015, Facebook, Inc.
@@ -1875,9 +1935,9 @@
 	module.exports = warning;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 12 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	"use strict";
 
@@ -1918,9 +1978,9 @@
 
 	module.exports = emptyFunction;
 
-/***/ },
+/***/ }),
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -1949,9 +2009,9 @@
 	module.exports = canDefineProperty;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 14 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -1973,9 +2033,9 @@
 
 	module.exports = REACT_ELEMENT_TYPE;
 
-/***/ },
+/***/ }),
 /* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2154,9 +2214,9 @@
 	module.exports = traverseAllChildren;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 16 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2199,9 +2259,9 @@
 
 	module.exports = getIteratorFn;
 
-/***/ },
+/***/ }),
 /* 17 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2262,9 +2322,9 @@
 
 	module.exports = KeyEscapeUtils;
 
-/***/ },
+/***/ }),
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2385,9 +2445,9 @@
 	module.exports = ReactComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 19 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -2486,9 +2546,9 @@
 	module.exports = ReactNoopUpdateQueue;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 20 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -2511,9 +2571,9 @@
 	module.exports = emptyObject;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 21 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2557,9 +2617,9 @@
 
 	module.exports = ReactPureComponent;
 
-/***/ },
+/***/ }),
 /* 22 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -2714,7 +2774,6 @@
 	   *   }
 	   *
 	   * @return {ReactComponent}
-	   * @nosideeffects
 	   * @required
 	   */
 	  render: 'DEFINE_ONCE',
@@ -3170,6 +3229,8 @@
 	var ReactClassComponent = function () {};
 	_assign(ReactClassComponent.prototype, ReactComponent.prototype, ReactClassMixin);
 
+	var didWarnDeprecated = false;
+
 	/**
 	 * Module for creating composite components.
 	 *
@@ -3186,6 +3247,11 @@
 	   * @public
 	   */
 	  createClass: function (spec) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      process.env.NODE_ENV !== 'production' ? warning(didWarnDeprecated, '%s: React.createClass is deprecated and will be removed in version 16. ' + 'Use plain JavaScript classes instead. If you\'re not yet ready to ' + 'migrate, create-react-class is available on npm as a ' + 'drop-in replacement.', spec && spec.displayName || 'A Component') : void 0;
+	      didWarnDeprecated = true;
+	    }
+
 	    // To keep our warnings more understandable, we'll use a little hack here to
 	    // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
 	    // unnecessarily identify a class without displayName as 'Constructor'.
@@ -3279,9 +3345,9 @@
 	module.exports = ReactClass;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 23 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3309,9 +3375,9 @@
 	module.exports = ReactPropTypeLocationNames;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 24 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3484,9 +3550,9 @@
 	module.exports = ReactDOMFactories;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 25 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -3523,6 +3589,16 @@
 	    if (name) {
 	      return ' Check the render method of `' + name + '`.';
 	    }
+	  }
+	  return '';
+	}
+
+	function getSourceInfoErrorAddendum(elementProps) {
+	  if (elementProps !== null && elementProps !== undefined && elementProps.__source !== undefined) {
+	    var source = elementProps.__source;
+	    var fileName = source.fileName.replace(/^.*[\\\/]/, '');
+	    var lineNumber = source.lineNumber;
+	    return ' Check your code at ' + fileName + ':' + lineNumber + '.';
 	  }
 	  return '';
 	}
@@ -3657,7 +3733,16 @@
 	        if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
 	          info += ' You likely forgot to export your component from the file ' + 'it\'s defined in.';
 	        }
-	        info += getDeclarationErrorAddendum();
+
+	        var sourceInfo = getSourceInfoErrorAddendum(props);
+	        if (sourceInfo) {
+	          info += sourceInfo;
+	        } else {
+	          info += getDeclarationErrorAddendum();
+	        }
+
+	        info += ReactComponentTreeHook.getCurrentStackAddendum();
+
 	        process.env.NODE_ENV !== 'production' ? warning(false, 'React.createElement: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', type == null ? type : typeof type, info) : void 0;
 	      }
 	    }
@@ -3723,9 +3808,9 @@
 	module.exports = ReactElementValidator;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 26 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -4062,9 +4147,9 @@
 	module.exports = ReactComponentTreeHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 27 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4154,9 +4239,9 @@
 	module.exports = checkReactTypeSpec;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
+/***/ }),
 /* 28 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4175,9 +4260,59 @@
 
 	module.exports = ReactPropTypesSecret;
 
-/***/ },
+/***/ }),
 /* 29 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+
+	'use strict';
+
+	var _require = __webpack_require__(9),
+	    isValidElement = _require.isValidElement;
+
+	var factory = __webpack_require__(30);
+
+	module.exports = factory(isValidElement);
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 */
+
+	'use strict';
+
+	// React 15.5 references this module, and assumes PropTypes are still callable in production.
+	// Therefore we re-export development-only version with all the PropTypes checks here.
+	// However if one is migrating to the `prop-types` npm library, they will go through the
+	// `index.js` entry point, and it will branch depending on the environment.
+	var factory = __webpack_require__(31);
+	module.exports = function(isValidElement) {
+	  // It is still allowed in 15.5.
+	  var throwOnDirectAccess = false;
+	  return factory(isValidElement, throwOnDirectAccess);
+	};
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4186,437 +4321,605 @@
 	 * This source code is licensed under the BSD-style license found in the
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
 	 */
 
 	'use strict';
 
-	var ReactElement = __webpack_require__(9);
-	var ReactPropTypeLocationNames = __webpack_require__(23);
-	var ReactPropTypesSecret = __webpack_require__(28);
-
 	var emptyFunction = __webpack_require__(12);
-	var getIteratorFn = __webpack_require__(16);
+	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
 
-	/**
-	 * Collection of methods that allow declaration and validation of props that are
-	 * supplied to React components. Example usage:
-	 *
-	 *   var Props = require('ReactPropTypes');
-	 *   var MyArticle = React.createClass({
-	 *     propTypes: {
-	 *       // An optional string prop named "description".
-	 *       description: Props.string,
-	 *
-	 *       // A required enum prop named "category".
-	 *       category: Props.oneOf(['News','Photos']).isRequired,
-	 *
-	 *       // A prop named "dialog" that requires an instance of Dialog.
-	 *       dialog: Props.instanceOf(Dialog).isRequired
-	 *     },
-	 *     render: function() { ... }
-	 *   });
-	 *
-	 * A more formal specification of how these methods are used:
-	 *
-	 *   type := array|bool|func|object|number|string|oneOf([...])|instanceOf(...)
-	 *   decl := ReactPropTypes.{type}(.isRequired)?
-	 *
-	 * Each and every declaration produces a function with the same signature. This
-	 * allows the creation of custom validation functions. For example:
-	 *
-	 *  var MyLink = React.createClass({
-	 *    propTypes: {
-	 *      // An optional string or URI prop named "href".
-	 *      href: function(props, propName, componentName) {
-	 *        var propValue = props[propName];
-	 *        if (propValue != null && typeof propValue !== 'string' &&
-	 *            !(propValue instanceof URI)) {
-	 *          return new Error(
-	 *            'Expected a string or an URI for ' + propName + ' in ' +
-	 *            componentName
-	 *          );
-	 *        }
-	 *      }
-	 *    },
-	 *    render: function() {...}
-	 *  });
-	 *
-	 * @internal
-	 */
+	var ReactPropTypesSecret = __webpack_require__(32);
+	var checkPropTypes = __webpack_require__(33);
 
-	var ANONYMOUS = '<<anonymous>>';
+	module.exports = function(isValidElement, throwOnDirectAccess) {
+	  /* global Symbol */
+	  var ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
+	  var FAUX_ITERATOR_SYMBOL = '@@iterator'; // Before Symbol spec.
 
-	var ReactPropTypes = {
-	  array: createPrimitiveTypeChecker('array'),
-	  bool: createPrimitiveTypeChecker('boolean'),
-	  func: createPrimitiveTypeChecker('function'),
-	  number: createPrimitiveTypeChecker('number'),
-	  object: createPrimitiveTypeChecker('object'),
-	  string: createPrimitiveTypeChecker('string'),
-	  symbol: createPrimitiveTypeChecker('symbol'),
-
-	  any: createAnyTypeChecker(),
-	  arrayOf: createArrayOfTypeChecker,
-	  element: createElementTypeChecker(),
-	  instanceOf: createInstanceTypeChecker,
-	  node: createNodeChecker(),
-	  objectOf: createObjectOfTypeChecker,
-	  oneOf: createEnumTypeChecker,
-	  oneOfType: createUnionTypeChecker,
-	  shape: createShapeTypeChecker
-	};
-
-	/**
-	 * inlined Object.is polyfill to avoid requiring consumers ship their own
-	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-	 */
-	/*eslint-disable no-self-compare*/
-	function is(x, y) {
-	  // SameValue algorithm
-	  if (x === y) {
-	    // Steps 1-5, 7-10
-	    // Steps 6.b-6.e: +0 != -0
-	    return x !== 0 || 1 / x === 1 / y;
-	  } else {
-	    // Step 6.a: NaN == NaN
-	    return x !== x && y !== y;
+	  /**
+	   * Returns the iterator method function contained on the iterable object.
+	   *
+	   * Be sure to invoke the function with the iterable as context:
+	   *
+	   *     var iteratorFn = getIteratorFn(myIterable);
+	   *     if (iteratorFn) {
+	   *       var iterator = iteratorFn.call(myIterable);
+	   *       ...
+	   *     }
+	   *
+	   * @param {?object} maybeIterable
+	   * @return {?function}
+	   */
+	  function getIteratorFn(maybeIterable) {
+	    var iteratorFn = maybeIterable && (ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL]);
+	    if (typeof iteratorFn === 'function') {
+	      return iteratorFn;
+	    }
 	  }
-	}
-	/*eslint-enable no-self-compare*/
 
-	/**
-	 * We use an Error-like object for backward compatibility as people may call
-	 * PropTypes directly and inspect their output. However we don't use real
-	 * Errors anymore. We don't inspect their stack anyway, and creating them
-	 * is prohibitively expensive if they are created too often, such as what
-	 * happens in oneOfType() for any type before the one that matched.
-	 */
-	function PropTypeError(message) {
-	  this.message = message;
-	  this.stack = '';
-	}
-	// Make `instanceof Error` still work for returned errors.
-	PropTypeError.prototype = Error.prototype;
+	  /**
+	   * Collection of methods that allow declaration and validation of props that are
+	   * supplied to React components. Example usage:
+	   *
+	   *   var Props = require('ReactPropTypes');
+	   *   var MyArticle = React.createClass({
+	   *     propTypes: {
+	   *       // An optional string prop named "description".
+	   *       description: Props.string,
+	   *
+	   *       // A required enum prop named "category".
+	   *       category: Props.oneOf(['News','Photos']).isRequired,
+	   *
+	   *       // A prop named "dialog" that requires an instance of Dialog.
+	   *       dialog: Props.instanceOf(Dialog).isRequired
+	   *     },
+	   *     render: function() { ... }
+	   *   });
+	   *
+	   * A more formal specification of how these methods are used:
+	   *
+	   *   type := array|bool|func|object|number|string|oneOf([...])|instanceOf(...)
+	   *   decl := ReactPropTypes.{type}(.isRequired)?
+	   *
+	   * Each and every declaration produces a function with the same signature. This
+	   * allows the creation of custom validation functions. For example:
+	   *
+	   *  var MyLink = React.createClass({
+	   *    propTypes: {
+	   *      // An optional string or URI prop named "href".
+	   *      href: function(props, propName, componentName) {
+	   *        var propValue = props[propName];
+	   *        if (propValue != null && typeof propValue !== 'string' &&
+	   *            !(propValue instanceof URI)) {
+	   *          return new Error(
+	   *            'Expected a string or an URI for ' + propName + ' in ' +
+	   *            componentName
+	   *          );
+	   *        }
+	   *      }
+	   *    },
+	   *    render: function() {...}
+	   *  });
+	   *
+	   * @internal
+	   */
 
-	function createChainableTypeChecker(validate) {
-	  if (process.env.NODE_ENV !== 'production') {
-	    var manualPropTypeCallCache = {};
+	  var ANONYMOUS = '<<anonymous>>';
+
+	  // Important!
+	  // Keep this list in sync with production version in `./factoryWithThrowingShims.js`.
+	  var ReactPropTypes = {
+	    array: createPrimitiveTypeChecker('array'),
+	    bool: createPrimitiveTypeChecker('boolean'),
+	    func: createPrimitiveTypeChecker('function'),
+	    number: createPrimitiveTypeChecker('number'),
+	    object: createPrimitiveTypeChecker('object'),
+	    string: createPrimitiveTypeChecker('string'),
+	    symbol: createPrimitiveTypeChecker('symbol'),
+
+	    any: createAnyTypeChecker(),
+	    arrayOf: createArrayOfTypeChecker,
+	    element: createElementTypeChecker(),
+	    instanceOf: createInstanceTypeChecker,
+	    node: createNodeChecker(),
+	    objectOf: createObjectOfTypeChecker,
+	    oneOf: createEnumTypeChecker,
+	    oneOfType: createUnionTypeChecker,
+	    shape: createShapeTypeChecker
+	  };
+
+	  /**
+	   * inlined Object.is polyfill to avoid requiring consumers ship their own
+	   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+	   */
+	  /*eslint-disable no-self-compare*/
+	  function is(x, y) {
+	    // SameValue algorithm
+	    if (x === y) {
+	      // Steps 1-5, 7-10
+	      // Steps 6.b-6.e: +0 != -0
+	      return x !== 0 || 1 / x === 1 / y;
+	    } else {
+	      // Step 6.a: NaN == NaN
+	      return x !== x && y !== y;
+	    }
 	  }
-	  function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
-	    componentName = componentName || ANONYMOUS;
-	    propFullName = propFullName || propName;
+	  /*eslint-enable no-self-compare*/
+
+	  /**
+	   * We use an Error-like object for backward compatibility as people may call
+	   * PropTypes directly and inspect their output. However, we don't use real
+	   * Errors anymore. We don't inspect their stack anyway, and creating them
+	   * is prohibitively expensive if they are created too often, such as what
+	   * happens in oneOfType() for any type before the one that matched.
+	   */
+	  function PropTypeError(message) {
+	    this.message = message;
+	    this.stack = '';
+	  }
+	  // Make `instanceof Error` still work for returned errors.
+	  PropTypeError.prototype = Error.prototype;
+
+	  function createChainableTypeChecker(validate) {
 	    if (process.env.NODE_ENV !== 'production') {
-	      if (secret !== ReactPropTypesSecret && typeof console !== 'undefined') {
-	        var cacheKey = componentName + ':' + propName;
-	        if (!manualPropTypeCallCache[cacheKey]) {
-	          process.env.NODE_ENV !== 'production' ? warning(false, 'You are manually calling a React.PropTypes validation ' + 'function for the `%s` prop on `%s`. This is deprecated ' + 'and will not work in production with the next major version. ' + 'You may be seeing this warning due to a third-party PropTypes ' + 'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.', propFullName, componentName) : void 0;
-	          manualPropTypeCallCache[cacheKey] = true;
+	      var manualPropTypeCallCache = {};
+	      var manualPropTypeWarningCount = 0;
+	    }
+	    function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
+	      componentName = componentName || ANONYMOUS;
+	      propFullName = propFullName || propName;
+
+	      if (secret !== ReactPropTypesSecret) {
+	        if (throwOnDirectAccess) {
+	          // New behavior only for users of `prop-types` package
+	          invariant(
+	            false,
+	            'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
+	            'Use `PropTypes.checkPropTypes()` to call them. ' +
+	            'Read more at http://fb.me/use-check-prop-types'
+	          );
+	        } else if (process.env.NODE_ENV !== 'production' && typeof console !== 'undefined') {
+	          // Old behavior for people using React.PropTypes
+	          var cacheKey = componentName + ':' + propName;
+	          if (
+	            !manualPropTypeCallCache[cacheKey] &&
+	            // Avoid spamming the console because they are often not actionable except for lib authors
+	            manualPropTypeWarningCount < 3
+	          ) {
+	            warning(
+	              false,
+	              'You are manually calling a React.PropTypes validation ' +
+	              'function for the `%s` prop on `%s`. This is deprecated ' +
+	              'and will throw in the standalone `prop-types` package. ' +
+	              'You may be seeing this warning due to a third-party PropTypes ' +
+	              'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.',
+	              propFullName,
+	              componentName
+	            );
+	            manualPropTypeCallCache[cacheKey] = true;
+	            manualPropTypeWarningCount++;
+	          }
 	        }
 	      }
-	    }
-	    if (props[propName] == null) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      if (isRequired) {
-	        if (props[propName] === null) {
-	          return new PropTypeError('The ' + locationName + ' `' + propFullName + '` is marked as required ' + ('in `' + componentName + '`, but its value is `null`.'));
+	      if (props[propName] == null) {
+	        if (isRequired) {
+	          if (props[propName] === null) {
+	            return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required ' + ('in `' + componentName + '`, but its value is `null`.'));
+	          }
+	          return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required in ' + ('`' + componentName + '`, but its value is `undefined`.'));
 	        }
-	        return new PropTypeError('The ' + locationName + ' `' + propFullName + '` is marked as required in ' + ('`' + componentName + '`, but its value is `undefined`.'));
+	        return null;
+	      } else {
+	        return validate(props, propName, componentName, location, propFullName);
+	      }
+	    }
+
+	    var chainedCheckType = checkType.bind(null, false);
+	    chainedCheckType.isRequired = checkType.bind(null, true);
+
+	    return chainedCheckType;
+	  }
+
+	  function createPrimitiveTypeChecker(expectedType) {
+	    function validate(props, propName, componentName, location, propFullName, secret) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== expectedType) {
+	        // `propValue` being instance of, say, date/regexp, pass the 'object'
+	        // check, but we can offer a more precise error message here rather than
+	        // 'of type `object`'.
+	        var preciseType = getPreciseType(propValue);
+
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + preciseType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedType + '`.'));
 	      }
 	      return null;
-	    } else {
-	      return validate(props, propName, componentName, location, propFullName);
 	    }
+	    return createChainableTypeChecker(validate);
 	  }
 
-	  var chainedCheckType = checkType.bind(null, false);
-	  chainedCheckType.isRequired = checkType.bind(null, true);
-
-	  return chainedCheckType;
-	}
-
-	function createPrimitiveTypeChecker(expectedType) {
-	  function validate(props, propName, componentName, location, propFullName, secret) {
-	    var propValue = props[propName];
-	    var propType = getPropType(propValue);
-	    if (propType !== expectedType) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      // `propValue` being instance of, say, date/regexp, pass the 'object'
-	      // check, but we can offer a more precise error message here rather than
-	      // 'of type `object`'.
-	      var preciseType = getPreciseType(propValue);
-
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type ' + ('`' + preciseType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedType + '`.'));
-	    }
-	    return null;
+	  function createAnyTypeChecker() {
+	    return createChainableTypeChecker(emptyFunction.thatReturnsNull);
 	  }
-	  return createChainableTypeChecker(validate);
-	}
 
-	function createAnyTypeChecker() {
-	  return createChainableTypeChecker(emptyFunction.thatReturns(null));
-	}
-
-	function createArrayOfTypeChecker(typeChecker) {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    if (typeof typeChecker !== 'function') {
-	      return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
-	    }
-	    var propValue = props[propName];
-	    if (!Array.isArray(propValue)) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      var propType = getPropType(propValue);
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an array.'));
-	    }
-	    for (var i = 0; i < propValue.length; i++) {
-	      var error = typeChecker(propValue, i, componentName, location, propFullName + '[' + i + ']', ReactPropTypesSecret);
-	      if (error instanceof Error) {
-	        return error;
+	  function createArrayOfTypeChecker(typeChecker) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (typeof typeChecker !== 'function') {
+	        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
 	      }
-	    }
-	    return null;
-	  }
-	  return createChainableTypeChecker(validate);
-	}
-
-	function createElementTypeChecker() {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    var propValue = props[propName];
-	    if (!ReactElement.isValidElement(propValue)) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      var propType = getPropType(propValue);
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement.'));
-	    }
-	    return null;
-	  }
-	  return createChainableTypeChecker(validate);
-	}
-
-	function createInstanceTypeChecker(expectedClass) {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    if (!(props[propName] instanceof expectedClass)) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      var expectedClassName = expectedClass.name || ANONYMOUS;
-	      var actualClassName = getClassName(props[propName]);
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type ' + ('`' + actualClassName + '` supplied to `' + componentName + '`, expected ') + ('instance of `' + expectedClassName + '`.'));
-	    }
-	    return null;
-	  }
-	  return createChainableTypeChecker(validate);
-	}
-
-	function createEnumTypeChecker(expectedValues) {
-	  if (!Array.isArray(expectedValues)) {
-	    process.env.NODE_ENV !== 'production' ? warning(false, 'Invalid argument supplied to oneOf, expected an instance of array.') : void 0;
-	    return emptyFunction.thatReturnsNull;
-	  }
-
-	  function validate(props, propName, componentName, location, propFullName) {
-	    var propValue = props[propName];
-	    for (var i = 0; i < expectedValues.length; i++) {
-	      if (is(propValue, expectedValues[i])) {
-	        return null;
+	      var propValue = props[propName];
+	      if (!Array.isArray(propValue)) {
+	        var propType = getPropType(propValue);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an array.'));
 	      }
-	    }
-
-	    var locationName = ReactPropTypeLocationNames[location];
-	    var valuesString = JSON.stringify(expectedValues);
-	    return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of value `' + propValue + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
-	  }
-	  return createChainableTypeChecker(validate);
-	}
-
-	function createObjectOfTypeChecker(typeChecker) {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    if (typeof typeChecker !== 'function') {
-	      return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside objectOf.');
-	    }
-	    var propValue = props[propName];
-	    var propType = getPropType(propValue);
-	    if (propType !== 'object') {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an object.'));
-	    }
-	    for (var key in propValue) {
-	      if (propValue.hasOwnProperty(key)) {
-	        var error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
+	      for (var i = 0; i < propValue.length; i++) {
+	        var error = typeChecker(propValue, i, componentName, location, propFullName + '[' + i + ']', ReactPropTypesSecret);
 	        if (error instanceof Error) {
 	          return error;
 	        }
 	      }
+	      return null;
 	    }
-	    return null;
-	  }
-	  return createChainableTypeChecker(validate);
-	}
-
-	function createUnionTypeChecker(arrayOfTypeCheckers) {
-	  if (!Array.isArray(arrayOfTypeCheckers)) {
-	    process.env.NODE_ENV !== 'production' ? warning(false, 'Invalid argument supplied to oneOfType, expected an instance of array.') : void 0;
-	    return emptyFunction.thatReturnsNull;
+	    return createChainableTypeChecker(validate);
 	  }
 
-	  function validate(props, propName, componentName, location, propFullName) {
+	  function createElementTypeChecker() {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      if (!isValidElement(propValue)) {
+	        var propType = getPropType(propValue);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createInstanceTypeChecker(expectedClass) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (!(props[propName] instanceof expectedClass)) {
+	        var expectedClassName = expectedClass.name || ANONYMOUS;
+	        var actualClassName = getClassName(props[propName]);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + actualClassName + '` supplied to `' + componentName + '`, expected ') + ('instance of `' + expectedClassName + '`.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createEnumTypeChecker(expectedValues) {
+	    if (!Array.isArray(expectedValues)) {
+	      process.env.NODE_ENV !== 'production' ? warning(false, 'Invalid argument supplied to oneOf, expected an instance of array.') : void 0;
+	      return emptyFunction.thatReturnsNull;
+	    }
+
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      for (var i = 0; i < expectedValues.length; i++) {
+	        if (is(propValue, expectedValues[i])) {
+	          return null;
+	        }
+	      }
+
+	      var valuesString = JSON.stringify(expectedValues);
+	      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of value `' + propValue + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createObjectOfTypeChecker(typeChecker) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (typeof typeChecker !== 'function') {
+	        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside objectOf.');
+	      }
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an object.'));
+	      }
+	      for (var key in propValue) {
+	        if (propValue.hasOwnProperty(key)) {
+	          var error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
+	          if (error instanceof Error) {
+	            return error;
+	          }
+	        }
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createUnionTypeChecker(arrayOfTypeCheckers) {
+	    if (!Array.isArray(arrayOfTypeCheckers)) {
+	      process.env.NODE_ENV !== 'production' ? warning(false, 'Invalid argument supplied to oneOfType, expected an instance of array.') : void 0;
+	      return emptyFunction.thatReturnsNull;
+	    }
+
 	    for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
 	      var checker = arrayOfTypeCheckers[i];
-	      if (checker(props, propName, componentName, location, propFullName, ReactPropTypesSecret) == null) {
-	        return null;
+	      if (typeof checker !== 'function') {
+	        warning(
+	          false,
+	          'Invalid argument supplid to oneOfType. Expected an array of check functions, but ' +
+	          'received %s at index %s.',
+	          getPostfixForTypeWarning(checker),
+	          i
+	        );
+	        return emptyFunction.thatReturnsNull;
 	      }
 	    }
 
-	    var locationName = ReactPropTypeLocationNames[location];
-	    return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
+	    function validate(props, propName, componentName, location, propFullName) {
+	      for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
+	        var checker = arrayOfTypeCheckers[i];
+	        if (checker(props, propName, componentName, location, propFullName, ReactPropTypesSecret) == null) {
+	          return null;
+	        }
+	      }
+
+	      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
+	    }
+	    return createChainableTypeChecker(validate);
 	  }
-	  return createChainableTypeChecker(validate);
-	}
 
-	function createNodeChecker() {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    if (!isNode(props[propName])) {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`, expected a ReactNode.'));
+	  function createNodeChecker() {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (!isNode(props[propName])) {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`, expected a ReactNode.'));
+	      }
+	      return null;
 	    }
-	    return null;
+	    return createChainableTypeChecker(validate);
 	  }
-	  return createChainableTypeChecker(validate);
-	}
 
-	function createShapeTypeChecker(shapeTypes) {
-	  function validate(props, propName, componentName, location, propFullName) {
-	    var propValue = props[propName];
-	    var propType = getPropType(propValue);
-	    if (propType !== 'object') {
-	      var locationName = ReactPropTypeLocationNames[location];
-	      return new PropTypeError('Invalid ' + locationName + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
-	    }
-	    for (var key in shapeTypes) {
-	      var checker = shapeTypes[key];
-	      if (!checker) {
-	        continue;
+	  function createShapeTypeChecker(shapeTypes) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
 	      }
-	      var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
-	      if (error) {
-	        return error;
+	      for (var key in shapeTypes) {
+	        var checker = shapeTypes[key];
+	        if (!checker) {
+	          continue;
+	        }
+	        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
+	        if (error) {
+	          return error;
+	        }
 	      }
+	      return null;
 	    }
-	    return null;
+	    return createChainableTypeChecker(validate);
 	  }
-	  return createChainableTypeChecker(validate);
-	}
 
-	function isNode(propValue) {
-	  switch (typeof propValue) {
-	    case 'number':
-	    case 'string':
-	    case 'undefined':
-	      return true;
-	    case 'boolean':
-	      return !propValue;
-	    case 'object':
-	      if (Array.isArray(propValue)) {
-	        return propValue.every(isNode);
-	      }
-	      if (propValue === null || ReactElement.isValidElement(propValue)) {
+	  function isNode(propValue) {
+	    switch (typeof propValue) {
+	      case 'number':
+	      case 'string':
+	      case 'undefined':
 	        return true;
-	      }
+	      case 'boolean':
+	        return !propValue;
+	      case 'object':
+	        if (Array.isArray(propValue)) {
+	          return propValue.every(isNode);
+	        }
+	        if (propValue === null || isValidElement(propValue)) {
+	          return true;
+	        }
 
-	      var iteratorFn = getIteratorFn(propValue);
-	      if (iteratorFn) {
-	        var iterator = iteratorFn.call(propValue);
-	        var step;
-	        if (iteratorFn !== propValue.entries) {
-	          while (!(step = iterator.next()).done) {
-	            if (!isNode(step.value)) {
-	              return false;
-	            }
-	          }
-	        } else {
-	          // Iterator will provide entry [k,v] tuples rather than values.
-	          while (!(step = iterator.next()).done) {
-	            var entry = step.value;
-	            if (entry) {
-	              if (!isNode(entry[1])) {
+	        var iteratorFn = getIteratorFn(propValue);
+	        if (iteratorFn) {
+	          var iterator = iteratorFn.call(propValue);
+	          var step;
+	          if (iteratorFn !== propValue.entries) {
+	            while (!(step = iterator.next()).done) {
+	              if (!isNode(step.value)) {
 	                return false;
 	              }
 	            }
+	          } else {
+	            // Iterator will provide entry [k,v] tuples rather than values.
+	            while (!(step = iterator.next()).done) {
+	              var entry = step.value;
+	              if (entry) {
+	                if (!isNode(entry[1])) {
+	                  return false;
+	                }
+	              }
+	            }
 	          }
+	        } else {
+	          return false;
 	        }
-	      } else {
+
+	        return true;
+	      default:
 	        return false;
-	      }
-
-	      return true;
-	    default:
-	      return false;
-	  }
-	}
-
-	function isSymbol(propType, propValue) {
-	  // Native Symbol.
-	  if (propType === 'symbol') {
-	    return true;
-	  }
-
-	  // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
-	  if (propValue['@@toStringTag'] === 'Symbol') {
-	    return true;
-	  }
-
-	  // Fallback for non-spec compliant Symbols which are polyfilled.
-	  if (typeof Symbol === 'function' && propValue instanceof Symbol) {
-	    return true;
-	  }
-
-	  return false;
-	}
-
-	// Equivalent of `typeof` but with special handling for array and regexp.
-	function getPropType(propValue) {
-	  var propType = typeof propValue;
-	  if (Array.isArray(propValue)) {
-	    return 'array';
-	  }
-	  if (propValue instanceof RegExp) {
-	    // Old webkits (at least until Android 4.0) return 'function' rather than
-	    // 'object' for typeof a RegExp. We'll normalize this here so that /bla/
-	    // passes PropTypes.object.
-	    return 'object';
-	  }
-	  if (isSymbol(propType, propValue)) {
-	    return 'symbol';
-	  }
-	  return propType;
-	}
-
-	// This handles more types than `getPropType`. Only used for error messages.
-	// See `createPrimitiveTypeChecker`.
-	function getPreciseType(propValue) {
-	  var propType = getPropType(propValue);
-	  if (propType === 'object') {
-	    if (propValue instanceof Date) {
-	      return 'date';
-	    } else if (propValue instanceof RegExp) {
-	      return 'regexp';
 	    }
 	  }
-	  return propType;
-	}
 
-	// Returns class name of the object, if any.
-	function getClassName(propValue) {
-	  if (!propValue.constructor || !propValue.constructor.name) {
-	    return ANONYMOUS;
+	  function isSymbol(propType, propValue) {
+	    // Native Symbol.
+	    if (propType === 'symbol') {
+	      return true;
+	    }
+
+	    // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
+	    if (propValue['@@toStringTag'] === 'Symbol') {
+	      return true;
+	    }
+
+	    // Fallback for non-spec compliant Symbols which are polyfilled.
+	    if (typeof Symbol === 'function' && propValue instanceof Symbol) {
+	      return true;
+	    }
+
+	    return false;
 	  }
-	  return propValue.constructor.name;
-	}
 
-	module.exports = ReactPropTypes;
+	  // Equivalent of `typeof` but with special handling for array and regexp.
+	  function getPropType(propValue) {
+	    var propType = typeof propValue;
+	    if (Array.isArray(propValue)) {
+	      return 'array';
+	    }
+	    if (propValue instanceof RegExp) {
+	      // Old webkits (at least until Android 4.0) return 'function' rather than
+	      // 'object' for typeof a RegExp. We'll normalize this here so that /bla/
+	      // passes PropTypes.object.
+	      return 'object';
+	    }
+	    if (isSymbol(propType, propValue)) {
+	      return 'symbol';
+	    }
+	    return propType;
+	  }
+
+	  // This handles more types than `getPropType`. Only used for error messages.
+	  // See `createPrimitiveTypeChecker`.
+	  function getPreciseType(propValue) {
+	    if (typeof propValue === 'undefined' || propValue === null) {
+	      return '' + propValue;
+	    }
+	    var propType = getPropType(propValue);
+	    if (propType === 'object') {
+	      if (propValue instanceof Date) {
+	        return 'date';
+	      } else if (propValue instanceof RegExp) {
+	        return 'regexp';
+	      }
+	    }
+	    return propType;
+	  }
+
+	  // Returns a string that is postfixed to a warning about an invalid type.
+	  // For example, "undefined" or "of type array"
+	  function getPostfixForTypeWarning(value) {
+	    var type = getPreciseType(value);
+	    switch (type) {
+	      case 'array':
+	      case 'object':
+	        return 'an ' + type;
+	      case 'boolean':
+	      case 'date':
+	      case 'regexp':
+	        return 'a ' + type;
+	      default:
+	        return type;
+	    }
+	  }
+
+	  // Returns class name of the object, if any.
+	  function getClassName(propValue) {
+	    if (!propValue.constructor || !propValue.constructor.name) {
+	      return ANONYMOUS;
+	    }
+	    return propValue.constructor.name;
+	  }
+
+	  ReactPropTypes.checkPropTypes = checkPropTypes;
+	  ReactPropTypes.PropTypes = ReactPropTypes;
+
+	  return ReactPropTypes;
+	};
+
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 30 */
-/***/ function(module, exports) {
+/***/ }),
+/* 32 */
+/***/ (function(module, exports) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 */
+
+	'use strict';
+
+	var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
+
+	module.exports = ReactPropTypesSecret;
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 */
+
+	'use strict';
+
+	if (process.env.NODE_ENV !== 'production') {
+	  var invariant = __webpack_require__(8);
+	  var warning = __webpack_require__(11);
+	  var ReactPropTypesSecret = __webpack_require__(32);
+	  var loggedTypeFailures = {};
+	}
+
+	/**
+	 * Assert that the values match with the type specs.
+	 * Error messages are memorized and will only be shown once.
+	 *
+	 * @param {object} typeSpecs Map of name to a ReactPropType
+	 * @param {object} values Runtime values that need to be type-checked
+	 * @param {string} location e.g. "prop", "context", "child context"
+	 * @param {string} componentName Name of the component for error messages.
+	 * @param {?Function} getStack Returns the component stack.
+	 * @private
+	 */
+	function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
+	  if (process.env.NODE_ENV !== 'production') {
+	    for (var typeSpecName in typeSpecs) {
+	      if (typeSpecs.hasOwnProperty(typeSpecName)) {
+	        var error;
+	        // Prop type validation may throw. In case they do, we don't want to
+	        // fail the render phase where it didn't fail before. So we log it.
+	        // After these have been cleaned up, we'll let them throw.
+	        try {
+	          // This is intentionally an invariant that gets caught. It's the same
+	          // behavior as without this statement except with a better message.
+	          invariant(typeof typeSpecs[typeSpecName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', componentName || 'React class', location, typeSpecName);
+	          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
+	        } catch (ex) {
+	          error = ex;
+	        }
+	        warning(!error || error instanceof Error, '%s: type specification of %s `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error);
+	        if (error instanceof Error && !(error.message in loggedTypeFailures)) {
+	          // Only monitor this failure once because there tends to be a lot of the
+	          // same error.
+	          loggedTypeFailures[error.message] = true;
+
+	          var stack = getStack ? getStack() : '';
+
+	          warning(false, 'Failed %s type: %s%s', location, error.message, stack != null ? stack : '');
+	        }
+	      }
+	    }
+	  }
+	}
+
+	module.exports = checkPropTypes;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4630,11 +4933,11 @@
 
 	'use strict';
 
-	module.exports = '15.4.2';
+	module.exports = '15.5.4';
 
-/***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4675,18 +4978,18 @@
 	module.exports = onlyChild;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(33);
+	module.exports = __webpack_require__(37);
 
 
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4702,16 +5005,16 @@
 
 	'use strict';
 
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactDefaultInjection = __webpack_require__(38);
-	var ReactMount = __webpack_require__(166);
-	var ReactReconciler = __webpack_require__(59);
-	var ReactUpdates = __webpack_require__(56);
-	var ReactVersion = __webpack_require__(171);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactDefaultInjection = __webpack_require__(42);
+	var ReactMount = __webpack_require__(170);
+	var ReactReconciler = __webpack_require__(63);
+	var ReactUpdates = __webpack_require__(60);
+	var ReactVersion = __webpack_require__(175);
 
-	var findDOMNode = __webpack_require__(172);
-	var getHostComponentFromComposite = __webpack_require__(173);
-	var renderSubtreeIntoContainer = __webpack_require__(174);
+	var findDOMNode = __webpack_require__(176);
+	var getHostComponentFromComposite = __webpack_require__(177);
+	var renderSubtreeIntoContainer = __webpack_require__(178);
 	var warning = __webpack_require__(11);
 
 	ReactDefaultInjection.inject();
@@ -4751,7 +5054,7 @@
 	}
 
 	if (process.env.NODE_ENV !== 'production') {
-	  var ExecutionEnvironment = __webpack_require__(48);
+	  var ExecutionEnvironment = __webpack_require__(52);
 	  if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
 
 	    // First check if devtools is not installed
@@ -4787,10 +5090,10 @@
 	}
 
 	if (process.env.NODE_ENV !== 'production') {
-	  var ReactInstrumentation = __webpack_require__(62);
-	  var ReactDOMUnknownPropertyHook = __webpack_require__(175);
-	  var ReactDOMNullInputValuePropHook = __webpack_require__(176);
-	  var ReactDOMInvalidARIAHook = __webpack_require__(177);
+	  var ReactInstrumentation = __webpack_require__(66);
+	  var ReactDOMUnknownPropertyHook = __webpack_require__(179);
+	  var ReactDOMNullInputValuePropHook = __webpack_require__(180);
+	  var ReactDOMInvalidARIAHook = __webpack_require__(181);
 
 	  ReactInstrumentation.debugTool.addHook(ReactDOMUnknownPropertyHook);
 	  ReactInstrumentation.debugTool.addHook(ReactDOMNullInputValuePropHook);
@@ -4800,9 +5103,9 @@
 	module.exports = ReactDOM;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 34 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -4816,10 +5119,10 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var DOMProperty = __webpack_require__(36);
-	var ReactDOMComponentFlags = __webpack_require__(37);
+	var DOMProperty = __webpack_require__(40);
+	var ReactDOMComponentFlags = __webpack_require__(41);
 
 	var invariant = __webpack_require__(8);
 
@@ -5000,9 +5303,9 @@
 	module.exports = ReactDOMComponentTree;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 35 */
-/***/ function(module, exports) {
+/***/ }),
+/* 39 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -5043,9 +5346,9 @@
 
 	module.exports = reactProdInvariant;
 
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -5059,7 +5362,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -5258,9 +5561,9 @@
 	module.exports = DOMProperty;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 37 */
-/***/ function(module, exports) {
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -5280,9 +5583,9 @@
 
 	module.exports = ReactDOMComponentFlags;
 
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -5296,25 +5599,25 @@
 
 	'use strict';
 
-	var ARIADOMPropertyConfig = __webpack_require__(39);
-	var BeforeInputEventPlugin = __webpack_require__(40);
-	var ChangeEventPlugin = __webpack_require__(55);
-	var DefaultEventPluginOrder = __webpack_require__(72);
-	var EnterLeaveEventPlugin = __webpack_require__(73);
-	var HTMLDOMPropertyConfig = __webpack_require__(78);
-	var ReactComponentBrowserEnvironment = __webpack_require__(79);
-	var ReactDOMComponent = __webpack_require__(92);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactDOMEmptyComponent = __webpack_require__(137);
-	var ReactDOMTreeTraversal = __webpack_require__(138);
-	var ReactDOMTextComponent = __webpack_require__(139);
-	var ReactDefaultBatchingStrategy = __webpack_require__(140);
-	var ReactEventListener = __webpack_require__(141);
-	var ReactInjection = __webpack_require__(144);
-	var ReactReconcileTransaction = __webpack_require__(145);
-	var SVGDOMPropertyConfig = __webpack_require__(153);
-	var SelectEventPlugin = __webpack_require__(154);
-	var SimpleEventPlugin = __webpack_require__(155);
+	var ARIADOMPropertyConfig = __webpack_require__(43);
+	var BeforeInputEventPlugin = __webpack_require__(44);
+	var ChangeEventPlugin = __webpack_require__(59);
+	var DefaultEventPluginOrder = __webpack_require__(76);
+	var EnterLeaveEventPlugin = __webpack_require__(77);
+	var HTMLDOMPropertyConfig = __webpack_require__(82);
+	var ReactComponentBrowserEnvironment = __webpack_require__(83);
+	var ReactDOMComponent = __webpack_require__(96);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactDOMEmptyComponent = __webpack_require__(141);
+	var ReactDOMTreeTraversal = __webpack_require__(142);
+	var ReactDOMTextComponent = __webpack_require__(143);
+	var ReactDefaultBatchingStrategy = __webpack_require__(144);
+	var ReactEventListener = __webpack_require__(145);
+	var ReactInjection = __webpack_require__(148);
+	var ReactReconcileTransaction = __webpack_require__(149);
+	var SVGDOMPropertyConfig = __webpack_require__(157);
+	var SelectEventPlugin = __webpack_require__(158);
+	var SimpleEventPlugin = __webpack_require__(159);
 
 	var alreadyInjected = false;
 
@@ -5370,9 +5673,9 @@
 	  inject: inject
 	};
 
-/***/ },
-/* 39 */
-/***/ function(module, exports) {
+/***/ }),
+/* 43 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -5448,9 +5751,9 @@
 
 	module.exports = ARIADOMPropertyConfig;
 
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present Facebook, Inc.
@@ -5464,11 +5767,11 @@
 
 	'use strict';
 
-	var EventPropagators = __webpack_require__(41);
-	var ExecutionEnvironment = __webpack_require__(48);
-	var FallbackCompositionState = __webpack_require__(49);
-	var SyntheticCompositionEvent = __webpack_require__(52);
-	var SyntheticInputEvent = __webpack_require__(54);
+	var EventPropagators = __webpack_require__(45);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var FallbackCompositionState = __webpack_require__(53);
+	var SyntheticCompositionEvent = __webpack_require__(56);
+	var SyntheticInputEvent = __webpack_require__(58);
 
 	var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 	var START_KEYCODE = 229;
@@ -5837,9 +6140,9 @@
 
 	module.exports = BeforeInputEventPlugin;
 
-/***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -5853,11 +6156,11 @@
 
 	'use strict';
 
-	var EventPluginHub = __webpack_require__(42);
-	var EventPluginUtils = __webpack_require__(44);
+	var EventPluginHub = __webpack_require__(46);
+	var EventPluginUtils = __webpack_require__(48);
 
-	var accumulateInto = __webpack_require__(46);
-	var forEachAccumulated = __webpack_require__(47);
+	var accumulateInto = __webpack_require__(50);
+	var forEachAccumulated = __webpack_require__(51);
 	var warning = __webpack_require__(11);
 
 	var getListener = EventPluginHub.getListener;
@@ -5976,9 +6279,9 @@
 	module.exports = EventPropagators;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -5992,14 +6295,14 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var EventPluginRegistry = __webpack_require__(43);
-	var EventPluginUtils = __webpack_require__(44);
-	var ReactErrorUtils = __webpack_require__(45);
+	var EventPluginRegistry = __webpack_require__(47);
+	var EventPluginUtils = __webpack_require__(48);
+	var ReactErrorUtils = __webpack_require__(49);
 
-	var accumulateInto = __webpack_require__(46);
-	var forEachAccumulated = __webpack_require__(47);
+	var accumulateInto = __webpack_require__(50);
+	var forEachAccumulated = __webpack_require__(51);
 	var invariant = __webpack_require__(8);
 
 	/**
@@ -6259,9 +6562,9 @@
 	module.exports = EventPluginHub;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -6276,7 +6579,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -6519,9 +6822,9 @@
 	module.exports = EventPluginRegistry;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -6535,9 +6838,9 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var ReactErrorUtils = __webpack_require__(45);
+	var ReactErrorUtils = __webpack_require__(49);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -6750,9 +7053,9 @@
 	module.exports = EventPluginUtils;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -6821,7 +7124,6 @@
 	      var evtType = 'react-' + name;
 	      fakeNode.addEventListener(evtType, boundFunc, false);
 	      var evt = document.createEvent('Event');
-	      // $FlowFixMe https://github.com/facebook/flow/issues/2336
 	      evt.initEvent(evtType, false, false);
 	      fakeNode.dispatchEvent(evt);
 	      fakeNode.removeEventListener(evtType, boundFunc, false);
@@ -6832,9 +7134,9 @@
 	module.exports = ReactErrorUtils;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 46 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -6849,7 +7151,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -6895,9 +7197,9 @@
 	module.exports = accumulateInto;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 47 */
-/***/ function(module, exports) {
+/***/ }),
+/* 51 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -6930,9 +7232,9 @@
 
 	module.exports = forEachAccumulated;
 
-/***/ },
-/* 48 */
-/***/ function(module, exports) {
+/***/ }),
+/* 52 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -6970,9 +7272,9 @@
 
 	module.exports = ExecutionEnvironment;
 
-/***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -6988,9 +7290,9 @@
 
 	var _assign = __webpack_require__(4);
 
-	var PooledClass = __webpack_require__(50);
+	var PooledClass = __webpack_require__(54);
 
-	var getTextContentAccessor = __webpack_require__(51);
+	var getTextContentAccessor = __webpack_require__(55);
 
 	/**
 	 * This helper class stores information about text content of a target node,
@@ -7069,9 +7371,9 @@
 
 	module.exports = FallbackCompositionState;
 
-/***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 54 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7086,7 +7388,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -7186,9 +7488,9 @@
 	module.exports = PooledClass;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7202,7 +7504,7 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
 	var contentKey = null;
 
@@ -7223,9 +7525,9 @@
 
 	module.exports = getTextContentAccessor;
 
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7239,7 +7541,7 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
 	/**
 	 * @interface Event
@@ -7263,9 +7565,9 @@
 
 	module.exports = SyntheticCompositionEvent;
 
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 57 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7281,7 +7583,7 @@
 
 	var _assign = __webpack_require__(4);
 
-	var PooledClass = __webpack_require__(50);
+	var PooledClass = __webpack_require__(54);
 
 	var emptyFunction = __webpack_require__(12);
 	var warning = __webpack_require__(11);
@@ -7536,9 +7838,9 @@
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 58 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7552,7 +7854,7 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
 	/**
 	 * @interface Event
@@ -7577,9 +7879,9 @@
 
 	module.exports = SyntheticInputEvent;
 
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7593,16 +7895,16 @@
 
 	'use strict';
 
-	var EventPluginHub = __webpack_require__(42);
-	var EventPropagators = __webpack_require__(41);
-	var ExecutionEnvironment = __webpack_require__(48);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(56);
-	var SyntheticEvent = __webpack_require__(53);
+	var EventPluginHub = __webpack_require__(46);
+	var EventPropagators = __webpack_require__(45);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(60);
+	var SyntheticEvent = __webpack_require__(57);
 
-	var getEventTarget = __webpack_require__(69);
-	var isEventSupported = __webpack_require__(70);
-	var isTextInputElement = __webpack_require__(71);
+	var getEventTarget = __webpack_require__(73);
+	var isEventSupported = __webpack_require__(74);
+	var isTextInputElement = __webpack_require__(75);
 
 	var eventTypes = {
 	  change: {
@@ -7848,6 +8150,26 @@
 	  }
 	}
 
+	function handleControlledInputBlur(inst, node) {
+	  // TODO: In IE, inst is occasionally null. Why?
+	  if (inst == null) {
+	    return;
+	  }
+
+	  // Fiber and ReactDOM keep wrapper state in separate places
+	  var state = inst._wrapperState || node._wrapperState;
+
+	  if (!state || !state.controlled || node.type !== 'number') {
+	    return;
+	  }
+
+	  // If controlled, assign the value attribute to the current value on blur
+	  var value = '' + node.value;
+	  if (node.getAttribute('value') !== value) {
+	    node.setAttribute('value', value);
+	  }
+	}
+
 	/**
 	 * This plugin creates an `onChange` event that normalizes change events
 	 * across form elements. This event fires at a time when it's possible to
@@ -7896,15 +8218,20 @@
 	    if (handleEventFunc) {
 	      handleEventFunc(topLevelType, targetNode, targetInst);
 	    }
+
+	    // When blurring, set the value attribute for number inputs
+	    if (topLevelType === 'topBlur') {
+	      handleControlledInputBlur(targetInst, targetNode);
+	    }
 	  }
 
 	};
 
 	module.exports = ChangeEventPlugin;
 
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -7918,14 +8245,14 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var CallbackQueue = __webpack_require__(57);
-	var PooledClass = __webpack_require__(50);
-	var ReactFeatureFlags = __webpack_require__(58);
-	var ReactReconciler = __webpack_require__(59);
-	var Transaction = __webpack_require__(68);
+	var CallbackQueue = __webpack_require__(61);
+	var PooledClass = __webpack_require__(54);
+	var ReactFeatureFlags = __webpack_require__(62);
+	var ReactReconciler = __webpack_require__(63);
+	var Transaction = __webpack_require__(72);
 
 	var invariant = __webpack_require__(8);
 
@@ -8158,9 +8485,9 @@
 	module.exports = ReactUpdates;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -8175,11 +8502,11 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var PooledClass = __webpack_require__(50);
+	var PooledClass = __webpack_require__(54);
 
 	var invariant = __webpack_require__(8);
 
@@ -8282,9 +8609,9 @@
 	module.exports = PooledClass.addPoolingTo(CallbackQueue);
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 58 */
-/***/ function(module, exports) {
+/***/ }),
+/* 62 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -8308,9 +8635,9 @@
 
 	module.exports = ReactFeatureFlags;
 
-/***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -8324,8 +8651,8 @@
 
 	'use strict';
 
-	var ReactRef = __webpack_require__(60);
-	var ReactInstrumentation = __webpack_require__(62);
+	var ReactRef = __webpack_require__(64);
+	var ReactInstrumentation = __webpack_require__(66);
 
 	var warning = __webpack_require__(11);
 
@@ -8481,9 +8808,9 @@
 	module.exports = ReactReconciler;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -8498,7 +8825,7 @@
 
 	'use strict';
 
-	var ReactOwner = __webpack_require__(61);
+	var ReactOwner = __webpack_require__(65);
 
 	var ReactRef = {};
 
@@ -8574,9 +8901,9 @@
 
 	module.exports = ReactRef;
 
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -8591,7 +8918,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -8673,9 +9000,9 @@
 	module.exports = ReactOwner;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -8695,16 +9022,16 @@
 	var debugTool = null;
 
 	if (process.env.NODE_ENV !== 'production') {
-	  var ReactDebugTool = __webpack_require__(63);
+	  var ReactDebugTool = __webpack_require__(67);
 	  debugTool = ReactDebugTool;
 	}
 
 	module.exports = { debugTool: debugTool };
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -8719,12 +9046,12 @@
 
 	'use strict';
 
-	var ReactInvalidSetStateWarningHook = __webpack_require__(64);
-	var ReactHostOperationHistoryHook = __webpack_require__(65);
+	var ReactInvalidSetStateWarningHook = __webpack_require__(68);
+	var ReactHostOperationHistoryHook = __webpack_require__(69);
 	var ReactComponentTreeHook = __webpack_require__(26);
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
-	var performanceNow = __webpack_require__(66);
+	var performanceNow = __webpack_require__(70);
 	var warning = __webpack_require__(11);
 
 	var hooks = [];
@@ -8886,9 +9213,7 @@
 	}
 
 	var lastMarkTimeStamp = 0;
-	var canUsePerformanceMeasure =
-	// $FlowFixMe https://github.com/facebook/flow/issues/2345
-	typeof performance !== 'undefined' && typeof performance.mark === 'function' && typeof performance.clearMarks === 'function' && typeof performance.measure === 'function' && typeof performance.clearMeasures === 'function';
+	var canUsePerformanceMeasure = typeof performance !== 'undefined' && typeof performance.mark === 'function' && typeof performance.clearMarks === 'function' && typeof performance.measure === 'function' && typeof performance.clearMeasures === 'function';
 
 	function shouldMark(debugID) {
 	  if (!isProfiling || !canUsePerformanceMeasure) {
@@ -9068,9 +9393,9 @@
 	module.exports = ReactDebugTool;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -9110,9 +9435,9 @@
 	module.exports = ReactInvalidSetStateWarningHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 65 */
-/***/ function(module, exports) {
+/***/ }),
+/* 69 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -9148,9 +9473,9 @@
 
 	module.exports = ReactHostOperationHistoryHook;
 
-/***/ },
-/* 66 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -9165,7 +9490,7 @@
 	 * @typechecks
 	 */
 
-	var performance = __webpack_require__(67);
+	var performance = __webpack_require__(71);
 
 	var performanceNow;
 
@@ -9186,9 +9511,9 @@
 
 	module.exports = performanceNow;
 
-/***/ },
-/* 67 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -9203,7 +9528,7 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
 	var performance;
 
@@ -9213,9 +9538,9 @@
 
 	module.exports = performance || {};
 
-/***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 72 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9230,7 +9555,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -9443,9 +9768,9 @@
 	module.exports = TransactionImpl;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 69 */
-/***/ function(module, exports) {
+/***/ }),
+/* 73 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9482,9 +9807,9 @@
 
 	module.exports = getEventTarget;
 
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 74 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9498,7 +9823,7 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
 	var useHasFeature;
 	if (ExecutionEnvironment.canUseDOM) {
@@ -9546,9 +9871,9 @@
 
 	module.exports = isEventSupported;
 
-/***/ },
-/* 71 */
-/***/ function(module, exports) {
+/***/ }),
+/* 75 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9601,9 +9926,9 @@
 
 	module.exports = isTextInputElement;
 
-/***/ },
-/* 72 */
-/***/ function(module, exports) {
+/***/ }),
+/* 76 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9631,9 +9956,9 @@
 
 	module.exports = DefaultEventPluginOrder;
 
-/***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 77 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9647,9 +9972,9 @@
 
 	'use strict';
 
-	var EventPropagators = __webpack_require__(41);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var SyntheticMouseEvent = __webpack_require__(74);
+	var EventPropagators = __webpack_require__(45);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var SyntheticMouseEvent = __webpack_require__(78);
 
 	var eventTypes = {
 	  mouseEnter: {
@@ -9735,9 +10060,9 @@
 
 	module.exports = EnterLeaveEventPlugin;
 
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 78 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9751,10 +10076,10 @@
 
 	'use strict';
 
-	var SyntheticUIEvent = __webpack_require__(75);
-	var ViewportMetrics = __webpack_require__(76);
+	var SyntheticUIEvent = __webpack_require__(79);
+	var ViewportMetrics = __webpack_require__(80);
 
-	var getEventModifierState = __webpack_require__(77);
+	var getEventModifierState = __webpack_require__(81);
 
 	/**
 	 * @interface MouseEvent
@@ -9811,9 +10136,9 @@
 
 	module.exports = SyntheticMouseEvent;
 
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 79 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9827,9 +10152,9 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
-	var getEventTarget = __webpack_require__(69);
+	var getEventTarget = __webpack_require__(73);
 
 	/**
 	 * @interface UIEvent
@@ -9874,9 +10199,9 @@
 
 	module.exports = SyntheticUIEvent;
 
-/***/ },
-/* 76 */
-/***/ function(module, exports) {
+/***/ }),
+/* 80 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9905,9 +10230,9 @@
 
 	module.exports = ViewportMetrics;
 
-/***/ },
-/* 77 */
-/***/ function(module, exports) {
+/***/ }),
+/* 81 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9952,9 +10277,9 @@
 
 	module.exports = getEventModifierState;
 
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 82 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -9968,7 +10293,7 @@
 
 	'use strict';
 
-	var DOMProperty = __webpack_require__(36);
+	var DOMProperty = __webpack_require__(40);
 
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
 	var HAS_BOOLEAN_VALUE = DOMProperty.injection.HAS_BOOLEAN_VALUE;
@@ -10163,14 +10488,38 @@
 	    htmlFor: 'for',
 	    httpEquiv: 'http-equiv'
 	  },
-	  DOMPropertyNames: {}
+	  DOMPropertyNames: {},
+	  DOMMutationMethods: {
+	    value: function (node, value) {
+	      if (value == null) {
+	        return node.removeAttribute('value');
+	      }
+
+	      // Number inputs get special treatment due to some edge cases in
+	      // Chrome. Let everything else assign the value attribute as normal.
+	      // https://github.com/facebook/react/issues/7253#issuecomment-236074326
+	      if (node.type !== 'number' || node.hasAttribute('value') === false) {
+	        node.setAttribute('value', '' + value);
+	      } else if (node.validity && !node.validity.badInput && node.ownerDocument.activeElement !== node) {
+	        // Don't assign an attribute if validation reports bad
+	        // input. Chrome will clear the value. Additionally, don't
+	        // operate on inputs that have focus, otherwise Chrome might
+	        // strip off trailing decimal places and cause the user's
+	        // cursor position to jump to the beginning of the input.
+	        //
+	        // In ReactDOMInput, we have an onBlur event that will trigger
+	        // this function again when focus is lost.
+	        node.setAttribute('value', '' + value);
+	      }
+	    }
+	  }
 	};
 
 	module.exports = HTMLDOMPropertyConfig;
 
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 83 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10184,8 +10533,8 @@
 
 	'use strict';
 
-	var DOMChildrenOperations = __webpack_require__(80);
-	var ReactDOMIDOperations = __webpack_require__(91);
+	var DOMChildrenOperations = __webpack_require__(84);
+	var ReactDOMIDOperations = __webpack_require__(95);
 
 	/**
 	 * Abstracts away all functionality of the reconciler that requires knowledge of
@@ -10202,9 +10551,9 @@
 
 	module.exports = ReactComponentBrowserEnvironment;
 
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 84 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10218,14 +10567,14 @@
 
 	'use strict';
 
-	var DOMLazyTree = __webpack_require__(81);
-	var Danger = __webpack_require__(87);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactInstrumentation = __webpack_require__(62);
+	var DOMLazyTree = __webpack_require__(85);
+	var Danger = __webpack_require__(91);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactInstrumentation = __webpack_require__(66);
 
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(84);
-	var setInnerHTML = __webpack_require__(83);
-	var setTextContent = __webpack_require__(85);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(88);
+	var setInnerHTML = __webpack_require__(87);
+	var setTextContent = __webpack_require__(89);
 
 	function getNodeAfter(parentNode, node) {
 	  // Special case for text components, which return [open, close] comments
@@ -10432,9 +10781,9 @@
 	module.exports = DOMChildrenOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 85 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -10448,11 +10797,11 @@
 
 	'use strict';
 
-	var DOMNamespaces = __webpack_require__(82);
-	var setInnerHTML = __webpack_require__(83);
+	var DOMNamespaces = __webpack_require__(86);
+	var setInnerHTML = __webpack_require__(87);
 
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(84);
-	var setTextContent = __webpack_require__(85);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(88);
+	var setTextContent = __webpack_require__(89);
 
 	var ELEMENT_NODE_TYPE = 1;
 	var DOCUMENT_FRAGMENT_NODE_TYPE = 11;
@@ -10554,9 +10903,9 @@
 
 	module.exports = DOMLazyTree;
 
-/***/ },
-/* 82 */
-/***/ function(module, exports) {
+/***/ }),
+/* 86 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10578,9 +10927,9 @@
 
 	module.exports = DOMNamespaces;
 
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 87 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10594,13 +10943,13 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
-	var DOMNamespaces = __webpack_require__(82);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var DOMNamespaces = __webpack_require__(86);
 
 	var WHITESPACE_TEST = /^[ \r\n\t\f]/;
 	var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
 
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(84);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(88);
 
 	// SVG temp container for IE lacking innerHTML
 	var reusableSVGContainer;
@@ -10680,9 +11029,9 @@
 
 	module.exports = setInnerHTML;
 
-/***/ },
-/* 84 */
-/***/ function(module, exports) {
+/***/ }),
+/* 88 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10716,9 +11065,9 @@
 
 	module.exports = createMicrosoftUnsafeLocalFunction;
 
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 89 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10732,9 +11081,9 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
-	var escapeTextContentForBrowser = __webpack_require__(86);
-	var setInnerHTML = __webpack_require__(83);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var escapeTextContentForBrowser = __webpack_require__(90);
+	var setInnerHTML = __webpack_require__(87);
 
 	/**
 	 * Set the textContent property of a node, ensuring that whitespace is preserved
@@ -10772,9 +11121,9 @@
 
 	module.exports = setTextContent;
 
-/***/ },
-/* 86 */
-/***/ function(module, exports) {
+/***/ }),
+/* 90 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2016-present, Facebook, Inc.
@@ -10899,9 +11248,9 @@
 
 	module.exports = escapeTextContentForBrowser;
 
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 91 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -10915,12 +11264,12 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var DOMLazyTree = __webpack_require__(81);
-	var ExecutionEnvironment = __webpack_require__(48);
+	var DOMLazyTree = __webpack_require__(85);
+	var ExecutionEnvironment = __webpack_require__(52);
 
-	var createNodesFromMarkup = __webpack_require__(88);
+	var createNodesFromMarkup = __webpack_require__(92);
 	var emptyFunction = __webpack_require__(12);
 	var invariant = __webpack_require__(8);
 
@@ -10952,9 +11301,9 @@
 	module.exports = Danger;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 88 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 92 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -10971,10 +11320,10 @@
 
 	/*eslint-disable fb-www/unsafe-html*/
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
-	var createArrayFromMixed = __webpack_require__(89);
-	var getMarkupWrap = __webpack_require__(90);
+	var createArrayFromMixed = __webpack_require__(93);
+	var getMarkupWrap = __webpack_require__(94);
 	var invariant = __webpack_require__(8);
 
 	/**
@@ -11041,9 +11390,9 @@
 	module.exports = createNodesFromMarkup;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 89 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 93 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -11173,9 +11522,9 @@
 	module.exports = createArrayFromMixed;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 90 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 94 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -11191,7 +11540,7 @@
 
 	/*eslint-disable fb-www/unsafe-html */
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
 	var invariant = __webpack_require__(8);
 
@@ -11273,9 +11622,9 @@
 	module.exports = getMarkupWrap;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 91 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 95 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -11289,8 +11638,8 @@
 
 	'use strict';
 
-	var DOMChildrenOperations = __webpack_require__(80);
-	var ReactDOMComponentTree = __webpack_require__(34);
+	var DOMChildrenOperations = __webpack_require__(84);
+	var ReactDOMComponentTree = __webpack_require__(38);
 
 	/**
 	 * Operations used to process updates to DOM nodes.
@@ -11311,9 +11660,9 @@
 
 	module.exports = ReactDOMIDOperations;
 
-/***/ },
-/* 92 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 96 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -11329,34 +11678,34 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var AutoFocusUtils = __webpack_require__(93);
-	var CSSPropertyOperations = __webpack_require__(95);
-	var DOMLazyTree = __webpack_require__(81);
-	var DOMNamespaces = __webpack_require__(82);
-	var DOMProperty = __webpack_require__(36);
-	var DOMPropertyOperations = __webpack_require__(103);
-	var EventPluginHub = __webpack_require__(42);
-	var EventPluginRegistry = __webpack_require__(43);
-	var ReactBrowserEventEmitter = __webpack_require__(105);
-	var ReactDOMComponentFlags = __webpack_require__(37);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactDOMInput = __webpack_require__(108);
-	var ReactDOMOption = __webpack_require__(111);
-	var ReactDOMSelect = __webpack_require__(112);
-	var ReactDOMTextarea = __webpack_require__(113);
-	var ReactInstrumentation = __webpack_require__(62);
-	var ReactMultiChild = __webpack_require__(114);
-	var ReactServerRenderingTransaction = __webpack_require__(133);
+	var AutoFocusUtils = __webpack_require__(97);
+	var CSSPropertyOperations = __webpack_require__(99);
+	var DOMLazyTree = __webpack_require__(85);
+	var DOMNamespaces = __webpack_require__(86);
+	var DOMProperty = __webpack_require__(40);
+	var DOMPropertyOperations = __webpack_require__(107);
+	var EventPluginHub = __webpack_require__(46);
+	var EventPluginRegistry = __webpack_require__(47);
+	var ReactBrowserEventEmitter = __webpack_require__(109);
+	var ReactDOMComponentFlags = __webpack_require__(41);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactDOMInput = __webpack_require__(112);
+	var ReactDOMOption = __webpack_require__(115);
+	var ReactDOMSelect = __webpack_require__(116);
+	var ReactDOMTextarea = __webpack_require__(117);
+	var ReactInstrumentation = __webpack_require__(66);
+	var ReactMultiChild = __webpack_require__(118);
+	var ReactServerRenderingTransaction = __webpack_require__(137);
 
 	var emptyFunction = __webpack_require__(12);
-	var escapeTextContentForBrowser = __webpack_require__(86);
+	var escapeTextContentForBrowser = __webpack_require__(90);
 	var invariant = __webpack_require__(8);
-	var isEventSupported = __webpack_require__(70);
-	var shallowEqual = __webpack_require__(123);
-	var validateDOMNesting = __webpack_require__(136);
+	var isEventSupported = __webpack_require__(74);
+	var shallowEqual = __webpack_require__(127);
+	var validateDOMNesting = __webpack_require__(140);
 	var warning = __webpack_require__(11);
 
 	var Flags = ReactDOMComponentFlags;
@@ -12317,9 +12666,9 @@
 	module.exports = ReactDOMComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 93 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -12333,9 +12682,9 @@
 
 	'use strict';
 
-	var ReactDOMComponentTree = __webpack_require__(34);
+	var ReactDOMComponentTree = __webpack_require__(38);
 
-	var focusNode = __webpack_require__(94);
+	var focusNode = __webpack_require__(98);
 
 	var AutoFocusUtils = {
 	  focusDOMComponent: function () {
@@ -12345,9 +12694,9 @@
 
 	module.exports = AutoFocusUtils;
 
-/***/ },
-/* 94 */
-/***/ function(module, exports) {
+/***/ }),
+/* 98 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -12376,9 +12725,9 @@
 
 	module.exports = focusNode;
 
-/***/ },
-/* 95 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 99 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -12392,14 +12741,14 @@
 
 	'use strict';
 
-	var CSSProperty = __webpack_require__(96);
-	var ExecutionEnvironment = __webpack_require__(48);
-	var ReactInstrumentation = __webpack_require__(62);
+	var CSSProperty = __webpack_require__(100);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var ReactInstrumentation = __webpack_require__(66);
 
-	var camelizeStyleName = __webpack_require__(97);
-	var dangerousStyleValue = __webpack_require__(99);
-	var hyphenateStyleName = __webpack_require__(100);
-	var memoizeStringOnly = __webpack_require__(102);
+	var camelizeStyleName = __webpack_require__(101);
+	var dangerousStyleValue = __webpack_require__(103);
+	var hyphenateStyleName = __webpack_require__(104);
+	var memoizeStringOnly = __webpack_require__(106);
 	var warning = __webpack_require__(11);
 
 	var processStyleName = memoizeStringOnly(function (styleName) {
@@ -12590,9 +12939,9 @@
 	module.exports = CSSPropertyOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 96 */
-/***/ function(module, exports) {
+/***/ }),
+/* 100 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -12742,9 +13091,9 @@
 
 	module.exports = CSSProperty;
 
-/***/ },
-/* 97 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -12759,7 +13108,7 @@
 
 	'use strict';
 
-	var camelize = __webpack_require__(98);
+	var camelize = __webpack_require__(102);
 
 	var msPattern = /^-ms-/;
 
@@ -12786,9 +13135,9 @@
 
 	module.exports = camelizeStyleName;
 
-/***/ },
-/* 98 */
-/***/ function(module, exports) {
+/***/ }),
+/* 102 */
+/***/ (function(module, exports) {
 
 	"use strict";
 
@@ -12822,9 +13171,9 @@
 
 	module.exports = camelize;
 
-/***/ },
-/* 99 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -12838,7 +13187,7 @@
 
 	'use strict';
 
-	var CSSProperty = __webpack_require__(96);
+	var CSSProperty = __webpack_require__(100);
 	var warning = __webpack_require__(11);
 
 	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
@@ -12906,9 +13255,9 @@
 	module.exports = dangerousStyleValue;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 100 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -12923,7 +13272,7 @@
 
 	'use strict';
 
-	var hyphenate = __webpack_require__(101);
+	var hyphenate = __webpack_require__(105);
 
 	var msPattern = /^ms-/;
 
@@ -12949,9 +13298,9 @@
 
 	module.exports = hyphenateStyleName;
 
-/***/ },
-/* 101 */
-/***/ function(module, exports) {
+/***/ }),
+/* 105 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -12986,9 +13335,9 @@
 
 	module.exports = hyphenate;
 
-/***/ },
-/* 102 */
-/***/ function(module, exports) {
+/***/ }),
+/* 106 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -13020,9 +13369,9 @@
 
 	module.exports = memoizeStringOnly;
 
-/***/ },
-/* 103 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 107 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13036,11 +13385,11 @@
 
 	'use strict';
 
-	var DOMProperty = __webpack_require__(36);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactInstrumentation = __webpack_require__(62);
+	var DOMProperty = __webpack_require__(40);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactInstrumentation = __webpack_require__(66);
 
-	var quoteAttributeValueForBrowser = __webpack_require__(104);
+	var quoteAttributeValueForBrowser = __webpack_require__(108);
 	var warning = __webpack_require__(11);
 
 	var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + DOMProperty.ATTRIBUTE_NAME_START_CHAR + '][' + DOMProperty.ATTRIBUTE_NAME_CHAR + ']*$');
@@ -13262,9 +13611,9 @@
 	module.exports = DOMPropertyOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 104 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13278,7 +13627,7 @@
 
 	'use strict';
 
-	var escapeTextContentForBrowser = __webpack_require__(86);
+	var escapeTextContentForBrowser = __webpack_require__(90);
 
 	/**
 	 * Escapes attribute value to prevent scripting attacks.
@@ -13292,9 +13641,9 @@
 
 	module.exports = quoteAttributeValueForBrowser;
 
-/***/ },
-/* 105 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 109 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13310,12 +13659,12 @@
 
 	var _assign = __webpack_require__(4);
 
-	var EventPluginRegistry = __webpack_require__(43);
-	var ReactEventEmitterMixin = __webpack_require__(106);
-	var ViewportMetrics = __webpack_require__(76);
+	var EventPluginRegistry = __webpack_require__(47);
+	var ReactEventEmitterMixin = __webpack_require__(110);
+	var ViewportMetrics = __webpack_require__(80);
 
-	var getVendorPrefixedEventName = __webpack_require__(107);
-	var isEventSupported = __webpack_require__(70);
+	var getVendorPrefixedEventName = __webpack_require__(111);
+	var isEventSupported = __webpack_require__(74);
 
 	/**
 	 * Summary of `ReactBrowserEventEmitter` event handling:
@@ -13624,9 +13973,9 @@
 
 	module.exports = ReactBrowserEventEmitter;
 
-/***/ },
-/* 106 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 110 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13640,7 +13989,7 @@
 
 	'use strict';
 
-	var EventPluginHub = __webpack_require__(42);
+	var EventPluginHub = __webpack_require__(46);
 
 	function runEventQueueInBatch(events) {
 	  EventPluginHub.enqueueEvents(events);
@@ -13661,9 +14010,9 @@
 
 	module.exports = ReactEventEmitterMixin;
 
-/***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 111 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13677,7 +14026,7 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
 	/**
 	 * Generate a mapping of standard vendor prefixes using the defined style property and event name.
@@ -13766,9 +14115,9 @@
 
 	module.exports = getVendorPrefixedEventName;
 
-/***/ },
-/* 108 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 112 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -13782,13 +14131,13 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var DOMPropertyOperations = __webpack_require__(103);
-	var LinkedValueUtils = __webpack_require__(109);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(56);
+	var DOMPropertyOperations = __webpack_require__(107);
+	var LinkedValueUtils = __webpack_require__(113);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(60);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -13884,12 +14233,9 @@
 	      initialChecked: props.checked != null ? props.checked : props.defaultChecked,
 	      initialValue: props.value != null ? props.value : defaultValue,
 	      listeners: null,
-	      onChange: _handleChange.bind(inst)
+	      onChange: _handleChange.bind(inst),
+	      controlled: isControlled(props)
 	    };
-
-	    if (process.env.NODE_ENV !== 'production') {
-	      inst._wrapperState.controlled = isControlled(props);
-	    }
 	  },
 
 	  updateWrapper: function (inst) {
@@ -13918,14 +14264,24 @@
 	    var node = ReactDOMComponentTree.getNodeFromInstance(inst);
 	    var value = LinkedValueUtils.getValue(props);
 	    if (value != null) {
+	      if (value === 0 && node.value === '') {
+	        node.value = '0';
+	        // Note: IE9 reports a number inputs as 'text', so check props instead.
+	      } else if (props.type === 'number') {
+	        // Simulate `input.valueAsNumber`. IE9 does not support it
+	        var valueAsNumber = parseFloat(node.value, 10) || 0;
 
-	      // Cast `value` to a string to ensure the value is set correctly. While
-	      // browsers typically do this as necessary, jsdom doesn't.
-	      var newValue = '' + value;
-
-	      // To avoid side effects (such as losing text selection), only set value if changed
-	      if (newValue !== node.value) {
-	        node.value = newValue;
+	        // eslint-disable-next-line
+	        if (value != valueAsNumber) {
+	          // Cast `value` to a string to ensure the value is set correctly. While
+	          // browsers typically do this as necessary, jsdom doesn't.
+	          node.value = '' + value;
+	        }
+	        // eslint-disable-next-line
+	      } else if (value != node.value) {
+	        // Cast `value` to a string to ensure the value is set correctly. While
+	        // browsers typically do this as necessary, jsdom doesn't.
+	        node.value = '' + value;
 	      }
 	    } else {
 	      if (props.value == null && props.defaultValue != null) {
@@ -14049,9 +14405,9 @@
 	module.exports = ReactDOMInput;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 109 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 113 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14065,10 +14421,13 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
+
+	var ReactPropTypesSecret = __webpack_require__(114);
+	var propTypesFactory = __webpack_require__(30);
 
 	var React = __webpack_require__(2);
-	var ReactPropTypesSecret = __webpack_require__(110);
+	var PropTypes = propTypesFactory(React.isValidElement);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -14109,7 +14468,7 @@
 	    }
 	    return new Error('You provided a `checked` prop to a form field without an ' + '`onChange` handler. This will render a read-only field. If ' + 'the field should be mutable use `defaultChecked`. Otherwise, ' + 'set either `onChange` or `readOnly`.');
 	  },
-	  onChange: React.PropTypes.func
+	  onChange: PropTypes.func
 	};
 
 	var loggedTypeFailures = {};
@@ -14189,9 +14548,9 @@
 	module.exports = LinkedValueUtils;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 110 */
-/***/ function(module, exports) {
+/***/ }),
+/* 114 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14210,9 +14569,9 @@
 
 	module.exports = ReactPropTypesSecret;
 
-/***/ },
-/* 111 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 115 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14229,8 +14588,8 @@
 	var _assign = __webpack_require__(4);
 
 	var React = __webpack_require__(2);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactDOMSelect = __webpack_require__(112);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactDOMSelect = __webpack_require__(116);
 
 	var warning = __webpack_require__(11);
 	var didWarnInvalidOptionChildren = false;
@@ -14338,9 +14697,9 @@
 	module.exports = ReactDOMOption;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 112 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14356,9 +14715,9 @@
 
 	var _assign = __webpack_require__(4);
 
-	var LinkedValueUtils = __webpack_require__(109);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(56);
+	var LinkedValueUtils = __webpack_require__(113);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(60);
 
 	var warning = __webpack_require__(11);
 
@@ -14543,9 +14902,9 @@
 	module.exports = ReactDOMSelect;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 113 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 117 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14559,12 +14918,12 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var LinkedValueUtils = __webpack_require__(109);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(56);
+	var LinkedValueUtils = __webpack_require__(113);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(60);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -14708,9 +15067,9 @@
 	module.exports = ReactDOMTextarea;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 114 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 118 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -14724,18 +15083,18 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var ReactComponentEnvironment = __webpack_require__(115);
-	var ReactInstanceMap = __webpack_require__(116);
-	var ReactInstrumentation = __webpack_require__(62);
+	var ReactComponentEnvironment = __webpack_require__(119);
+	var ReactInstanceMap = __webpack_require__(120);
+	var ReactInstrumentation = __webpack_require__(66);
 
 	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactReconciler = __webpack_require__(59);
-	var ReactChildReconciler = __webpack_require__(117);
+	var ReactReconciler = __webpack_require__(63);
+	var ReactChildReconciler = __webpack_require__(121);
 
 	var emptyFunction = __webpack_require__(12);
-	var flattenChildren = __webpack_require__(132);
+	var flattenChildren = __webpack_require__(136);
 	var invariant = __webpack_require__(8);
 
 	/**
@@ -15163,9 +15522,9 @@
 	module.exports = ReactMultiChild;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 115 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 119 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -15180,7 +15539,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -15214,9 +15573,9 @@
 	module.exports = ReactComponentEnvironment;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 116 */
-/***/ function(module, exports) {
+/***/ }),
+/* 120 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -15266,9 +15625,9 @@
 
 	module.exports = ReactInstanceMap;
 
-/***/ },
-/* 117 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -15282,12 +15641,12 @@
 
 	'use strict';
 
-	var ReactReconciler = __webpack_require__(59);
+	var ReactReconciler = __webpack_require__(63);
 
-	var instantiateReactComponent = __webpack_require__(118);
-	var KeyEscapeUtils = __webpack_require__(128);
-	var shouldUpdateReactComponent = __webpack_require__(124);
-	var traverseAllChildren = __webpack_require__(129);
+	var instantiateReactComponent = __webpack_require__(122);
+	var KeyEscapeUtils = __webpack_require__(132);
+	var shouldUpdateReactComponent = __webpack_require__(128);
+	var traverseAllChildren = __webpack_require__(133);
 	var warning = __webpack_require__(11);
 
 	var ReactComponentTreeHook;
@@ -15425,9 +15784,9 @@
 	module.exports = ReactChildReconciler;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 118 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 122 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -15441,14 +15800,14 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var ReactCompositeComponent = __webpack_require__(119);
-	var ReactEmptyComponent = __webpack_require__(125);
-	var ReactHostComponent = __webpack_require__(126);
+	var ReactCompositeComponent = __webpack_require__(123);
+	var ReactEmptyComponent = __webpack_require__(129);
+	var ReactHostComponent = __webpack_require__(130);
 
-	var getNextDebugID = __webpack_require__(127);
+	var getNextDebugID = __webpack_require__(131);
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
 
@@ -15456,9 +15815,6 @@
 	var ReactCompositeComponentWrapper = function (element) {
 	  this.construct(element);
 	};
-	_assign(ReactCompositeComponentWrapper.prototype, ReactCompositeComponent, {
-	  _instantiateReactComponent: instantiateReactComponent
-	});
 
 	function getDeclarationErrorAddendum(owner) {
 	  if (owner) {
@@ -15555,12 +15911,16 @@
 	  return instance;
 	}
 
+	_assign(ReactCompositeComponentWrapper.prototype, ReactCompositeComponent, {
+	  _instantiateReactComponent: instantiateReactComponent
+	});
+
 	module.exports = instantiateReactComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 119 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 123 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -15574,26 +15934,26 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
 	var React = __webpack_require__(2);
-	var ReactComponentEnvironment = __webpack_require__(115);
+	var ReactComponentEnvironment = __webpack_require__(119);
 	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactErrorUtils = __webpack_require__(45);
-	var ReactInstanceMap = __webpack_require__(116);
-	var ReactInstrumentation = __webpack_require__(62);
-	var ReactNodeTypes = __webpack_require__(120);
-	var ReactReconciler = __webpack_require__(59);
+	var ReactErrorUtils = __webpack_require__(49);
+	var ReactInstanceMap = __webpack_require__(120);
+	var ReactInstrumentation = __webpack_require__(66);
+	var ReactNodeTypes = __webpack_require__(124);
+	var ReactReconciler = __webpack_require__(63);
 
 	if (process.env.NODE_ENV !== 'production') {
-	  var checkReactTypeSpec = __webpack_require__(121);
+	  var checkReactTypeSpec = __webpack_require__(125);
 	}
 
 	var emptyObject = __webpack_require__(20);
 	var invariant = __webpack_require__(8);
-	var shallowEqual = __webpack_require__(123);
-	var shouldUpdateReactComponent = __webpack_require__(124);
+	var shallowEqual = __webpack_require__(127);
+	var shouldUpdateReactComponent = __webpack_require__(128);
 	var warning = __webpack_require__(11);
 
 	var CompositeTypes = {
@@ -16078,7 +16438,7 @@
 	    if (childContext) {
 	      !(typeof Component.childContextTypes === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, '%s.getChildContext(): childContextTypes must be defined in order to use getChildContext().', this.getName() || 'ReactCompositeComponent') : _prodInvariant('107', this.getName() || 'ReactCompositeComponent') : void 0;
 	      if (process.env.NODE_ENV !== 'production') {
-	        this._checkContextTypes(Component.childContextTypes, childContext, 'childContext');
+	        this._checkContextTypes(Component.childContextTypes, childContext, 'child context');
 	      }
 	      for (var name in childContext) {
 	        !(name in Component.childContextTypes) ? process.env.NODE_ENV !== 'production' ? invariant(false, '%s.getChildContext(): key "%s" is not defined in childContextTypes.', this.getName() || 'ReactCompositeComponent', name) : _prodInvariant('108', this.getName() || 'ReactCompositeComponent', name) : void 0;
@@ -16465,9 +16825,9 @@
 	module.exports = ReactCompositeComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 120 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 124 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16482,7 +16842,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var React = __webpack_require__(2);
 
@@ -16510,9 +16870,9 @@
 	module.exports = ReactNodeTypes;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 121 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 125 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16526,10 +16886,10 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var ReactPropTypeLocationNames = __webpack_require__(122);
-	var ReactPropTypesSecret = __webpack_require__(110);
+	var ReactPropTypeLocationNames = __webpack_require__(126);
+	var ReactPropTypesSecret = __webpack_require__(114);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -16602,9 +16962,9 @@
 	module.exports = checkReactTypeSpec;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 122 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16632,9 +16992,9 @@
 	module.exports = ReactPropTypeLocationNames;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 123 */
-/***/ function(module, exports) {
+/***/ }),
+/* 127 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -16704,9 +17064,9 @@
 
 	module.exports = shallowEqual;
 
-/***/ },
-/* 124 */
-/***/ function(module, exports) {
+/***/ }),
+/* 128 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16750,9 +17110,9 @@
 
 	module.exports = shouldUpdateReactComponent;
 
-/***/ },
-/* 125 */
-/***/ function(module, exports) {
+/***/ }),
+/* 129 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -16784,9 +17144,9 @@
 
 	module.exports = ReactEmptyComponent;
 
-/***/ },
-/* 126 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -16800,7 +17160,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -16857,9 +17217,9 @@
 	module.exports = ReactHostComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 127 */
-/***/ function(module, exports) {
+/***/ }),
+/* 131 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16882,9 +17242,9 @@
 
 	module.exports = getNextDebugID;
 
-/***/ },
-/* 128 */
-/***/ function(module, exports) {
+/***/ }),
+/* 132 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16945,9 +17305,9 @@
 
 	module.exports = KeyEscapeUtils;
 
-/***/ },
-/* 129 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -16961,14 +17321,14 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var ReactCurrentOwner = __webpack_require__(10);
-	var REACT_ELEMENT_TYPE = __webpack_require__(130);
+	var REACT_ELEMENT_TYPE = __webpack_require__(134);
 
-	var getIteratorFn = __webpack_require__(131);
+	var getIteratorFn = __webpack_require__(135);
 	var invariant = __webpack_require__(8);
-	var KeyEscapeUtils = __webpack_require__(128);
+	var KeyEscapeUtils = __webpack_require__(132);
 	var warning = __webpack_require__(11);
 
 	var SEPARATOR = '.';
@@ -17126,9 +17486,9 @@
 	module.exports = traverseAllChildren;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 130 */
-/***/ function(module, exports) {
+/***/ }),
+/* 134 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -17150,9 +17510,9 @@
 
 	module.exports = REACT_ELEMENT_TYPE;
 
-/***/ },
-/* 131 */
-/***/ function(module, exports) {
+/***/ }),
+/* 135 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -17195,9 +17555,9 @@
 
 	module.exports = getIteratorFn;
 
-/***/ },
-/* 132 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 136 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -17212,8 +17572,8 @@
 
 	'use strict';
 
-	var KeyEscapeUtils = __webpack_require__(128);
-	var traverseAllChildren = __webpack_require__(129);
+	var KeyEscapeUtils = __webpack_require__(132);
+	var traverseAllChildren = __webpack_require__(133);
 	var warning = __webpack_require__(11);
 
 	var ReactComponentTreeHook;
@@ -17276,9 +17636,9 @@
 	module.exports = flattenChildren;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 133 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 137 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -17294,10 +17654,10 @@
 
 	var _assign = __webpack_require__(4);
 
-	var PooledClass = __webpack_require__(50);
-	var Transaction = __webpack_require__(68);
-	var ReactInstrumentation = __webpack_require__(62);
-	var ReactServerUpdateQueue = __webpack_require__(134);
+	var PooledClass = __webpack_require__(54);
+	var Transaction = __webpack_require__(72);
+	var ReactInstrumentation = __webpack_require__(66);
+	var ReactServerUpdateQueue = __webpack_require__(138);
 
 	/**
 	 * Executed within the scope of the `Transaction` instance. Consider these as
@@ -17371,9 +17731,9 @@
 	module.exports = ReactServerRenderingTransaction;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 134 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 138 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -17390,7 +17750,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var ReactUpdateQueue = __webpack_require__(135);
+	var ReactUpdateQueue = __webpack_require__(139);
 
 	var warning = __webpack_require__(11);
 
@@ -17515,9 +17875,9 @@
 	module.exports = ReactServerUpdateQueue;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 135 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 139 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -17531,12 +17891,12 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactInstanceMap = __webpack_require__(116);
-	var ReactInstrumentation = __webpack_require__(62);
-	var ReactUpdates = __webpack_require__(56);
+	var ReactInstanceMap = __webpack_require__(120);
+	var ReactInstrumentation = __webpack_require__(66);
+	var ReactUpdates = __webpack_require__(60);
 
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
@@ -17689,7 +18049,7 @@
 	   * @param {object} completeState Next state.
 	   * @internal
 	   */
-	  enqueueReplaceState: function (publicInstance, completeState) {
+	  enqueueReplaceState: function (publicInstance, completeState, callback) {
 	    var internalInstance = getInternalInstanceReadyForUpdate(publicInstance, 'replaceState');
 
 	    if (!internalInstance) {
@@ -17698,6 +18058,16 @@
 
 	    internalInstance._pendingStateQueue = [completeState];
 	    internalInstance._pendingReplaceState = true;
+
+	    // Future-proof 15.5
+	    if (callback !== undefined && callback !== null) {
+	      ReactUpdateQueue.validateCallback(callback, 'replaceState');
+	      if (internalInstance._pendingCallbacks) {
+	        internalInstance._pendingCallbacks.push(callback);
+	      } else {
+	        internalInstance._pendingCallbacks = [callback];
+	      }
+	    }
 
 	    enqueueUpdate(internalInstance);
 	  },
@@ -17746,9 +18116,9 @@
 	module.exports = ReactUpdateQueue;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 136 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 140 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -17976,16 +18346,11 @@
 	      case 'section':
 	      case 'summary':
 	      case 'ul':
-
 	      case 'pre':
 	      case 'listing':
-
 	      case 'table':
-
 	      case 'hr':
-
 	      case 'xmp':
-
 	      case 'h1':
 	      case 'h2':
 	      case 'h3':
@@ -18133,9 +18498,9 @@
 	module.exports = validateDOMNesting;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 137 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 141 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2014-present, Facebook, Inc.
@@ -18151,8 +18516,8 @@
 
 	var _assign = __webpack_require__(4);
 
-	var DOMLazyTree = __webpack_require__(81);
-	var ReactDOMComponentTree = __webpack_require__(34);
+	var DOMLazyTree = __webpack_require__(85);
+	var ReactDOMComponentTree = __webpack_require__(38);
 
 	var ReactDOMEmptyComponent = function (instantiate) {
 	  // ReactCompositeComponent uses this:
@@ -18197,9 +18562,9 @@
 
 	module.exports = ReactDOMEmptyComponent;
 
-/***/ },
-/* 138 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 142 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2015-present, Facebook, Inc.
@@ -18213,7 +18578,7 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var invariant = __webpack_require__(8);
 
@@ -18338,9 +18703,9 @@
 	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 139 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 143 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -18354,16 +18719,16 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35),
+	var _prodInvariant = __webpack_require__(39),
 	    _assign = __webpack_require__(4);
 
-	var DOMChildrenOperations = __webpack_require__(80);
-	var DOMLazyTree = __webpack_require__(81);
-	var ReactDOMComponentTree = __webpack_require__(34);
+	var DOMChildrenOperations = __webpack_require__(84);
+	var DOMLazyTree = __webpack_require__(85);
+	var ReactDOMComponentTree = __webpack_require__(38);
 
-	var escapeTextContentForBrowser = __webpack_require__(86);
+	var escapeTextContentForBrowser = __webpack_require__(90);
 	var invariant = __webpack_require__(8);
-	var validateDOMNesting = __webpack_require__(136);
+	var validateDOMNesting = __webpack_require__(140);
 
 	/**
 	 * Text nodes violate a couple assumptions that React makes about components:
@@ -18507,9 +18872,9 @@
 	module.exports = ReactDOMTextComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 140 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 144 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -18525,8 +18890,8 @@
 
 	var _assign = __webpack_require__(4);
 
-	var ReactUpdates = __webpack_require__(56);
-	var Transaction = __webpack_require__(68);
+	var ReactUpdates = __webpack_require__(60);
+	var Transaction = __webpack_require__(72);
 
 	var emptyFunction = __webpack_require__(12);
 
@@ -18579,9 +18944,9 @@
 
 	module.exports = ReactDefaultBatchingStrategy;
 
-/***/ },
-/* 141 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 145 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -18597,14 +18962,14 @@
 
 	var _assign = __webpack_require__(4);
 
-	var EventListener = __webpack_require__(142);
-	var ExecutionEnvironment = __webpack_require__(48);
-	var PooledClass = __webpack_require__(50);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactUpdates = __webpack_require__(56);
+	var EventListener = __webpack_require__(146);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var PooledClass = __webpack_require__(54);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(60);
 
-	var getEventTarget = __webpack_require__(69);
-	var getUnboundedScrollPosition = __webpack_require__(143);
+	var getEventTarget = __webpack_require__(73);
+	var getUnboundedScrollPosition = __webpack_require__(147);
 
 	/**
 	 * Find the deepest React component completely containing the root of the
@@ -18738,9 +19103,9 @@
 
 	module.exports = ReactEventListener;
 
-/***/ },
-/* 142 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 146 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -18827,9 +19192,9 @@
 	module.exports = EventListener;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 143 */
-/***/ function(module, exports) {
+/***/ }),
+/* 147 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -18856,10 +19221,10 @@
 	 */
 
 	function getUnboundedScrollPosition(scrollable) {
-	  if (scrollable === window) {
+	  if (scrollable.Window && scrollable instanceof scrollable.Window) {
 	    return {
-	      x: window.pageXOffset || document.documentElement.scrollLeft,
-	      y: window.pageYOffset || document.documentElement.scrollTop
+	      x: scrollable.pageXOffset || scrollable.document.documentElement.scrollLeft,
+	      y: scrollable.pageYOffset || scrollable.document.documentElement.scrollTop
 	    };
 	  }
 	  return {
@@ -18870,9 +19235,9 @@
 
 	module.exports = getUnboundedScrollPosition;
 
-/***/ },
-/* 144 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 148 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -18886,14 +19251,14 @@
 
 	'use strict';
 
-	var DOMProperty = __webpack_require__(36);
-	var EventPluginHub = __webpack_require__(42);
-	var EventPluginUtils = __webpack_require__(44);
-	var ReactComponentEnvironment = __webpack_require__(115);
-	var ReactEmptyComponent = __webpack_require__(125);
-	var ReactBrowserEventEmitter = __webpack_require__(105);
-	var ReactHostComponent = __webpack_require__(126);
-	var ReactUpdates = __webpack_require__(56);
+	var DOMProperty = __webpack_require__(40);
+	var EventPluginHub = __webpack_require__(46);
+	var EventPluginUtils = __webpack_require__(48);
+	var ReactComponentEnvironment = __webpack_require__(119);
+	var ReactEmptyComponent = __webpack_require__(129);
+	var ReactBrowserEventEmitter = __webpack_require__(109);
+	var ReactHostComponent = __webpack_require__(130);
+	var ReactUpdates = __webpack_require__(60);
 
 	var ReactInjection = {
 	  Component: ReactComponentEnvironment.injection,
@@ -18908,9 +19273,9 @@
 
 	module.exports = ReactInjection;
 
-/***/ },
-/* 145 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 149 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -18926,13 +19291,13 @@
 
 	var _assign = __webpack_require__(4);
 
-	var CallbackQueue = __webpack_require__(57);
-	var PooledClass = __webpack_require__(50);
-	var ReactBrowserEventEmitter = __webpack_require__(105);
-	var ReactInputSelection = __webpack_require__(146);
-	var ReactInstrumentation = __webpack_require__(62);
-	var Transaction = __webpack_require__(68);
-	var ReactUpdateQueue = __webpack_require__(135);
+	var CallbackQueue = __webpack_require__(61);
+	var PooledClass = __webpack_require__(54);
+	var ReactBrowserEventEmitter = __webpack_require__(109);
+	var ReactInputSelection = __webpack_require__(150);
+	var ReactInstrumentation = __webpack_require__(66);
+	var Transaction = __webpack_require__(72);
+	var ReactUpdateQueue = __webpack_require__(139);
 
 	/**
 	 * Ensures that, when possible, the selection range (currently selected text
@@ -19091,9 +19456,9 @@
 	module.exports = ReactReconcileTransaction;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 146 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 150 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -19107,11 +19472,11 @@
 
 	'use strict';
 
-	var ReactDOMSelection = __webpack_require__(147);
+	var ReactDOMSelection = __webpack_require__(151);
 
-	var containsNode = __webpack_require__(149);
-	var focusNode = __webpack_require__(94);
-	var getActiveElement = __webpack_require__(152);
+	var containsNode = __webpack_require__(153);
+	var focusNode = __webpack_require__(98);
+	var getActiveElement = __webpack_require__(156);
 
 	function isInDocument(node) {
 	  return containsNode(document.documentElement, node);
@@ -19219,9 +19584,9 @@
 
 	module.exports = ReactInputSelection;
 
-/***/ },
-/* 147 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 151 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -19235,10 +19600,10 @@
 
 	'use strict';
 
-	var ExecutionEnvironment = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(52);
 
-	var getNodeForCharacterOffset = __webpack_require__(148);
-	var getTextContentAccessor = __webpack_require__(51);
+	var getNodeForCharacterOffset = __webpack_require__(152);
+	var getTextContentAccessor = __webpack_require__(55);
 
 	/**
 	 * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -19435,9 +19800,9 @@
 
 	module.exports = ReactDOMSelection;
 
-/***/ },
-/* 148 */
-/***/ function(module, exports) {
+/***/ }),
+/* 152 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -19513,9 +19878,9 @@
 
 	module.exports = getNodeForCharacterOffset;
 
-/***/ },
-/* 149 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 153 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -19530,7 +19895,7 @@
 	 * 
 	 */
 
-	var isTextNode = __webpack_require__(150);
+	var isTextNode = __webpack_require__(154);
 
 	/*eslint-disable no-bitwise */
 
@@ -19557,9 +19922,9 @@
 
 	module.exports = containsNode;
 
-/***/ },
-/* 150 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 154 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -19574,7 +19939,7 @@
 	 * @typechecks
 	 */
 
-	var isNode = __webpack_require__(151);
+	var isNode = __webpack_require__(155);
 
 	/**
 	 * @param {*} object The object to check.
@@ -19586,9 +19951,9 @@
 
 	module.exports = isTextNode;
 
-/***/ },
-/* 151 */
-/***/ function(module, exports) {
+/***/ }),
+/* 155 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -19608,14 +19973,16 @@
 	 * @return {boolean} Whether or not the object is a DOM node.
 	 */
 	function isNode(object) {
-	  return !!(object && (typeof Node === 'function' ? object instanceof Node : typeof object === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string'));
+	  var doc = object ? object.ownerDocument || object : document;
+	  var defaultView = doc.defaultView || window;
+	  return !!(object && (typeof defaultView.Node === 'function' ? object instanceof defaultView.Node : typeof object === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string'));
 	}
 
 	module.exports = isNode;
 
-/***/ },
-/* 152 */
-/***/ function(module, exports) {
+/***/ }),
+/* 156 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -19638,23 +20005,27 @@
 	 *
 	 * The activeElement will be null only if the document or document body is not
 	 * yet defined.
+	 *
+	 * @param {?DOMDocument} doc Defaults to current document.
+	 * @return {?DOMElement}
 	 */
-	function getActiveElement() /*?DOMElement*/{
-	  if (typeof document === 'undefined') {
+	function getActiveElement(doc) /*?DOMElement*/{
+	  doc = doc || (typeof document !== 'undefined' ? document : undefined);
+	  if (typeof doc === 'undefined') {
 	    return null;
 	  }
 	  try {
-	    return document.activeElement || document.body;
+	    return doc.activeElement || doc.body;
 	  } catch (e) {
-	    return document.body;
+	    return doc.body;
 	  }
 	}
 
 	module.exports = getActiveElement;
 
-/***/ },
-/* 153 */
-/***/ function(module, exports) {
+/***/ }),
+/* 157 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -19958,9 +20329,9 @@
 
 	module.exports = SVGDOMPropertyConfig;
 
-/***/ },
-/* 154 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 158 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -19974,15 +20345,15 @@
 
 	'use strict';
 
-	var EventPropagators = __webpack_require__(41);
-	var ExecutionEnvironment = __webpack_require__(48);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactInputSelection = __webpack_require__(146);
-	var SyntheticEvent = __webpack_require__(53);
+	var EventPropagators = __webpack_require__(45);
+	var ExecutionEnvironment = __webpack_require__(52);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactInputSelection = __webpack_require__(150);
+	var SyntheticEvent = __webpack_require__(57);
 
-	var getActiveElement = __webpack_require__(152);
-	var isTextInputElement = __webpack_require__(71);
-	var shallowEqual = __webpack_require__(123);
+	var getActiveElement = __webpack_require__(156);
+	var isTextInputElement = __webpack_require__(75);
+	var shallowEqual = __webpack_require__(127);
 
 	var skipSelectionChangeEvent = ExecutionEnvironment.canUseDOM && 'documentMode' in document && document.documentMode <= 11;
 
@@ -20153,9 +20524,9 @@
 
 	module.exports = SelectEventPlugin;
 
-/***/ },
-/* 155 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 159 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20170,25 +20541,25 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var EventListener = __webpack_require__(142);
-	var EventPropagators = __webpack_require__(41);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var SyntheticAnimationEvent = __webpack_require__(156);
-	var SyntheticClipboardEvent = __webpack_require__(157);
-	var SyntheticEvent = __webpack_require__(53);
-	var SyntheticFocusEvent = __webpack_require__(158);
-	var SyntheticKeyboardEvent = __webpack_require__(159);
-	var SyntheticMouseEvent = __webpack_require__(74);
-	var SyntheticDragEvent = __webpack_require__(162);
-	var SyntheticTouchEvent = __webpack_require__(163);
-	var SyntheticTransitionEvent = __webpack_require__(164);
-	var SyntheticUIEvent = __webpack_require__(75);
-	var SyntheticWheelEvent = __webpack_require__(165);
+	var EventListener = __webpack_require__(146);
+	var EventPropagators = __webpack_require__(45);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var SyntheticAnimationEvent = __webpack_require__(160);
+	var SyntheticClipboardEvent = __webpack_require__(161);
+	var SyntheticEvent = __webpack_require__(57);
+	var SyntheticFocusEvent = __webpack_require__(162);
+	var SyntheticKeyboardEvent = __webpack_require__(163);
+	var SyntheticMouseEvent = __webpack_require__(78);
+	var SyntheticDragEvent = __webpack_require__(166);
+	var SyntheticTouchEvent = __webpack_require__(167);
+	var SyntheticTransitionEvent = __webpack_require__(168);
+	var SyntheticUIEvent = __webpack_require__(79);
+	var SyntheticWheelEvent = __webpack_require__(169);
 
 	var emptyFunction = __webpack_require__(12);
-	var getEventCharCode = __webpack_require__(160);
+	var getEventCharCode = __webpack_require__(164);
 	var invariant = __webpack_require__(8);
 
 	/**
@@ -20386,9 +20757,9 @@
 	module.exports = SimpleEventPlugin;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 156 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 160 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20402,7 +20773,7 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
 	/**
 	 * @interface Event
@@ -20429,9 +20800,9 @@
 
 	module.exports = SyntheticAnimationEvent;
 
-/***/ },
-/* 157 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 161 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20445,7 +20816,7 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
 	/**
 	 * @interface Event
@@ -20471,9 +20842,9 @@
 
 	module.exports = SyntheticClipboardEvent;
 
-/***/ },
-/* 158 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 162 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20487,7 +20858,7 @@
 
 	'use strict';
 
-	var SyntheticUIEvent = __webpack_require__(75);
+	var SyntheticUIEvent = __webpack_require__(79);
 
 	/**
 	 * @interface FocusEvent
@@ -20511,9 +20882,9 @@
 
 	module.exports = SyntheticFocusEvent;
 
-/***/ },
-/* 159 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 163 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20527,11 +20898,11 @@
 
 	'use strict';
 
-	var SyntheticUIEvent = __webpack_require__(75);
+	var SyntheticUIEvent = __webpack_require__(79);
 
-	var getEventCharCode = __webpack_require__(160);
-	var getEventKey = __webpack_require__(161);
-	var getEventModifierState = __webpack_require__(77);
+	var getEventCharCode = __webpack_require__(164);
+	var getEventKey = __webpack_require__(165);
+	var getEventModifierState = __webpack_require__(81);
 
 	/**
 	 * @interface KeyboardEvent
@@ -20599,9 +20970,9 @@
 
 	module.exports = SyntheticKeyboardEvent;
 
-/***/ },
-/* 160 */
-/***/ function(module, exports) {
+/***/ }),
+/* 164 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20653,9 +21024,9 @@
 
 	module.exports = getEventCharCode;
 
-/***/ },
-/* 161 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 165 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20669,7 +21040,7 @@
 
 	'use strict';
 
-	var getEventCharCode = __webpack_require__(160);
+	var getEventCharCode = __webpack_require__(164);
 
 	/**
 	 * Normalization of deprecated HTML5 `key` values
@@ -20759,9 +21130,9 @@
 
 	module.exports = getEventKey;
 
-/***/ },
-/* 162 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 166 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20775,7 +21146,7 @@
 
 	'use strict';
 
-	var SyntheticMouseEvent = __webpack_require__(74);
+	var SyntheticMouseEvent = __webpack_require__(78);
 
 	/**
 	 * @interface DragEvent
@@ -20799,9 +21170,9 @@
 
 	module.exports = SyntheticDragEvent;
 
-/***/ },
-/* 163 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 167 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20815,9 +21186,9 @@
 
 	'use strict';
 
-	var SyntheticUIEvent = __webpack_require__(75);
+	var SyntheticUIEvent = __webpack_require__(79);
 
-	var getEventModifierState = __webpack_require__(77);
+	var getEventModifierState = __webpack_require__(81);
 
 	/**
 	 * @interface TouchEvent
@@ -20848,9 +21219,9 @@
 
 	module.exports = SyntheticTouchEvent;
 
-/***/ },
-/* 164 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 168 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20864,7 +21235,7 @@
 
 	'use strict';
 
-	var SyntheticEvent = __webpack_require__(53);
+	var SyntheticEvent = __webpack_require__(57);
 
 	/**
 	 * @interface Event
@@ -20891,9 +21262,9 @@
 
 	module.exports = SyntheticTransitionEvent;
 
-/***/ },
-/* 165 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 169 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20907,7 +21278,7 @@
 
 	'use strict';
 
-	var SyntheticMouseEvent = __webpack_require__(74);
+	var SyntheticMouseEvent = __webpack_require__(78);
 
 	/**
 	 * @interface WheelEvent
@@ -20949,9 +21320,9 @@
 
 	module.exports = SyntheticWheelEvent;
 
-/***/ },
-/* 166 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 170 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -20965,29 +21336,29 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
-	var DOMLazyTree = __webpack_require__(81);
-	var DOMProperty = __webpack_require__(36);
+	var DOMLazyTree = __webpack_require__(85);
+	var DOMProperty = __webpack_require__(40);
 	var React = __webpack_require__(2);
-	var ReactBrowserEventEmitter = __webpack_require__(105);
+	var ReactBrowserEventEmitter = __webpack_require__(109);
 	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactDOMContainerInfo = __webpack_require__(167);
-	var ReactDOMFeatureFlags = __webpack_require__(168);
-	var ReactFeatureFlags = __webpack_require__(58);
-	var ReactInstanceMap = __webpack_require__(116);
-	var ReactInstrumentation = __webpack_require__(62);
-	var ReactMarkupChecksum = __webpack_require__(169);
-	var ReactReconciler = __webpack_require__(59);
-	var ReactUpdateQueue = __webpack_require__(135);
-	var ReactUpdates = __webpack_require__(56);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactDOMContainerInfo = __webpack_require__(171);
+	var ReactDOMFeatureFlags = __webpack_require__(172);
+	var ReactFeatureFlags = __webpack_require__(62);
+	var ReactInstanceMap = __webpack_require__(120);
+	var ReactInstrumentation = __webpack_require__(66);
+	var ReactMarkupChecksum = __webpack_require__(173);
+	var ReactReconciler = __webpack_require__(63);
+	var ReactUpdateQueue = __webpack_require__(139);
+	var ReactUpdates = __webpack_require__(60);
 
 	var emptyObject = __webpack_require__(20);
-	var instantiateReactComponent = __webpack_require__(118);
+	var instantiateReactComponent = __webpack_require__(122);
 	var invariant = __webpack_require__(8);
-	var setInnerHTML = __webpack_require__(83);
-	var shouldUpdateReactComponent = __webpack_require__(124);
+	var setInnerHTML = __webpack_require__(87);
+	var shouldUpdateReactComponent = __webpack_require__(128);
 	var warning = __webpack_require__(11);
 
 	var ATTR_NAME = DOMProperty.ID_ATTRIBUTE_NAME;
@@ -21492,9 +21863,9 @@
 	module.exports = ReactMount;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 167 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 171 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21508,7 +21879,7 @@
 
 	'use strict';
 
-	var validateDOMNesting = __webpack_require__(136);
+	var validateDOMNesting = __webpack_require__(140);
 
 	var DOC_NODE_TYPE = 9;
 
@@ -21530,9 +21901,9 @@
 	module.exports = ReactDOMContainerInfo;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 168 */
-/***/ function(module, exports) {
+/***/ }),
+/* 172 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21553,9 +21924,9 @@
 
 	module.exports = ReactDOMFeatureFlags;
 
-/***/ },
-/* 169 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 173 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21569,7 +21940,7 @@
 
 	'use strict';
 
-	var adler32 = __webpack_require__(170);
+	var adler32 = __webpack_require__(174);
 
 	var TAG_END = /\/?>/;
 	var COMMENT_START = /^<\!\-\-/;
@@ -21607,9 +21978,9 @@
 
 	module.exports = ReactMarkupChecksum;
 
-/***/ },
-/* 170 */
-/***/ function(module, exports) {
+/***/ }),
+/* 174 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21655,9 +22026,9 @@
 
 	module.exports = adler32;
 
-/***/ },
-/* 171 */
-/***/ function(module, exports) {
+/***/ }),
+/* 175 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21671,11 +22042,11 @@
 
 	'use strict';
 
-	module.exports = '15.4.2';
+	module.exports = '15.5.4';
 
-/***/ },
-/* 172 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 176 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21689,13 +22060,13 @@
 
 	'use strict';
 
-	var _prodInvariant = __webpack_require__(35);
+	var _prodInvariant = __webpack_require__(39);
 
 	var ReactCurrentOwner = __webpack_require__(10);
-	var ReactDOMComponentTree = __webpack_require__(34);
-	var ReactInstanceMap = __webpack_require__(116);
+	var ReactDOMComponentTree = __webpack_require__(38);
+	var ReactInstanceMap = __webpack_require__(120);
 
-	var getHostComponentFromComposite = __webpack_require__(173);
+	var getHostComponentFromComposite = __webpack_require__(177);
 	var invariant = __webpack_require__(8);
 	var warning = __webpack_require__(11);
 
@@ -21738,9 +22109,9 @@
 	module.exports = findDOMNode;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 173 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 177 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21754,7 +22125,7 @@
 
 	'use strict';
 
-	var ReactNodeTypes = __webpack_require__(120);
+	var ReactNodeTypes = __webpack_require__(124);
 
 	function getHostComponentFromComposite(inst) {
 	  var type;
@@ -21772,9 +22143,9 @@
 
 	module.exports = getHostComponentFromComposite;
 
-/***/ },
-/* 174 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 178 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21788,13 +22159,13 @@
 
 	'use strict';
 
-	var ReactMount = __webpack_require__(166);
+	var ReactMount = __webpack_require__(170);
 
 	module.exports = ReactMount.renderSubtreeIntoContainer;
 
-/***/ },
-/* 175 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 179 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21808,8 +22179,8 @@
 
 	'use strict';
 
-	var DOMProperty = __webpack_require__(36);
-	var EventPluginRegistry = __webpack_require__(43);
+	var DOMProperty = __webpack_require__(40);
+	var EventPluginRegistry = __webpack_require__(47);
 	var ReactComponentTreeHook = __webpack_require__(26);
 
 	var warning = __webpack_require__(11);
@@ -21909,9 +22280,9 @@
 	module.exports = ReactDOMUnknownPropertyHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 176 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 180 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21957,9 +22328,9 @@
 	module.exports = ReactDOMNullInputValuePropHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 177 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 181 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -21973,7 +22344,7 @@
 
 	'use strict';
 
-	var DOMProperty = __webpack_require__(36);
+	var DOMProperty = __webpack_require__(40);
 	var ReactComponentTreeHook = __webpack_require__(26);
 
 	var warning = __webpack_require__(11);
@@ -22055,9 +22426,9 @@
 	module.exports = ReactDOMInvalidARIAHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 178 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 182 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -22067,7 +22438,7 @@
 
 	var ajaXwrapper = function ajaXwrapper() {
 
-	    var $ = __webpack_require__(179);
+	    var $ = __webpack_require__(183);
 
 	    this.request = function (param, callback) {
 	        param.success = success;
@@ -22086,22 +22457,22 @@
 
 	module.exports = new ajaXwrapper();
 
-/***/ },
-/* 179 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 183 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery JavaScript Library v3.1.1
+	 * jQuery JavaScript Library v3.2.1
 	 * https://jquery.com/
 	 *
 	 * Includes Sizzle.js
 	 * https://sizzlejs.com/
 	 *
-	 * Copyright jQuery Foundation and other contributors
+	 * Copyright JS Foundation and other contributors
 	 * Released under the MIT license
 	 * https://jquery.org/license
 	 *
-	 * Date: 2016-09-22T22:30Z
+	 * Date: 2017-03-20T18:59Z
 	 */
 	( function( global, factory ) {
 
@@ -22180,7 +22551,7 @@
 
 
 	var
-		version = "3.1.1",
+		version = "3.2.1",
 
 		// Define a local copy of jQuery
 		jQuery = function( selector, context ) {
@@ -22328,11 +22699,11 @@
 
 					// Recurse if we're merging plain objects or arrays
 					if ( deep && copy && ( jQuery.isPlainObject( copy ) ||
-						( copyIsArray = jQuery.isArray( copy ) ) ) ) {
+						( copyIsArray = Array.isArray( copy ) ) ) ) {
 
 						if ( copyIsArray ) {
 							copyIsArray = false;
-							clone = src && jQuery.isArray( src ) ? src : [];
+							clone = src && Array.isArray( src ) ? src : [];
 
 						} else {
 							clone = src && jQuery.isPlainObject( src ) ? src : {};
@@ -22370,8 +22741,6 @@
 		isFunction: function( obj ) {
 			return jQuery.type( obj ) === "function";
 		},
-
-		isArray: Array.isArray,
 
 		isWindow: function( obj ) {
 			return obj != null && obj === obj.window;
@@ -22445,10 +22814,6 @@
 		// Microsoft forgot to hump their vendor prefix (#9572)
 		camelCase: function( string ) {
 			return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
-		},
-
-		nodeName: function( elem, name ) {
-			return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
 		},
 
 		each: function( obj, callback ) {
@@ -24935,6 +25300,13 @@
 
 	var rneedsContext = jQuery.expr.match.needsContext;
 
+
+
+	function nodeName( elem, name ) {
+
+	  return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+
+	};
 	var rsingleTag = ( /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i );
 
 
@@ -25286,7 +25658,18 @@
 			return siblings( elem.firstChild );
 		},
 		contents: function( elem ) {
-			return elem.contentDocument || jQuery.merge( [], elem.childNodes );
+	        if ( nodeName( elem, "iframe" ) ) {
+	            return elem.contentDocument;
+	        }
+
+	        // Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
+	        // Treat the template element as a regular one in browsers that
+	        // don't support it.
+	        if ( nodeName( elem, "template" ) ) {
+	            elem = elem.content || elem;
+	        }
+
+	        return jQuery.merge( [], elem.childNodes );
 		}
 	}, function( name, fn ) {
 		jQuery.fn[ name ] = function( until, selector ) {
@@ -25384,7 +25767,7 @@
 			fire = function() {
 
 				// Enforce single-firing
-				locked = options.once;
+				locked = locked || options.once;
 
 				// Execute callbacks for all pending executions,
 				// respecting firingIndex overrides and runtime changes
@@ -25553,7 +25936,7 @@
 		throw ex;
 	}
 
-	function adoptValue( value, resolve, reject ) {
+	function adoptValue( value, resolve, reject, noValue ) {
 		var method;
 
 		try {
@@ -25569,9 +25952,10 @@
 			// Other non-thenables
 			} else {
 
-				// Support: Android 4.0 only
-				// Strict mode functions invoked without .call/.apply get global-object context
-				resolve.call( undefined, value );
+				// Control `resolve` arguments by letting Array#slice cast boolean `noValue` to integer:
+				// * false: [ value ].slice( 0 ) => resolve( value )
+				// * true: [ value ].slice( 1 ) => resolve()
+				resolve.apply( undefined, [ value ].slice( noValue ) );
 			}
 
 		// For Promises/A+, convert exceptions into rejections
@@ -25581,7 +25965,7 @@
 
 			// Support: Android 4.0 only
 			// Strict mode functions invoked without .call/.apply get global-object context
-			reject.call( undefined, value );
+			reject.apply( undefined, [ value ] );
 		}
 	}
 
@@ -25906,7 +26290,8 @@
 
 			// Single- and empty arguments are adopted like Promise.resolve
 			if ( remaining <= 1 ) {
-				adoptValue( singleValue, master.done( updateFunc( i ) ).resolve, master.reject );
+				adoptValue( singleValue, master.done( updateFunc( i ) ).resolve, master.reject,
+					!remaining );
 
 				// Use .then() to unwrap secondary thenables (cf. gh-3000)
 				if ( master.state() === "pending" ||
@@ -25977,15 +26362,6 @@
 		// A counter to track how many items to wait for before
 		// the ready event fires. See #6781
 		readyWait: 1,
-
-		// Hold (or release) the ready event
-		holdReady: function( hold ) {
-			if ( hold ) {
-				jQuery.readyWait++;
-			} else {
-				jQuery.ready( true );
-			}
-		},
 
 		// Handle when the DOM is ready
 		ready: function( wait ) {
@@ -26222,7 +26598,7 @@
 			if ( key !== undefined ) {
 
 				// Support array or space separated string of keys
-				if ( jQuery.isArray( key ) ) {
+				if ( Array.isArray( key ) ) {
 
 					// If key is an array of keys...
 					// We always set camelCase keys, so remove that.
@@ -26448,7 +26824,7 @@
 
 				// Speed up dequeue by getting out quickly if this is just a lookup
 				if ( data ) {
-					if ( !queue || jQuery.isArray( data ) ) {
+					if ( !queue || Array.isArray( data ) ) {
 						queue = dataPriv.access( elem, type, jQuery.makeArray( data ) );
 					} else {
 						queue.push( data );
@@ -26825,7 +27201,7 @@
 			ret = [];
 		}
 
-		if ( tag === undefined || tag && jQuery.nodeName( context, tag ) ) {
+		if ( tag === undefined || tag && nodeName( context, tag ) ) {
 			return jQuery.merge( [ context ], ret );
 		}
 
@@ -27432,7 +27808,7 @@
 
 				// For checkbox, fire native event so checked state will be right
 				trigger: function() {
-					if ( this.type === "checkbox" && this.click && jQuery.nodeName( this, "input" ) ) {
+					if ( this.type === "checkbox" && this.click && nodeName( this, "input" ) ) {
 						this.click();
 						return false;
 					}
@@ -27440,7 +27816,7 @@
 
 				// For cross-browser consistency, don't fire native .click() on links
 				_default: function( event ) {
-					return jQuery.nodeName( event.target, "a" );
+					return nodeName( event.target, "a" );
 				}
 			},
 
@@ -27717,11 +28093,12 @@
 		rscriptTypeMasked = /^true\/(.*)/,
 		rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
+	// Prefer a tbody over its parent table for containing new rows
 	function manipulationTarget( elem, content ) {
-		if ( jQuery.nodeName( elem, "table" ) &&
-			jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ) {
+		if ( nodeName( elem, "table" ) &&
+			nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ) {
 
-			return elem.getElementsByTagName( "tbody" )[ 0 ] || elem;
+			return jQuery( ">tbody", elem )[ 0 ] || elem;
 		}
 
 		return elem;
@@ -28251,12 +28628,18 @@
 
 	function curCSS( elem, name, computed ) {
 		var width, minWidth, maxWidth, ret,
+
+			// Support: Firefox 51+
+			// Retrieving style before computed somehow
+			// fixes an issue with getting wrong values
+			// on detached elements
 			style = elem.style;
 
 		computed = computed || getStyles( elem );
 
-		// Support: IE <=9 only
-		// getPropertyValue is only needed for .css('filter') (#12537)
+		// getPropertyValue is needed for:
+		//   .css('filter') (IE 9 only, #12537)
+		//   .css('--customProperty) (#3144)
 		if ( computed ) {
 			ret = computed.getPropertyValue( name ) || computed[ name ];
 
@@ -28322,6 +28705,7 @@
 		// except "table", "table-cell", or "table-caption"
 		// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 		rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+		rcustomProp = /^--/,
 		cssShow = { position: "absolute", visibility: "hidden", display: "block" },
 		cssNormalTransform = {
 			letterSpacing: "0",
@@ -28349,6 +28733,16 @@
 				return name;
 			}
 		}
+	}
+
+	// Return a property mapped along what jQuery.cssProps suggests or to
+	// a vendor prefixed property.
+	function finalPropName( name ) {
+		var ret = jQuery.cssProps[ name ];
+		if ( !ret ) {
+			ret = jQuery.cssProps[ name ] = vendorPropName( name ) || name;
+		}
+		return ret;
 	}
 
 	function setPositiveNumber( elem, value, subtract ) {
@@ -28411,43 +28805,30 @@
 
 	function getWidthOrHeight( elem, name, extra ) {
 
-		// Start with offset property, which is equivalent to the border-box value
-		var val,
-			valueIsBorderBox = true,
+		// Start with computed style
+		var valueIsBorderBox,
 			styles = getStyles( elem ),
+			val = curCSS( elem, name, styles ),
 			isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-		// Support: IE <=11 only
-		// Running getBoundingClientRect on a disconnected node
-		// in IE throws an error.
-		if ( elem.getClientRects().length ) {
-			val = elem.getBoundingClientRect()[ name ];
+		// Computed unit is not pixels. Stop here and return.
+		if ( rnumnonpx.test( val ) ) {
+			return val;
 		}
 
-		// Some non-html elements return undefined for offsetWidth, so check for null/undefined
-		// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
-		// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
-		if ( val <= 0 || val == null ) {
+		// Check for style in case a browser which returns unreliable values
+		// for getComputedStyle silently falls back to the reliable elem.style
+		valueIsBorderBox = isBorderBox &&
+			( support.boxSizingReliable() || val === elem.style[ name ] );
 
-			// Fall back to computed then uncomputed css if necessary
-			val = curCSS( elem, name, styles );
-			if ( val < 0 || val == null ) {
-				val = elem.style[ name ];
-			}
-
-			// Computed unit is not pixels. Stop here and return.
-			if ( rnumnonpx.test( val ) ) {
-				return val;
-			}
-
-			// Check for style in case a browser which returns unreliable values
-			// for getComputedStyle silently falls back to the reliable elem.style
-			valueIsBorderBox = isBorderBox &&
-				( support.boxSizingReliable() || val === elem.style[ name ] );
-
-			// Normalize "", auto, and prepare for extra
-			val = parseFloat( val ) || 0;
+		// Fall back to offsetWidth/Height when value is "auto"
+		// This happens for inline elements with no explicit setting (gh-3571)
+		if ( val === "auto" ) {
+			val = elem[ "offset" + name[ 0 ].toUpperCase() + name.slice( 1 ) ];
 		}
+
+		// Normalize "", auto, and prepare for extra
+		val = parseFloat( val ) || 0;
 
 		// Use the active box-sizing model to add/subtract irrelevant styles
 		return ( val +
@@ -28512,10 +28893,15 @@
 			// Make sure that we're working with the right name
 			var ret, type, hooks,
 				origName = jQuery.camelCase( name ),
+				isCustomProp = rcustomProp.test( name ),
 				style = elem.style;
 
-			name = jQuery.cssProps[ origName ] ||
-				( jQuery.cssProps[ origName ] = vendorPropName( origName ) || origName );
+			// Make sure that we're working with the right name. We don't
+			// want to query the value if it is a CSS custom property
+			// since they are user-defined.
+			if ( !isCustomProp ) {
+				name = finalPropName( origName );
+			}
 
 			// Gets hook for the prefixed version, then unprefixed version
 			hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
@@ -28551,7 +28937,11 @@
 				if ( !hooks || !( "set" in hooks ) ||
 					( value = hooks.set( elem, value, extra ) ) !== undefined ) {
 
-					style[ name ] = value;
+					if ( isCustomProp ) {
+						style.setProperty( name, value );
+					} else {
+						style[ name ] = value;
+					}
 				}
 
 			} else {
@@ -28570,11 +28960,15 @@
 
 		css: function( elem, name, extra, styles ) {
 			var val, num, hooks,
-				origName = jQuery.camelCase( name );
+				origName = jQuery.camelCase( name ),
+				isCustomProp = rcustomProp.test( name );
 
-			// Make sure that we're working with the right name
-			name = jQuery.cssProps[ origName ] ||
-				( jQuery.cssProps[ origName ] = vendorPropName( origName ) || origName );
+			// Make sure that we're working with the right name. We don't
+			// want to modify the value if it is a CSS custom property
+			// since they are user-defined.
+			if ( !isCustomProp ) {
+				name = finalPropName( origName );
+			}
 
 			// Try prefixed name followed by the unprefixed name
 			hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
@@ -28599,6 +28993,7 @@
 				num = parseFloat( val );
 				return extra === true || isFinite( num ) ? num || 0 : val;
 			}
+
 			return val;
 		}
 	} );
@@ -28698,7 +29093,7 @@
 					map = {},
 					i = 0;
 
-				if ( jQuery.isArray( name ) ) {
+				if ( Array.isArray( name ) ) {
 					styles = getStyles( elem );
 					len = name.length;
 
@@ -28836,13 +29231,18 @@
 
 
 	var
-		fxNow, timerId,
+		fxNow, inProgress,
 		rfxtypes = /^(?:toggle|show|hide)$/,
 		rrun = /queueHooks$/;
 
-	function raf() {
-		if ( timerId ) {
-			window.requestAnimationFrame( raf );
+	function schedule() {
+		if ( inProgress ) {
+			if ( document.hidden === false && window.requestAnimationFrame ) {
+				window.requestAnimationFrame( schedule );
+			} else {
+				window.setTimeout( schedule, jQuery.fx.interval );
+			}
+
 			jQuery.fx.tick();
 		}
 	}
@@ -29069,7 +29469,7 @@
 			name = jQuery.camelCase( index );
 			easing = specialEasing[ name ];
 			value = props[ index ];
-			if ( jQuery.isArray( value ) ) {
+			if ( Array.isArray( value ) ) {
 				easing = value[ 1 ];
 				value = props[ index ] = value[ 0 ];
 			}
@@ -29128,12 +29528,19 @@
 
 				deferred.notifyWith( elem, [ animation, percent, remaining ] );
 
+				// If there's more to do, yield
 				if ( percent < 1 && length ) {
 					return remaining;
-				} else {
-					deferred.resolveWith( elem, [ animation ] );
-					return false;
 				}
+
+				// If this was an empty animation, synthesize a final progress notification
+				if ( !length ) {
+					deferred.notifyWith( elem, [ animation, 1, 0 ] );
+				}
+
+				// Resolve the animation and report its conclusion
+				deferred.resolveWith( elem, [ animation ] );
+				return false;
 			},
 			animation = deferred.promise( {
 				elem: elem,
@@ -29198,6 +29605,13 @@
 			animation.opts.start.call( elem, animation );
 		}
 
+		// Attach callbacks from options
+		animation
+			.progress( animation.opts.progress )
+			.done( animation.opts.done, animation.opts.complete )
+			.fail( animation.opts.fail )
+			.always( animation.opts.always );
+
 		jQuery.fx.timer(
 			jQuery.extend( tick, {
 				elem: elem,
@@ -29206,11 +29620,7 @@
 			} )
 		);
 
-		// attach callbacks from options
-		return animation.progress( animation.opts.progress )
-			.done( animation.opts.done, animation.opts.complete )
-			.fail( animation.opts.fail )
-			.always( animation.opts.always );
+		return animation;
 	}
 
 	jQuery.Animation = jQuery.extend( Animation, {
@@ -29261,8 +29671,8 @@
 			easing: fn && easing || easing && !jQuery.isFunction( easing ) && easing
 		};
 
-		// Go to the end state if fx are off or if document is hidden
-		if ( jQuery.fx.off || document.hidden ) {
+		// Go to the end state if fx are off
+		if ( jQuery.fx.off ) {
 			opt.duration = 0;
 
 		} else {
@@ -29454,7 +29864,7 @@
 		for ( ; i < timers.length; i++ ) {
 			timer = timers[ i ];
 
-			// Checks the timer has not already been removed
+			// Run the timer and safely remove it when done (allowing for external removal)
 			if ( !timer() && timers[ i ] === timer ) {
 				timers.splice( i--, 1 );
 			}
@@ -29468,30 +29878,21 @@
 
 	jQuery.fx.timer = function( timer ) {
 		jQuery.timers.push( timer );
-		if ( timer() ) {
-			jQuery.fx.start();
-		} else {
-			jQuery.timers.pop();
-		}
+		jQuery.fx.start();
 	};
 
 	jQuery.fx.interval = 13;
 	jQuery.fx.start = function() {
-		if ( !timerId ) {
-			timerId = window.requestAnimationFrame ?
-				window.requestAnimationFrame( raf ) :
-				window.setInterval( jQuery.fx.tick, jQuery.fx.interval );
+		if ( inProgress ) {
+			return;
 		}
+
+		inProgress = true;
+		schedule();
 	};
 
 	jQuery.fx.stop = function() {
-		if ( window.cancelAnimationFrame ) {
-			window.cancelAnimationFrame( timerId );
-		} else {
-			window.clearInterval( timerId );
-		}
-
-		timerId = null;
+		inProgress = null;
 	};
 
 	jQuery.fx.speeds = {
@@ -29608,7 +30009,7 @@
 			type: {
 				set: function( elem, value ) {
 					if ( !support.radioValue && value === "radio" &&
-						jQuery.nodeName( elem, "input" ) ) {
+						nodeName( elem, "input" ) ) {
 						var val = elem.value;
 						elem.setAttribute( "type", value );
 						if ( val ) {
@@ -30039,7 +30440,7 @@
 				} else if ( typeof val === "number" ) {
 					val += "";
 
-				} else if ( jQuery.isArray( val ) ) {
+				} else if ( Array.isArray( val ) ) {
 					val = jQuery.map( val, function( value ) {
 						return value == null ? "" : value + "";
 					} );
@@ -30098,7 +30499,7 @@
 								// Don't return options that are disabled or in a disabled optgroup
 								!option.disabled &&
 								( !option.parentNode.disabled ||
-									!jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
+									!nodeName( option.parentNode, "optgroup" ) ) ) {
 
 							// Get the specific value for the option
 							value = jQuery( option ).val();
@@ -30150,7 +30551,7 @@
 	jQuery.each( [ "radio", "checkbox" ], function() {
 		jQuery.valHooks[ this ] = {
 			set: function( elem, value ) {
-				if ( jQuery.isArray( value ) ) {
+				if ( Array.isArray( value ) ) {
 					return ( elem.checked = jQuery.inArray( jQuery( elem ).val(), value ) > -1 );
 				}
 			}
@@ -30445,7 +30846,7 @@
 	function buildParams( prefix, obj, traditional, add ) {
 		var name;
 
-		if ( jQuery.isArray( obj ) ) {
+		if ( Array.isArray( obj ) ) {
 
 			// Serialize array item.
 			jQuery.each( obj, function( i, v ) {
@@ -30497,7 +30898,7 @@
 			};
 
 		// If an array was passed in, assume that it is an array of form elements.
-		if ( jQuery.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
+		if ( Array.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
 
 			// Serialize the form elements
 			jQuery.each( a, function() {
@@ -30543,7 +30944,7 @@
 					return null;
 				}
 
-				if ( jQuery.isArray( val ) ) {
+				if ( Array.isArray( val ) ) {
 					return jQuery.map( val, function( val ) {
 						return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
 					} );
@@ -31968,13 +32369,6 @@
 
 
 
-	/**
-	 * Gets a window from an element
-	 */
-	function getWindow( elem ) {
-		return jQuery.isWindow( elem ) ? elem : elem.nodeType === 9 && elem.defaultView;
-	}
-
 	jQuery.offset = {
 		setOffset: function( elem, options, i ) {
 			var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
@@ -32039,13 +32433,14 @@
 					} );
 			}
 
-			var docElem, win, rect, doc,
+			var doc, docElem, rect, win,
 				elem = this[ 0 ];
 
 			if ( !elem ) {
 				return;
 			}
 
+			// Return zeros for disconnected and hidden (display: none) elements (gh-2310)
 			// Support: IE <=11 only
 			// Running getBoundingClientRect on a
 			// disconnected node in IE throws an error
@@ -32055,20 +32450,14 @@
 
 			rect = elem.getBoundingClientRect();
 
-			// Make sure element is not hidden (display: none)
-			if ( rect.width || rect.height ) {
-				doc = elem.ownerDocument;
-				win = getWindow( doc );
-				docElem = doc.documentElement;
+			doc = elem.ownerDocument;
+			docElem = doc.documentElement;
+			win = doc.defaultView;
 
-				return {
-					top: rect.top + win.pageYOffset - docElem.clientTop,
-					left: rect.left + win.pageXOffset - docElem.clientLeft
-				};
-			}
-
-			// Return zeros for disconnected and hidden elements (gh-2310)
-			return rect;
+			return {
+				top: rect.top + win.pageYOffset - docElem.clientTop,
+				left: rect.left + win.pageXOffset - docElem.clientLeft
+			};
 		},
 
 		position: function() {
@@ -32094,7 +32483,7 @@
 
 				// Get correct offsets
 				offset = this.offset();
-				if ( !jQuery.nodeName( offsetParent[ 0 ], "html" ) ) {
+				if ( !nodeName( offsetParent[ 0 ], "html" ) ) {
 					parentOffset = offsetParent.offset();
 				}
 
@@ -32141,7 +32530,14 @@
 
 		jQuery.fn[ method ] = function( val ) {
 			return access( this, function( elem, method, val ) {
-				var win = getWindow( elem );
+
+				// Coalesce documents and windows
+				var win;
+				if ( jQuery.isWindow( elem ) ) {
+					win = elem;
+				} else if ( elem.nodeType === 9 ) {
+					win = elem.defaultView;
+				}
 
 				if ( val === undefined ) {
 					return win ? win[ prop ] : elem[ method ];
@@ -32250,7 +32646,16 @@
 		}
 	} );
 
+	jQuery.holdReady = function( hold ) {
+		if ( hold ) {
+			jQuery.readyWait++;
+		} else {
+			jQuery.ready( true );
+		}
+	};
+	jQuery.isArray = Array.isArray;
 	jQuery.parseJSON = JSON.parse;
+	jQuery.nodeName = nodeName;
 
 
 
@@ -32307,14 +32712,13 @@
 
 
 
-
 	return jQuery;
 	} );
 
 
-/***/ },
-/* 180 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 184 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -32328,10 +32732,10 @@
 
 	APIx.dhis2API = function () {
 
-	    var ajax = __webpack_require__(178);
-	    var utility = __webpack_require__(181);
-	    var Promise = __webpack_require__(242);
-	    var CONSTANTS = __webpack_require__(243);
+	    var ajax = __webpack_require__(182);
+	    var utility = __webpack_require__(185);
+	    var Promise = __webpack_require__(247);
+	    var CONSTANTS = __webpack_require__(248);
 
 	    var baseURL = "../../";
 	    var schemaNameToObjectMap = [];
@@ -32375,7 +32779,7 @@
 
 	        function buildSchemaMap(_schemas, extendedSchema) {
 
-	            var merge = __webpack_require__(244);
+	            var merge = __webpack_require__(249);
 
 	            var schemas = {};
 	            for (var key in _schemas) {
@@ -32588,9 +32992,9 @@
 
 	module.exports = APIx.dhis2API;
 
-/***/ },
-/* 181 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 185 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 
@@ -32623,7 +33027,7 @@
 
 	_.prepareUID = function (options, ids) {
 
-	    var sha1 = __webpack_require__(182);
+	    var sha1 = __webpack_require__(186);
 	    var uid = sha1(ids.sort());
 
 	    return "CL" + uid.substr(0, 9);
@@ -32665,9 +33069,9 @@
 	};
 	module.exports = _;
 
-/***/ },
-/* 182 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 186 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(process, global) {/*
 	 * [js-sha1]{@link https://github.com/emn178/js-sha1}
@@ -32687,7 +33091,7 @@
 	    root = global;
 	  }
 	  var COMMON_JS = !root.JS_SHA1_NO_COMMON_JS && typeof module === 'object' && module.exports;
-	  var AMD = "function" === 'function' && __webpack_require__(183);
+	  var AMD = "function" === 'function' && __webpack_require__(187);
 	  var HEX_CHARS = '0123456789abcdef'.split('');
 	  var EXTRA = [-2147483648, 8388608, 32768, 128];
 	  var SHIFT = [24, 16, 8, 0];
@@ -32720,8 +33124,8 @@
 	  };
 
 	  var nodeWrap = function (method) {
-	    var crypto = __webpack_require__(184);
-	    var Buffer = __webpack_require__(185).Buffer;
+	    var crypto = __webpack_require__(188);
+	    var Buffer = __webpack_require__(189).Buffer;
 	    var nodeMethod = function (message) {
 	      if (typeof message === 'string') {
 	        return crypto.createHash('sha1').update(message, 'utf8').digest('hex');
@@ -33038,19 +33442,19 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }())))
 
-/***/ },
-/* 183 */
-/***/ function(module, exports) {
+/***/ }),
+/* 187 */
+/***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
-/***/ },
-/* 184 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 188 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(189)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(193)
 
 	function error () {
 	  var m = [].slice.call(arguments).join(' ')
@@ -33061,9 +33465,9 @@
 	    ].join('\n'))
 	}
 
-	exports.createHash = __webpack_require__(191)
+	exports.createHash = __webpack_require__(195)
 
-	exports.createHmac = __webpack_require__(203)
+	exports.createHmac = __webpack_require__(207)
 
 	exports.randomBytes = function(size, callback) {
 	  if (callback && callback.call) {
@@ -33084,10 +33488,10 @@
 	  return ['sha1', 'sha256', 'sha512', 'md5', 'rmd160']
 	}
 
-	var p = __webpack_require__(204)(exports)
+	var p = __webpack_require__(208)(exports)
 	exports.pbkdf2 = p.pbkdf2
 	exports.pbkdf2Sync = p.pbkdf2Sync
-	__webpack_require__(206)(exports, module.exports);
+	__webpack_require__(210)(exports, module.exports);
 
 	// the least I can do is make error messages for the rest of the node.js/crypto api.
 	each(['createCredentials'
@@ -33100,11 +33504,11 @@
 	  }
 	})
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 185 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 189 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*!
 	 * The buffer module from node.js, for the browser.
@@ -33116,9 +33520,9 @@
 
 	'use strict'
 
-	var base64 = __webpack_require__(186)
-	var ieee754 = __webpack_require__(187)
-	var isArray = __webpack_require__(188)
+	var base64 = __webpack_require__(190)
+	var ieee754 = __webpack_require__(191)
+	var isArray = __webpack_require__(192)
 
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -34898,9 +35302,9 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
-/***/ },
-/* 186 */
-/***/ function(module, exports) {
+/***/ }),
+/* 190 */
+/***/ (function(module, exports) {
 
 	'use strict'
 
@@ -35018,9 +35422,9 @@
 	}
 
 
-/***/ },
-/* 187 */
-/***/ function(module, exports) {
+/***/ }),
+/* 191 */
+/***/ (function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 	  var e, m
@@ -35108,9 +35512,9 @@
 	}
 
 
-/***/ },
-/* 188 */
-/***/ function(module, exports) {
+/***/ }),
+/* 192 */
+/***/ (function(module, exports) {
 
 	var toString = {}.toString;
 
@@ -35119,14 +35523,14 @@
 	};
 
 
-/***/ },
-/* 189 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 193 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, Buffer) {(function() {
 	  var g = ('undefined' === typeof window ? global : window) || {}
 	  _crypto = (
-	    g.crypto || g.msCrypto || __webpack_require__(190)
+	    g.crypto || g.msCrypto || __webpack_require__(194)
 	  )
 	  module.exports = function(size) {
 	    // Modern Browsers
@@ -35150,22 +35554,22 @@
 	  }
 	}())
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(189).Buffer))
 
-/***/ },
-/* 190 */
-/***/ function(module, exports) {
+/***/ }),
+/* 194 */
+/***/ (function(module, exports) {
 
 	/* (ignored) */
 
-/***/ },
-/* 191 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 195 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(192)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(196)
 
-	var md5 = toConstructor(__webpack_require__(200))
-	var rmd160 = toConstructor(__webpack_require__(202))
+	var md5 = toConstructor(__webpack_require__(204))
+	var rmd160 = toConstructor(__webpack_require__(206))
 
 	function toConstructor (fn) {
 	  return function () {
@@ -35193,11 +35597,11 @@
 	  return createHash(alg)
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 192 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 196 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var exports = module.exports = function (alg) {
 	  var Alg = exports[alg]
@@ -35205,17 +35609,17 @@
 	  return new Alg()
 	}
 
-	var Buffer = __webpack_require__(185).Buffer
-	var Hash   = __webpack_require__(193)(Buffer)
+	var Buffer = __webpack_require__(189).Buffer
+	var Hash   = __webpack_require__(197)(Buffer)
 
-	exports.sha1 = __webpack_require__(194)(Buffer, Hash)
-	exports.sha256 = __webpack_require__(198)(Buffer, Hash)
-	exports.sha512 = __webpack_require__(199)(Buffer, Hash)
+	exports.sha1 = __webpack_require__(198)(Buffer, Hash)
+	exports.sha256 = __webpack_require__(202)(Buffer, Hash)
+	exports.sha512 = __webpack_require__(203)(Buffer, Hash)
 
 
-/***/ },
-/* 193 */
-/***/ function(module, exports) {
+/***/ }),
+/* 197 */
+/***/ (function(module, exports) {
 
 	module.exports = function (Buffer) {
 
@@ -35296,9 +35700,9 @@
 	}
 
 
-/***/ },
-/* 194 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 198 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/*
 	 * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -35309,7 +35713,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for details.
 	 */
 
-	var inherits = __webpack_require__(195).inherits
+	var inherits = __webpack_require__(199).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -35440,9 +35844,9 @@
 	}
 
 
-/***/ },
-/* 195 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 199 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
 	//
@@ -35969,7 +36373,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(196);
+	exports.isBuffer = __webpack_require__(200);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -36013,7 +36417,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(197);
+	exports.inherits = __webpack_require__(201);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -36033,9 +36437,9 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)))
 
-/***/ },
-/* 196 */
-/***/ function(module, exports) {
+/***/ }),
+/* 200 */
+/***/ (function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
 	  return arg && typeof arg === 'object'
@@ -36044,9 +36448,9 @@
 	    && typeof arg.readUInt8 === 'function';
 	}
 
-/***/ },
-/* 197 */
-/***/ function(module, exports) {
+/***/ }),
+/* 201 */
+/***/ (function(module, exports) {
 
 	if (typeof Object.create === 'function') {
 	  // implementation from standard node.js 'util' module
@@ -36073,9 +36477,9 @@
 	}
 
 
-/***/ },
-/* 198 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 202 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	
 	/**
@@ -36086,7 +36490,7 @@
 	 *
 	 */
 
-	var inherits = __webpack_require__(195).inherits
+	var inherits = __webpack_require__(199).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -36226,11 +36630,11 @@
 	}
 
 
-/***/ },
-/* 199 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 203 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var inherits = __webpack_require__(195).inherits
+	var inherits = __webpack_require__(199).inherits
 
 	module.exports = function (Buffer, Hash) {
 	  var K = [
@@ -36476,9 +36880,9 @@
 	}
 
 
-/***/ },
-/* 200 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 204 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/*
 	 * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -36489,7 +36893,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for more info.
 	 */
 
-	var helpers = __webpack_require__(201);
+	var helpers = __webpack_require__(205);
 
 	/*
 	 * Calculate the MD5 of an array of little-endian words, and a bit length
@@ -36637,9 +37041,9 @@
 	};
 
 
-/***/ },
-/* 201 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 205 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var intSize = 4;
 	var zeroBuffer = new Buffer(intSize); zeroBuffer.fill(0);
@@ -36676,11 +37080,11 @@
 
 	module.exports = { hash: hash };
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 202 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 206 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
 	module.exports = ripemd160
@@ -36888,13 +37292,13 @@
 
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 203 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 207 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(191)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(195)
 
 	var zeroBuffer = new Buffer(128)
 	zeroBuffer.fill(0)
@@ -36938,13 +37342,13 @@
 	}
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 204 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 208 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var pbkdf2Export = __webpack_require__(205)
+	var pbkdf2Export = __webpack_require__(209)
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {}
@@ -36958,9 +37362,9 @@
 	}
 
 
-/***/ },
-/* 205 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 209 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = function(crypto) {
 	  function pbkdf2(password, salt, iterations, keylen, digest, callback) {
@@ -37047,21 +37451,21 @@
 	  }
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 206 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 210 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {};
-	  var ciphers = __webpack_require__(207)(crypto);
+	  var ciphers = __webpack_require__(211)(crypto);
 	  exports.createCipher = ciphers.createCipher;
 	  exports.createCipheriv = ciphers.createCipheriv;
-	  var deciphers = __webpack_require__(241)(crypto);
+	  var deciphers = __webpack_require__(246)(crypto);
 	  exports.createDecipher = deciphers.createDecipher;
 	  exports.createDecipheriv = deciphers.createDecipheriv;
-	  var modes = __webpack_require__(232);
+	  var modes = __webpack_require__(237);
 	  function listCiphers () {
 	    return Object.keys(modes);
 	  }
@@ -37070,16 +37474,16 @@
 
 
 
-/***/ },
-/* 207 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 211 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
-	var Transform = __webpack_require__(209);
-	var inherits = __webpack_require__(212);
-	var modes = __webpack_require__(232);
-	var ebtk = __webpack_require__(233);
-	var StreamCipher = __webpack_require__(234);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(212);
+	var Transform = __webpack_require__(213);
+	var inherits = __webpack_require__(216);
+	var modes = __webpack_require__(237);
+	var ebtk = __webpack_require__(238);
+	var StreamCipher = __webpack_require__(239);
 	inherits(Cipher, Transform);
 	function Cipher(mode, key, iv) {
 	  if (!(this instanceof Cipher)) {
@@ -37140,11 +37544,11 @@
 	  return out;
 	};
 	var modelist = {
-	  ECB: __webpack_require__(235),
-	  CBC: __webpack_require__(236),
-	  CFB: __webpack_require__(238),
-	  OFB: __webpack_require__(239),
-	  CTR: __webpack_require__(240)
+	  ECB: __webpack_require__(240),
+	  CBC: __webpack_require__(241),
+	  CFB: __webpack_require__(243),
+	  OFB: __webpack_require__(244),
+	  CTR: __webpack_require__(245)
 	};
 	module.exports = function (crypto) {
 	  function createCipheriv(suite, password, iv) {
@@ -37183,11 +37587,11 @@
 	  };
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 208 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 212 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var uint_max = Math.pow(2, 32);
 	function fixup_uint32(x) {
@@ -37385,14 +37789,14 @@
 
 
 	  exports.AES = AES;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 209 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 213 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(210).Transform;
-	var inherits = __webpack_require__(212);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(214).Transform;
+	var inherits = __webpack_require__(216);
 
 	module.exports = CipherBase;
 	inherits(CipherBase, Transform);
@@ -37423,11 +37827,11 @@
 	  }
 	  return outData;
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 210 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 214 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
 	//
@@ -37452,15 +37856,15 @@
 
 	module.exports = Stream;
 
-	var EE = __webpack_require__(211).EventEmitter;
-	var inherits = __webpack_require__(212);
+	var EE = __webpack_require__(215).EventEmitter;
+	var inherits = __webpack_require__(216);
 
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(213);
-	Stream.Writable = __webpack_require__(228);
-	Stream.Duplex = __webpack_require__(229);
-	Stream.Transform = __webpack_require__(230);
-	Stream.PassThrough = __webpack_require__(231);
+	Stream.Readable = __webpack_require__(217);
+	Stream.Writable = __webpack_require__(233);
+	Stream.Duplex = __webpack_require__(234);
+	Stream.Transform = __webpack_require__(235);
+	Stream.PassThrough = __webpack_require__(236);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -37558,9 +37962,9 @@
 	};
 
 
-/***/ },
-/* 211 */
-/***/ function(module, exports) {
+/***/ }),
+/* 215 */
+/***/ (function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
 	//
@@ -37866,9 +38270,9 @@
 	}
 
 
-/***/ },
-/* 212 */
-/***/ function(module, exports) {
+/***/ }),
+/* 216 */
+/***/ (function(module, exports) {
 
 	if (typeof Object.create === 'function') {
 	  // implementation from standard node.js 'util' module
@@ -37895,43 +38299,33 @@
 	}
 
 
-/***/ },
-/* 213 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 217 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var Stream = (function (){
-	  try {
-	    return __webpack_require__(210); // hack to fix a circular dependency issue when used with browserify
-	  } catch(_){}
-	}());
-	exports = module.exports = __webpack_require__(214);
-	exports.Stream = Stream || exports;
+	exports = module.exports = __webpack_require__(218);
+	exports.Stream = exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(221);
-	exports.Duplex = __webpack_require__(220);
-	exports.Transform = __webpack_require__(226);
-	exports.PassThrough = __webpack_require__(227);
+	exports.Writable = __webpack_require__(226);
+	exports.Duplex = __webpack_require__(225);
+	exports.Transform = __webpack_require__(231);
+	exports.PassThrough = __webpack_require__(232);
 
-	if (!process.browser && process.env.READABLE_STREAM === 'disable' && Stream) {
-	  module.exports = Stream;
-	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ },
-/* 214 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 218 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
 	module.exports = Readable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(215);
+	var processNextTick = __webpack_require__(219);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(188);
+	var isArray = __webpack_require__(192);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -37941,7 +38335,7 @@
 	Readable.ReadableState = ReadableState;
 
 	/*<replacement>*/
-	var EE = __webpack_require__(211).EventEmitter;
+	var EE = __webpack_require__(215).EventEmitter;
 
 	var EElistenerCount = function (emitter, type) {
 	  return emitter.listeners(type).length;
@@ -37949,28 +38343,21 @@
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var Stream;
-	(function () {
-	  try {
-	    Stream = __webpack_require__(210);
-	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(211).EventEmitter;
-	  }
-	})();
+	var Stream = __webpack_require__(220);
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(185).Buffer;
+	var Buffer = __webpack_require__(189).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(221);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
-	util.inherits = __webpack_require__(212);
+	var util = __webpack_require__(222);
+	util.inherits = __webpack_require__(216);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(218);
+	var debugUtil = __webpack_require__(223);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -37979,10 +38366,12 @@
 	}
 	/*</replacement>*/
 
-	var BufferList = __webpack_require__(219);
+	var BufferList = __webpack_require__(224);
 	var StringDecoder;
 
 	util.inherits(Readable, Stream);
+
+	var kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
 
 	function prependListener(emitter, event, fn) {
 	  // Sadly this is not cacheable as some libraries bundle their own
@@ -37999,7 +38388,7 @@
 	}
 
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(225);
 
 	  options = options || {};
 
@@ -38016,7 +38405,7 @@
 	  this.highWaterMark = hwm || hwm === 0 ? hwm : defaultHwm;
 
 	  // cast to ints.
-	  this.highWaterMark = ~ ~this.highWaterMark;
+	  this.highWaterMark = ~~this.highWaterMark;
 
 	  // A linked list is used to store data chunks instead of an array because the
 	  // linked list can remove elements from the beginning faster than
@@ -38061,14 +38450,14 @@
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(225).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(230).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(225);
 
 	  if (!(this instanceof Readable)) return new Readable(options);
 
@@ -38171,7 +38560,7 @@
 
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(225).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(230).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -38708,10 +39097,9 @@
 	  }
 
 	  // proxy certain important events.
-	  var events = ['error', 'close', 'destroy', 'pause', 'resume'];
-	  forEach(events, function (ev) {
-	    stream.on(ev, self.emit.bind(self, ev));
-	  });
+	  for (var n = 0; n < kProxyEvents.length; n++) {
+	    stream.on(kProxyEvents[n], self.emit.bind(self, kProxyEvents[n]));
+	  }
 
 	  // when we try to consume some more bytes, simply unpause the
 	  // underlying stream.
@@ -38865,9 +39253,9 @@
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 215 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 219 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -38915,13 +39303,20 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
-/***/ },
-/* 216 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 220 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(215).EventEmitter;
+
+
+/***/ }),
+/* 221 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
-	var buffer = __webpack_require__(185);
+	var buffer = __webpack_require__(189);
 	var Buffer = buffer.Buffer;
 	var SlowBuffer = buffer.SlowBuffer;
 	var MAX_LEN = buffer.kMaxLength || 2147483647;
@@ -39030,9 +39425,9 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
-/***/ },
-/* 217 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 222 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
 	//
@@ -39142,23 +39537,23 @@
 	  return Object.prototype.toString.call(o);
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 218 */
-/***/ function(module, exports) {
+/***/ }),
+/* 223 */
+/***/ (function(module, exports) {
 
 	/* (ignored) */
 
-/***/ },
-/* 219 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 224 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Buffer = __webpack_require__(185).Buffer;
+	var Buffer = __webpack_require__(189).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(221);
 	/*</replacement>*/
 
 	module.exports = BufferList;
@@ -39219,9 +39614,9 @@
 	  return ret;
 	};
 
-/***/ },
-/* 220 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 225 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// a duplex stream is just a stream that is both readable and writable.
 	// Since JS doesn't have multiple prototypal inheritance, this class
@@ -39243,16 +39638,16 @@
 	module.exports = Duplex;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(215);
+	var processNextTick = __webpack_require__(219);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
-	util.inherits = __webpack_require__(212);
+	var util = __webpack_require__(222);
+	util.inherits = __webpack_require__(216);
 	/*</replacement>*/
 
-	var Readable = __webpack_require__(214);
-	var Writable = __webpack_require__(221);
+	var Readable = __webpack_require__(218);
+	var Writable = __webpack_require__(226);
 
 	util.inherits(Duplex, Readable);
 
@@ -39299,9 +39694,9 @@
 	  }
 	}
 
-/***/ },
-/* 221 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 226 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate) {// A bit simpler than readable streams.
 	// Implement an async ._write(chunk, encoding, cb), and it'll handle all
@@ -39312,7 +39707,7 @@
 	module.exports = Writable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(215);
+	var processNextTick = __webpack_require__(219);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -39326,30 +39721,23 @@
 	Writable.WritableState = WritableState;
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
-	util.inherits = __webpack_require__(212);
+	var util = __webpack_require__(222);
+	util.inherits = __webpack_require__(216);
 	/*</replacement>*/
 
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(224)
+	  deprecate: __webpack_require__(229)
 	};
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var Stream;
-	(function () {
-	  try {
-	    Stream = __webpack_require__(210);
-	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(211).EventEmitter;
-	  }
-	})();
+	var Stream = __webpack_require__(220);
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(185).Buffer;
+	var Buffer = __webpack_require__(189).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(216);
+	var bufferShim = __webpack_require__(221);
 	/*</replacement>*/
 
 	util.inherits(Writable, Stream);
@@ -39364,7 +39752,7 @@
 	}
 
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(225);
 
 	  options = options || {};
 
@@ -39382,7 +39770,7 @@
 	  this.highWaterMark = hwm || hwm === 0 ? hwm : defaultHwm;
 
 	  // cast to ints.
-	  this.highWaterMark = ~ ~this.highWaterMark;
+	  this.highWaterMark = ~~this.highWaterMark;
 
 	  // drain event flag.
 	  this.needDrain = false;
@@ -39498,7 +39886,7 @@
 	}
 
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(220);
+	  Duplex = Duplex || __webpack_require__(225);
 
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -39537,20 +39925,16 @@
 	  processNextTick(cb, er);
 	}
 
-	// If we get something that is not a buffer, string, null, or undefined,
-	// and we're not in objectMode, then that's an error.
-	// Otherwise stream chunks are all considered to be of length=1, and the
-	// watermarks determine how many objects to keep in the buffer, rather than
-	// how many bytes or characters.
+	// Checks that a user-supplied chunk is valid, especially for the particular
+	// mode the stream is in. Currently this means that `null` is never accepted
+	// and undefined/non-string values are only allowed in object mode.
 	function validChunk(stream, state, chunk, cb) {
 	  var valid = true;
 	  var er = false;
-	  // Always throw error if a null is written
-	  // if we are not in object mode then throw
-	  // if it is not a buffer, string, or undefined.
+
 	  if (chunk === null) {
 	    er = new TypeError('May not write null values to stream');
-	  } else if (!Buffer.isBuffer(chunk) && typeof chunk !== 'string' && chunk !== undefined && !state.objectMode) {
+	  } else if (typeof chunk !== 'string' && chunk !== undefined && !state.objectMode) {
 	    er = new TypeError('Invalid non-string/buffer chunk');
 	  }
 	  if (er) {
@@ -39564,19 +39948,20 @@
 	Writable.prototype.write = function (chunk, encoding, cb) {
 	  var state = this._writableState;
 	  var ret = false;
+	  var isBuf = Buffer.isBuffer(chunk);
 
 	  if (typeof encoding === 'function') {
 	    cb = encoding;
 	    encoding = null;
 	  }
 
-	  if (Buffer.isBuffer(chunk)) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
+	  if (isBuf) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
 
 	  if (typeof cb !== 'function') cb = nop;
 
-	  if (state.ended) writeAfterEnd(this, cb);else if (validChunk(this, state, chunk, cb)) {
+	  if (state.ended) writeAfterEnd(this, cb);else if (isBuf || validChunk(this, state, chunk, cb)) {
 	    state.pendingcb++;
-	    ret = writeOrBuffer(this, state, chunk, encoding, cb);
+	    ret = writeOrBuffer(this, state, isBuf, chunk, encoding, cb);
 	  }
 
 	  return ret;
@@ -39616,10 +40001,11 @@
 	// if we're already writing something, then just put this
 	// in the queue, and wait our turn.  Otherwise, call _write
 	// If we return false, then we need a drain event, so set that flag.
-	function writeOrBuffer(stream, state, chunk, encoding, cb) {
-	  chunk = decodeChunk(state, chunk, encoding);
-
-	  if (Buffer.isBuffer(chunk)) encoding = 'buffer';
+	function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
+	  if (!isBuf) {
+	    chunk = decodeChunk(state, chunk, encoding);
+	    if (Buffer.isBuffer(chunk)) encoding = 'buffer';
+	  }
 	  var len = state.objectMode ? 1 : chunk.length;
 
 	  state.length += len;
@@ -39688,8 +40074,8 @@
 	      asyncWrite(afterWrite, stream, state, finished, cb);
 	      /*</replacement>*/
 	    } else {
-	        afterWrite(stream, state, finished, cb);
-	      }
+	      afterWrite(stream, state, finished, cb);
+	    }
 	  }
 	}
 
@@ -39840,7 +40226,6 @@
 
 	  this.next = null;
 	  this.entry = null;
-
 	  this.finish = function (err) {
 	    var entry = _this.entry;
 	    _this.entry = null;
@@ -39857,11 +40242,11 @@
 	    }
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(222).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(227).setImmediate))
 
-/***/ },
-/* 222 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 227 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var apply = Function.prototype.apply;
 
@@ -39913,14 +40298,14 @@
 	};
 
 	// setimmediate attaches itself to the global object
-	__webpack_require__(223);
+	__webpack_require__(228);
 	exports.setImmediate = setImmediate;
 	exports.clearImmediate = clearImmediate;
 
 
-/***/ },
-/* 223 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 228 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
 	    "use strict";
@@ -40111,9 +40496,9 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)))
 
-/***/ },
-/* 224 */
-/***/ function(module, exports) {
+/***/ }),
+/* 229 */
+/***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
 	/**
@@ -40185,236 +40570,287 @@
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
-/***/ },
-/* 225 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 230 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	// Copyright Joyent, Inc. and other Node contributors.
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a
-	// copy of this software and associated documentation files (the
-	// "Software"), to deal in the Software without restriction, including
-	// without limitation the rights to use, copy, modify, merge, publish,
-	// distribute, sublicense, and/or sell copies of the Software, and to permit
-	// persons to whom the Software is furnished to do so, subject to the
-	// following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included
-	// in all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+	'use strict';
 
-	var Buffer = __webpack_require__(185).Buffer;
+	var Buffer = __webpack_require__(189).Buffer;
+	var bufferShim = __webpack_require__(221);
 
-	var isBufferEncoding = Buffer.isEncoding
-	  || function(encoding) {
-	       switch (encoding && encoding.toLowerCase()) {
-	         case 'hex': case 'utf8': case 'utf-8': case 'ascii': case 'binary': case 'base64': case 'ucs2': case 'ucs-2': case 'utf16le': case 'utf-16le': case 'raw': return true;
-	         default: return false;
-	       }
-	     }
-
-
-	function assertEncoding(encoding) {
-	  if (encoding && !isBufferEncoding(encoding)) {
-	    throw new Error('Unknown encoding: ' + encoding);
+	var isEncoding = Buffer.isEncoding || function (encoding) {
+	  encoding = '' + encoding;
+	  switch (encoding && encoding.toLowerCase()) {
+	    case 'hex':case 'utf8':case 'utf-8':case 'ascii':case 'binary':case 'base64':case 'ucs2':case 'ucs-2':case 'utf16le':case 'utf-16le':case 'raw':
+	      return true;
+	    default:
+	      return false;
 	  }
+	};
+
+	function _normalizeEncoding(enc) {
+	  if (!enc) return 'utf8';
+	  var retried;
+	  while (true) {
+	    switch (enc) {
+	      case 'utf8':
+	      case 'utf-8':
+	        return 'utf8';
+	      case 'ucs2':
+	      case 'ucs-2':
+	      case 'utf16le':
+	      case 'utf-16le':
+	        return 'utf16le';
+	      case 'latin1':
+	      case 'binary':
+	        return 'latin1';
+	      case 'base64':
+	      case 'ascii':
+	      case 'hex':
+	        return enc;
+	      default:
+	        if (retried) return; // undefined
+	        enc = ('' + enc).toLowerCase();
+	        retried = true;
+	    }
+	  }
+	};
+
+	// Do not cache `Buffer.isEncoding` when checking encoding names as some
+	// modules monkey-patch it to support additional encodings
+	function normalizeEncoding(enc) {
+	  var nenc = _normalizeEncoding(enc);
+	  if (typeof nenc !== 'string' && (Buffer.isEncoding === isEncoding || !isEncoding(enc))) throw new Error('Unknown encoding: ' + enc);
+	  return nenc || enc;
 	}
 
 	// StringDecoder provides an interface for efficiently splitting a series of
 	// buffers into a series of JS strings without breaking apart multi-byte
-	// characters. CESU-8 is handled as part of the UTF-8 encoding.
-	//
-	// @TODO Handling all encodings inside a single object makes it very difficult
-	// to reason about this code, so it should be split up in the future.
-	// @TODO There should be a utf8-strict encoding that rejects invalid UTF-8 code
-	// points as used by CESU-8.
-	var StringDecoder = exports.StringDecoder = function(encoding) {
-	  this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
-	  assertEncoding(encoding);
+	// characters.
+	exports.StringDecoder = StringDecoder;
+	function StringDecoder(encoding) {
+	  this.encoding = normalizeEncoding(encoding);
+	  var nb;
 	  switch (this.encoding) {
-	    case 'utf8':
-	      // CESU-8 represents each of Surrogate Pair by 3-bytes
-	      this.surrogateSize = 3;
-	      break;
-	    case 'ucs2':
 	    case 'utf16le':
-	      // UTF-16 represents each of Surrogate Pair by 2-bytes
-	      this.surrogateSize = 2;
-	      this.detectIncompleteChar = utf16DetectIncompleteChar;
+	      this.text = utf16Text;
+	      this.end = utf16End;
+	      nb = 4;
+	      break;
+	    case 'utf8':
+	      this.fillLast = utf8FillLast;
+	      nb = 4;
 	      break;
 	    case 'base64':
-	      // Base-64 stores 3 bytes in 4 chars, and pads the remainder.
-	      this.surrogateSize = 3;
-	      this.detectIncompleteChar = base64DetectIncompleteChar;
+	      this.text = base64Text;
+	      this.end = base64End;
+	      nb = 3;
 	      break;
 	    default:
-	      this.write = passThroughWrite;
+	      this.write = simpleWrite;
+	      this.end = simpleEnd;
 	      return;
 	  }
-
-	  // Enough space to store all bytes of a single character. UTF-8 needs 4
-	  // bytes, but CESU-8 may require up to 6 (3 bytes per surrogate).
-	  this.charBuffer = new Buffer(6);
-	  // Number of bytes received for the current incomplete multi-byte character.
-	  this.charReceived = 0;
-	  // Number of bytes expected for the current incomplete multi-byte character.
-	  this.charLength = 0;
-	};
-
-
-	// write decodes the given buffer and returns it as JS string that is
-	// guaranteed to not contain any partial multi-byte characters. Any partial
-	// character found at the end of the buffer is buffered up, and will be
-	// returned when calling write again with the remaining bytes.
-	//
-	// Note: Converting a Buffer containing an orphan surrogate to a String
-	// currently works, but converting a String to a Buffer (via `new Buffer`, or
-	// Buffer#write) will replace incomplete surrogates with the unicode
-	// replacement character. See https://codereview.chromium.org/121173009/ .
-	StringDecoder.prototype.write = function(buffer) {
-	  var charStr = '';
-	  // if our last write ended with an incomplete multibyte character
-	  while (this.charLength) {
-	    // determine how many remaining bytes this buffer has to offer for this char
-	    var available = (buffer.length >= this.charLength - this.charReceived) ?
-	        this.charLength - this.charReceived :
-	        buffer.length;
-
-	    // add the new bytes to the char buffer
-	    buffer.copy(this.charBuffer, this.charReceived, 0, available);
-	    this.charReceived += available;
-
-	    if (this.charReceived < this.charLength) {
-	      // still not enough chars in this buffer? wait for more ...
-	      return '';
-	    }
-
-	    // remove bytes belonging to the current character from the buffer
-	    buffer = buffer.slice(available, buffer.length);
-
-	    // get the character that was split
-	    charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
-
-	    // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
-	    var charCode = charStr.charCodeAt(charStr.length - 1);
-	    if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-	      this.charLength += this.surrogateSize;
-	      charStr = '';
-	      continue;
-	    }
-	    this.charReceived = this.charLength = 0;
-
-	    // if there are no more bytes in this buffer, just emit our char
-	    if (buffer.length === 0) {
-	      return charStr;
-	    }
-	    break;
-	  }
-
-	  // determine and set charLength / charReceived
-	  this.detectIncompleteChar(buffer);
-
-	  var end = buffer.length;
-	  if (this.charLength) {
-	    // buffer the incomplete character bytes we got
-	    buffer.copy(this.charBuffer, 0, buffer.length - this.charReceived, end);
-	    end -= this.charReceived;
-	  }
-
-	  charStr += buffer.toString(this.encoding, 0, end);
-
-	  var end = charStr.length - 1;
-	  var charCode = charStr.charCodeAt(end);
-	  // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
-	  if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-	    var size = this.surrogateSize;
-	    this.charLength += size;
-	    this.charReceived += size;
-	    this.charBuffer.copy(this.charBuffer, size, 0, size);
-	    buffer.copy(this.charBuffer, 0, 0, size);
-	    return charStr.substring(0, end);
-	  }
-
-	  // or just emit the charStr
-	  return charStr;
-	};
-
-	// detectIncompleteChar determines if there is an incomplete UTF-8 character at
-	// the end of the given buffer. If so, it sets this.charLength to the byte
-	// length that character, and sets this.charReceived to the number of bytes
-	// that are available for this character.
-	StringDecoder.prototype.detectIncompleteChar = function(buffer) {
-	  // determine how many bytes we have to check at the end of this buffer
-	  var i = (buffer.length >= 3) ? 3 : buffer.length;
-
-	  // Figure out if one of the last i bytes of our buffer announces an
-	  // incomplete char.
-	  for (; i > 0; i--) {
-	    var c = buffer[buffer.length - i];
-
-	    // See http://en.wikipedia.org/wiki/UTF-8#Description
-
-	    // 110XXXXX
-	    if (i == 1 && c >> 5 == 0x06) {
-	      this.charLength = 2;
-	      break;
-	    }
-
-	    // 1110XXXX
-	    if (i <= 2 && c >> 4 == 0x0E) {
-	      this.charLength = 3;
-	      break;
-	    }
-
-	    // 11110XXX
-	    if (i <= 3 && c >> 3 == 0x1E) {
-	      this.charLength = 4;
-	      break;
-	    }
-	  }
-	  this.charReceived = i;
-	};
-
-	StringDecoder.prototype.end = function(buffer) {
-	  var res = '';
-	  if (buffer && buffer.length)
-	    res = this.write(buffer);
-
-	  if (this.charReceived) {
-	    var cr = this.charReceived;
-	    var buf = this.charBuffer;
-	    var enc = this.encoding;
-	    res += buf.slice(0, cr).toString(enc);
-	  }
-
-	  return res;
-	};
-
-	function passThroughWrite(buffer) {
-	  return buffer.toString(this.encoding);
+	  this.lastNeed = 0;
+	  this.lastTotal = 0;
+	  this.lastChar = bufferShim.allocUnsafe(nb);
 	}
 
-	function utf16DetectIncompleteChar(buffer) {
-	  this.charReceived = buffer.length % 2;
-	  this.charLength = this.charReceived ? 2 : 0;
+	StringDecoder.prototype.write = function (buf) {
+	  if (buf.length === 0) return '';
+	  var r;
+	  var i;
+	  if (this.lastNeed) {
+	    r = this.fillLast(buf);
+	    if (r === undefined) return '';
+	    i = this.lastNeed;
+	    this.lastNeed = 0;
+	  } else {
+	    i = 0;
+	  }
+	  if (i < buf.length) return r ? r + this.text(buf, i) : this.text(buf, i);
+	  return r || '';
+	};
+
+	StringDecoder.prototype.end = utf8End;
+
+	// Returns only complete characters in a Buffer
+	StringDecoder.prototype.text = utf8Text;
+
+	// Attempts to complete a partial non-UTF-8 character using bytes from a Buffer
+	StringDecoder.prototype.fillLast = function (buf) {
+	  if (this.lastNeed <= buf.length) {
+	    buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, this.lastNeed);
+	    return this.lastChar.toString(this.encoding, 0, this.lastTotal);
+	  }
+	  buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, buf.length);
+	  this.lastNeed -= buf.length;
+	};
+
+	// Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
+	// continuation byte.
+	function utf8CheckByte(byte) {
+	  if (byte <= 0x7F) return 0;else if (byte >> 5 === 0x06) return 2;else if (byte >> 4 === 0x0E) return 3;else if (byte >> 3 === 0x1E) return 4;
+	  return -1;
 	}
 
-	function base64DetectIncompleteChar(buffer) {
-	  this.charReceived = buffer.length % 3;
-	  this.charLength = this.charReceived ? 3 : 0;
+	// Checks at most 3 bytes at the end of a Buffer in order to detect an
+	// incomplete multi-byte UTF-8 character. The total number of bytes (2, 3, or 4)
+	// needed to complete the UTF-8 character (if applicable) are returned.
+	function utf8CheckIncomplete(self, buf, i) {
+	  var j = buf.length - 1;
+	  if (j < i) return 0;
+	  var nb = utf8CheckByte(buf[j]);
+	  if (nb >= 0) {
+	    if (nb > 0) self.lastNeed = nb - 1;
+	    return nb;
+	  }
+	  if (--j < i) return 0;
+	  nb = utf8CheckByte(buf[j]);
+	  if (nb >= 0) {
+	    if (nb > 0) self.lastNeed = nb - 2;
+	    return nb;
+	  }
+	  if (--j < i) return 0;
+	  nb = utf8CheckByte(buf[j]);
+	  if (nb >= 0) {
+	    if (nb > 0) {
+	      if (nb === 2) nb = 0;else self.lastNeed = nb - 3;
+	    }
+	    return nb;
+	  }
+	  return 0;
 	}
 
+	// Validates as many continuation bytes for a multi-byte UTF-8 character as
+	// needed or are available. If we see a non-continuation byte where we expect
+	// one, we "replace" the validated continuation bytes we've seen so far with
+	// UTF-8 replacement characters ('\ufffd'), to match v8's UTF-8 decoding
+	// behavior. The continuation byte check is included three times in the case
+	// where all of the continuation bytes for a character exist in the same buffer.
+	// It is also done this way as a slight performance increase instead of using a
+	// loop.
+	function utf8CheckExtraBytes(self, buf, p) {
+	  if ((buf[0] & 0xC0) !== 0x80) {
+	    self.lastNeed = 0;
+	    return '\ufffd'.repeat(p);
+	  }
+	  if (self.lastNeed > 1 && buf.length > 1) {
+	    if ((buf[1] & 0xC0) !== 0x80) {
+	      self.lastNeed = 1;
+	      return '\ufffd'.repeat(p + 1);
+	    }
+	    if (self.lastNeed > 2 && buf.length > 2) {
+	      if ((buf[2] & 0xC0) !== 0x80) {
+	        self.lastNeed = 2;
+	        return '\ufffd'.repeat(p + 2);
+	      }
+	    }
+	  }
+	}
 
-/***/ },
-/* 226 */
-/***/ function(module, exports, __webpack_require__) {
+	// Attempts to complete a multi-byte UTF-8 character using bytes from a Buffer.
+	function utf8FillLast(buf) {
+	  var p = this.lastTotal - this.lastNeed;
+	  var r = utf8CheckExtraBytes(this, buf, p);
+	  if (r !== undefined) return r;
+	  if (this.lastNeed <= buf.length) {
+	    buf.copy(this.lastChar, p, 0, this.lastNeed);
+	    return this.lastChar.toString(this.encoding, 0, this.lastTotal);
+	  }
+	  buf.copy(this.lastChar, p, 0, buf.length);
+	  this.lastNeed -= buf.length;
+	}
+
+	// Returns all complete UTF-8 characters in a Buffer. If the Buffer ended on a
+	// partial character, the character's bytes are buffered until the required
+	// number of bytes are available.
+	function utf8Text(buf, i) {
+	  var total = utf8CheckIncomplete(this, buf, i);
+	  if (!this.lastNeed) return buf.toString('utf8', i);
+	  this.lastTotal = total;
+	  var end = buf.length - (total - this.lastNeed);
+	  buf.copy(this.lastChar, 0, end);
+	  return buf.toString('utf8', i, end);
+	}
+
+	// For UTF-8, a replacement character for each buffered byte of a (partial)
+	// character needs to be added to the output.
+	function utf8End(buf) {
+	  var r = buf && buf.length ? this.write(buf) : '';
+	  if (this.lastNeed) return r + '\ufffd'.repeat(this.lastTotal - this.lastNeed);
+	  return r;
+	}
+
+	// UTF-16LE typically needs two bytes per character, but even if we have an even
+	// number of bytes available, we need to check if we end on a leading/high
+	// surrogate. In that case, we need to wait for the next two bytes in order to
+	// decode the last character properly.
+	function utf16Text(buf, i) {
+	  if ((buf.length - i) % 2 === 0) {
+	    var r = buf.toString('utf16le', i);
+	    if (r) {
+	      var c = r.charCodeAt(r.length - 1);
+	      if (c >= 0xD800 && c <= 0xDBFF) {
+	        this.lastNeed = 2;
+	        this.lastTotal = 4;
+	        this.lastChar[0] = buf[buf.length - 2];
+	        this.lastChar[1] = buf[buf.length - 1];
+	        return r.slice(0, -1);
+	      }
+	    }
+	    return r;
+	  }
+	  this.lastNeed = 1;
+	  this.lastTotal = 2;
+	  this.lastChar[0] = buf[buf.length - 1];
+	  return buf.toString('utf16le', i, buf.length - 1);
+	}
+
+	// For UTF-16LE we do not explicitly append special replacement characters if we
+	// end on a partial character, we simply let v8 handle that.
+	function utf16End(buf) {
+	  var r = buf && buf.length ? this.write(buf) : '';
+	  if (this.lastNeed) {
+	    var end = this.lastTotal - this.lastNeed;
+	    return r + this.lastChar.toString('utf16le', 0, end);
+	  }
+	  return r;
+	}
+
+	function base64Text(buf, i) {
+	  var n = (buf.length - i) % 3;
+	  if (n === 0) return buf.toString('base64', i);
+	  this.lastNeed = 3 - n;
+	  this.lastTotal = 3;
+	  if (n === 1) {
+	    this.lastChar[0] = buf[buf.length - 1];
+	  } else {
+	    this.lastChar[0] = buf[buf.length - 2];
+	    this.lastChar[1] = buf[buf.length - 1];
+	  }
+	  return buf.toString('base64', i, buf.length - n);
+	}
+
+	function base64End(buf) {
+	  var r = buf && buf.length ? this.write(buf) : '';
+	  if (this.lastNeed) return r + this.lastChar.toString('base64', 0, 3 - this.lastNeed);
+	  return r;
+	}
+
+	// Pass bytes on through for single-byte encodings (e.g. ascii, latin1, hex)
+	function simpleWrite(buf) {
+	  return buf.toString(this.encoding);
+	}
+
+	function simpleEnd(buf) {
+	  return buf && buf.length ? this.write(buf) : '';
+	}
+
+/***/ }),
+/* 231 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// a transform stream is a readable/writable stream where you do
 	// something with the data.  Sometimes it's called a "filter",
@@ -40462,11 +40898,11 @@
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(220);
+	var Duplex = __webpack_require__(225);
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
-	util.inherits = __webpack_require__(212);
+	var util = __webpack_require__(222);
+	util.inherits = __webpack_require__(216);
 	/*</replacement>*/
 
 	util.inherits(Transform, Duplex);
@@ -40599,9 +41035,9 @@
 	  return stream.push(null);
 	}
 
-/***/ },
-/* 227 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 232 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// a passthrough stream.
 	// basically just the most minimal sort of Transform stream.
@@ -40611,11 +41047,11 @@
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(226);
+	var Transform = __webpack_require__(231);
 
 	/*<replacement>*/
-	var util = __webpack_require__(217);
-	util.inherits = __webpack_require__(212);
+	var util = __webpack_require__(222);
+	util.inherits = __webpack_require__(216);
 	/*</replacement>*/
 
 	util.inherits(PassThrough, Transform);
@@ -40630,37 +41066,37 @@
 	  cb(null, chunk);
 	};
 
-/***/ },
-/* 228 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 233 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(221)
-
-
-/***/ },
-/* 229 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(220)
+	module.exports = __webpack_require__(226);
 
 
-/***/ },
-/* 230 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 234 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(226)
-
-
-/***/ },
-/* 231 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(227)
+	module.exports = __webpack_require__(225);
 
 
-/***/ },
-/* 232 */
-/***/ function(module, exports) {
+/***/ }),
+/* 235 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(217).Transform
+
+
+/***/ }),
+/* 236 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(217).PassThrough
+
+
+/***/ }),
+/* 237 */
+/***/ (function(module, exports) {
 
 	exports['aes-128-ecb'] = {
 	  cipher: 'AES',
@@ -40771,9 +41207,9 @@
 	  type: 'stream'
 	};
 
-/***/ },
-/* 233 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 238 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
 	module.exports = function (crypto, password, keyLen, ivLen) {
@@ -40832,15 +41268,15 @@
 	    iv: iv
 	  };
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 234 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 239 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
-	var Transform = __webpack_require__(209);
-	var inherits = __webpack_require__(212);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(212);
+	var Transform = __webpack_require__(213);
+	var inherits = __webpack_require__(216);
 
 	inherits(StreamCipher, Transform);
 	module.exports = StreamCipher;
@@ -40864,11 +41300,11 @@
 	  this._cipher.scrub();
 	  next();
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 235 */
-/***/ function(module, exports) {
+/***/ }),
+/* 240 */
+/***/ (function(module, exports) {
 
 	exports.encrypt = function (self, block) {
 	  return self._cipher.encryptBlock(block);
@@ -40877,11 +41313,11 @@
 	  return self._cipher.decryptBlock(block);
 	};
 
-/***/ },
-/* 236 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 241 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var xor = __webpack_require__(237);
+	var xor = __webpack_require__(242);
 	exports.encrypt = function (self, block) {
 	  var data = xor(block, self._prev);
 	  self._prev = self._cipher.encryptBlock(data);
@@ -40894,9 +41330,9 @@
 	  return xor(out, pad);
 	};
 
-/***/ },
-/* 237 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 242 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = xor;
 	function xor(a, b) {
@@ -40908,13 +41344,13 @@
 	  }
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 238 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 243 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(242);
 	exports.encrypt = function (self, data, decrypt) {
 	  var out = new Buffer('');
 	  var len;
@@ -40941,13 +41377,13 @@
 	  self._prev = Buffer.concat([self._prev, decrypt?data:out]);
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 239 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 244 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(242);
 	function getBlock(self) {
 	  self._prev = self._cipher.encryptBlock(self._prev);
 	  return self._prev;
@@ -40960,13 +41396,13 @@
 	  self._cache = self._cache.slice(chunk.length);
 	  return xor(chunk, pad);
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 240 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 245 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(237);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(242);
 	function getBlock(self) {
 	  var out = self._cipher.encryptBlock(self._prev);
 	  incr32(self._prev);
@@ -40994,18 +41430,18 @@
 	    }
 	  }
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 241 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 246 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(208);
-	var Transform = __webpack_require__(209);
-	var inherits = __webpack_require__(212);
-	var modes = __webpack_require__(232);
-	var StreamCipher = __webpack_require__(234);
-	var ebtk = __webpack_require__(233);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(212);
+	var Transform = __webpack_require__(213);
+	var inherits = __webpack_require__(216);
+	var modes = __webpack_require__(237);
+	var StreamCipher = __webpack_require__(239);
+	var ebtk = __webpack_require__(238);
 
 	inherits(Decipher, Transform);
 	function Decipher(mode, key, iv) {
@@ -41073,11 +41509,11 @@
 	}
 
 	var modelist = {
-	  ECB: __webpack_require__(235),
-	  CBC: __webpack_require__(236),
-	  CFB: __webpack_require__(238),
-	  OFB: __webpack_require__(239),
-	  CTR: __webpack_require__(240)
+	  ECB: __webpack_require__(240),
+	  CBC: __webpack_require__(241),
+	  CFB: __webpack_require__(243),
+	  OFB: __webpack_require__(244),
+	  CTR: __webpack_require__(245)
 	};
 
 	module.exports = function (crypto) {
@@ -41118,11 +41554,11 @@
 	  };
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(185).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(189).Buffer))
 
-/***/ },
-/* 242 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 247 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, global, setImmediate) {/* @preserve
 	 * The MIT License (MIT)
@@ -46600,11 +47036,11 @@
 
 	},{"./es5":13}]},{},[4])(4)
 	});                    ;if (typeof window !== 'undefined' && window !== null) {                               window.P = window.Promise;                                                     } else if (typeof self !== 'undefined' && self !== null) {                             self.P = self.Promise;                                                         }
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }()), __webpack_require__(222).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }()), __webpack_require__(227).setImmediate))
 
-/***/ },
-/* 243 */
-/***/ function(module, exports) {
+/***/ }),
+/* 248 */
+/***/ (function(module, exports) {
 
 	"use strict";
 
@@ -46748,9 +47184,9 @@
 	    }
 	};
 
-/***/ },
-/* 244 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 249 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
 	    if (true) {
@@ -46838,9 +47274,9 @@
 	}));
 
 
-/***/ },
-/* 245 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 250 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {//! moment.js
 	//! version : 2.13.0
@@ -47240,7 +47676,7 @@
 	                module && module.exports) {
 	            try {
 	                oldLocale = globalLocale._abbr;
-	                __webpack_require__(247)("./" + name);
+	                __webpack_require__(252)("./" + name);
 	                // because defineLocale currently also sets the global locale, we
 	                // want to undo that for lazy loaded locales
 	                locale_locales__getSetGlobalLocale(oldLocale);
@@ -50882,11 +51318,11 @@
 	    return _moment;
 
 	}));
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(246)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(251)(module)))
 
-/***/ },
-/* 246 */
-/***/ function(module, exports) {
+/***/ }),
+/* 251 */
+/***/ (function(module, exports) {
 
 	module.exports = function(module) {
 		if(!module.webpackPolyfill) {
@@ -50900,211 +51336,211 @@
 	}
 
 
-/***/ },
-/* 247 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 252 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./af": 248,
-		"./af.js": 248,
-		"./ar": 249,
-		"./ar-ma": 250,
-		"./ar-ma.js": 250,
-		"./ar-sa": 251,
-		"./ar-sa.js": 251,
-		"./ar-tn": 252,
-		"./ar-tn.js": 252,
-		"./ar.js": 249,
-		"./az": 253,
-		"./az.js": 253,
-		"./be": 254,
-		"./be.js": 254,
-		"./bg": 255,
-		"./bg.js": 255,
-		"./bn": 256,
-		"./bn.js": 256,
-		"./bo": 257,
-		"./bo.js": 257,
-		"./br": 258,
-		"./br.js": 258,
-		"./bs": 259,
-		"./bs.js": 259,
-		"./ca": 260,
-		"./ca.js": 260,
-		"./cs": 261,
-		"./cs.js": 261,
-		"./cv": 262,
-		"./cv.js": 262,
-		"./cy": 263,
-		"./cy.js": 263,
-		"./da": 264,
-		"./da.js": 264,
-		"./de": 265,
-		"./de-at": 266,
-		"./de-at.js": 266,
-		"./de.js": 265,
-		"./dv": 267,
-		"./dv.js": 267,
-		"./el": 268,
-		"./el.js": 268,
-		"./en-au": 269,
-		"./en-au.js": 269,
-		"./en-ca": 270,
-		"./en-ca.js": 270,
-		"./en-gb": 271,
-		"./en-gb.js": 271,
-		"./en-ie": 272,
-		"./en-ie.js": 272,
-		"./en-nz": 273,
-		"./en-nz.js": 273,
-		"./eo": 274,
-		"./eo.js": 274,
-		"./es": 275,
-		"./es.js": 275,
-		"./et": 276,
-		"./et.js": 276,
-		"./eu": 277,
-		"./eu.js": 277,
-		"./fa": 278,
-		"./fa.js": 278,
-		"./fi": 279,
-		"./fi.js": 279,
-		"./fo": 280,
-		"./fo.js": 280,
-		"./fr": 281,
-		"./fr-ca": 282,
-		"./fr-ca.js": 282,
-		"./fr-ch": 283,
-		"./fr-ch.js": 283,
-		"./fr.js": 281,
-		"./fy": 284,
-		"./fy.js": 284,
-		"./gd": 285,
-		"./gd.js": 285,
-		"./gl": 286,
-		"./gl.js": 286,
-		"./he": 287,
-		"./he.js": 287,
-		"./hi": 288,
-		"./hi.js": 288,
-		"./hr": 289,
-		"./hr.js": 289,
-		"./hu": 290,
-		"./hu.js": 290,
-		"./hy-am": 291,
-		"./hy-am.js": 291,
-		"./id": 292,
-		"./id.js": 292,
-		"./is": 293,
-		"./is.js": 293,
-		"./it": 294,
-		"./it.js": 294,
-		"./ja": 295,
-		"./ja.js": 295,
-		"./jv": 296,
-		"./jv.js": 296,
-		"./ka": 297,
-		"./ka.js": 297,
-		"./kk": 298,
-		"./kk.js": 298,
-		"./km": 299,
-		"./km.js": 299,
-		"./ko": 300,
-		"./ko.js": 300,
-		"./ky": 301,
-		"./ky.js": 301,
-		"./lb": 302,
-		"./lb.js": 302,
-		"./lo": 303,
-		"./lo.js": 303,
-		"./lt": 304,
-		"./lt.js": 304,
-		"./lv": 305,
-		"./lv.js": 305,
-		"./me": 306,
-		"./me.js": 306,
-		"./mk": 307,
-		"./mk.js": 307,
-		"./ml": 308,
-		"./ml.js": 308,
-		"./mr": 309,
-		"./mr.js": 309,
-		"./ms": 310,
-		"./ms-my": 311,
-		"./ms-my.js": 311,
-		"./ms.js": 310,
-		"./my": 312,
-		"./my.js": 312,
-		"./nb": 313,
-		"./nb.js": 313,
-		"./ne": 314,
-		"./ne.js": 314,
-		"./nl": 315,
-		"./nl.js": 315,
-		"./nn": 316,
-		"./nn.js": 316,
-		"./pa-in": 317,
-		"./pa-in.js": 317,
-		"./pl": 318,
-		"./pl.js": 318,
-		"./pt": 319,
-		"./pt-br": 320,
-		"./pt-br.js": 320,
-		"./pt.js": 319,
-		"./ro": 321,
-		"./ro.js": 321,
-		"./ru": 322,
-		"./ru.js": 322,
-		"./se": 323,
-		"./se.js": 323,
-		"./si": 324,
-		"./si.js": 324,
-		"./sk": 325,
-		"./sk.js": 325,
-		"./sl": 326,
-		"./sl.js": 326,
-		"./sq": 327,
-		"./sq.js": 327,
-		"./sr": 328,
-		"./sr-cyrl": 329,
-		"./sr-cyrl.js": 329,
-		"./sr.js": 328,
-		"./ss": 330,
-		"./ss.js": 330,
-		"./sv": 331,
-		"./sv.js": 331,
-		"./sw": 332,
-		"./sw.js": 332,
-		"./ta": 333,
-		"./ta.js": 333,
-		"./te": 334,
-		"./te.js": 334,
-		"./th": 335,
-		"./th.js": 335,
-		"./tl-ph": 336,
-		"./tl-ph.js": 336,
-		"./tlh": 337,
-		"./tlh.js": 337,
-		"./tr": 338,
-		"./tr.js": 338,
-		"./tzl": 339,
-		"./tzl.js": 339,
-		"./tzm": 340,
-		"./tzm-latn": 341,
-		"./tzm-latn.js": 341,
-		"./tzm.js": 340,
-		"./uk": 342,
-		"./uk.js": 342,
-		"./uz": 343,
-		"./uz.js": 343,
-		"./vi": 344,
-		"./vi.js": 344,
-		"./x-pseudo": 345,
-		"./x-pseudo.js": 345,
-		"./zh-cn": 346,
-		"./zh-cn.js": 346,
-		"./zh-tw": 347,
-		"./zh-tw.js": 347
+		"./af": 253,
+		"./af.js": 253,
+		"./ar": 254,
+		"./ar-ma": 255,
+		"./ar-ma.js": 255,
+		"./ar-sa": 256,
+		"./ar-sa.js": 256,
+		"./ar-tn": 257,
+		"./ar-tn.js": 257,
+		"./ar.js": 254,
+		"./az": 258,
+		"./az.js": 258,
+		"./be": 259,
+		"./be.js": 259,
+		"./bg": 260,
+		"./bg.js": 260,
+		"./bn": 261,
+		"./bn.js": 261,
+		"./bo": 262,
+		"./bo.js": 262,
+		"./br": 263,
+		"./br.js": 263,
+		"./bs": 264,
+		"./bs.js": 264,
+		"./ca": 265,
+		"./ca.js": 265,
+		"./cs": 266,
+		"./cs.js": 266,
+		"./cv": 267,
+		"./cv.js": 267,
+		"./cy": 268,
+		"./cy.js": 268,
+		"./da": 269,
+		"./da.js": 269,
+		"./de": 270,
+		"./de-at": 271,
+		"./de-at.js": 271,
+		"./de.js": 270,
+		"./dv": 272,
+		"./dv.js": 272,
+		"./el": 273,
+		"./el.js": 273,
+		"./en-au": 274,
+		"./en-au.js": 274,
+		"./en-ca": 275,
+		"./en-ca.js": 275,
+		"./en-gb": 276,
+		"./en-gb.js": 276,
+		"./en-ie": 277,
+		"./en-ie.js": 277,
+		"./en-nz": 278,
+		"./en-nz.js": 278,
+		"./eo": 279,
+		"./eo.js": 279,
+		"./es": 280,
+		"./es.js": 280,
+		"./et": 281,
+		"./et.js": 281,
+		"./eu": 282,
+		"./eu.js": 282,
+		"./fa": 283,
+		"./fa.js": 283,
+		"./fi": 284,
+		"./fi.js": 284,
+		"./fo": 285,
+		"./fo.js": 285,
+		"./fr": 286,
+		"./fr-ca": 287,
+		"./fr-ca.js": 287,
+		"./fr-ch": 288,
+		"./fr-ch.js": 288,
+		"./fr.js": 286,
+		"./fy": 289,
+		"./fy.js": 289,
+		"./gd": 290,
+		"./gd.js": 290,
+		"./gl": 291,
+		"./gl.js": 291,
+		"./he": 292,
+		"./he.js": 292,
+		"./hi": 293,
+		"./hi.js": 293,
+		"./hr": 294,
+		"./hr.js": 294,
+		"./hu": 295,
+		"./hu.js": 295,
+		"./hy-am": 296,
+		"./hy-am.js": 296,
+		"./id": 297,
+		"./id.js": 297,
+		"./is": 298,
+		"./is.js": 298,
+		"./it": 299,
+		"./it.js": 299,
+		"./ja": 300,
+		"./ja.js": 300,
+		"./jv": 301,
+		"./jv.js": 301,
+		"./ka": 302,
+		"./ka.js": 302,
+		"./kk": 303,
+		"./kk.js": 303,
+		"./km": 304,
+		"./km.js": 304,
+		"./ko": 305,
+		"./ko.js": 305,
+		"./ky": 306,
+		"./ky.js": 306,
+		"./lb": 307,
+		"./lb.js": 307,
+		"./lo": 308,
+		"./lo.js": 308,
+		"./lt": 309,
+		"./lt.js": 309,
+		"./lv": 310,
+		"./lv.js": 310,
+		"./me": 311,
+		"./me.js": 311,
+		"./mk": 312,
+		"./mk.js": 312,
+		"./ml": 313,
+		"./ml.js": 313,
+		"./mr": 314,
+		"./mr.js": 314,
+		"./ms": 315,
+		"./ms-my": 316,
+		"./ms-my.js": 316,
+		"./ms.js": 315,
+		"./my": 317,
+		"./my.js": 317,
+		"./nb": 318,
+		"./nb.js": 318,
+		"./ne": 319,
+		"./ne.js": 319,
+		"./nl": 320,
+		"./nl.js": 320,
+		"./nn": 321,
+		"./nn.js": 321,
+		"./pa-in": 322,
+		"./pa-in.js": 322,
+		"./pl": 323,
+		"./pl.js": 323,
+		"./pt": 324,
+		"./pt-br": 325,
+		"./pt-br.js": 325,
+		"./pt.js": 324,
+		"./ro": 326,
+		"./ro.js": 326,
+		"./ru": 327,
+		"./ru.js": 327,
+		"./se": 328,
+		"./se.js": 328,
+		"./si": 329,
+		"./si.js": 329,
+		"./sk": 330,
+		"./sk.js": 330,
+		"./sl": 331,
+		"./sl.js": 331,
+		"./sq": 332,
+		"./sq.js": 332,
+		"./sr": 333,
+		"./sr-cyrl": 334,
+		"./sr-cyrl.js": 334,
+		"./sr.js": 333,
+		"./ss": 335,
+		"./ss.js": 335,
+		"./sv": 336,
+		"./sv.js": 336,
+		"./sw": 337,
+		"./sw.js": 337,
+		"./ta": 338,
+		"./ta.js": 338,
+		"./te": 339,
+		"./te.js": 339,
+		"./th": 340,
+		"./th.js": 340,
+		"./tl-ph": 341,
+		"./tl-ph.js": 341,
+		"./tlh": 342,
+		"./tlh.js": 342,
+		"./tr": 343,
+		"./tr.js": 343,
+		"./tzl": 344,
+		"./tzl.js": 344,
+		"./tzm": 345,
+		"./tzm-latn": 346,
+		"./tzm-latn.js": 346,
+		"./tzm.js": 345,
+		"./uk": 347,
+		"./uk.js": 347,
+		"./uz": 348,
+		"./uz.js": 348,
+		"./vi": 349,
+		"./vi.js": 349,
+		"./x-pseudo": 350,
+		"./x-pseudo.js": 350,
+		"./zh-cn": 351,
+		"./zh-cn.js": 351,
+		"./zh-tw": 352,
+		"./zh-tw.js": 352
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -51117,19 +51553,19 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 247;
+	webpackContext.id = 252;
 
 
-/***/ },
-/* 248 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 253 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : afrikaans (af)
 	//! author : Werner Mollentze : https://github.com/wernerm
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51197,9 +51633,9 @@
 
 	}));
 
-/***/ },
-/* 249 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 254 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! Locale: Arabic (ar)
@@ -51208,7 +51644,7 @@
 	//! Native plural forms: forabi https://github.com/forabi
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51338,9 +51774,9 @@
 
 	}));
 
-/***/ },
-/* 250 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 255 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Moroccan Arabic (ar-ma)
@@ -51348,7 +51784,7 @@
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51402,16 +51838,16 @@
 
 	}));
 
-/***/ },
-/* 251 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 256 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Arabic Saudi Arabia (ar-sa)
 	//! author : Suhail Alkowaileet : https://github.com/xsoh
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51510,15 +51946,15 @@
 
 	}));
 
-/***/ },
-/* 252 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 257 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale  : Tunisian Arabic (ar-tn)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51572,16 +52008,16 @@
 
 	}));
 
-/***/ },
-/* 253 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 258 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : azerbaijani (az)
 	//! author : topchiyev : https://github.com/topchiyev
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51681,9 +52117,9 @@
 
 	}));
 
-/***/ },
-/* 254 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 259 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : belarusian (be)
@@ -51692,7 +52128,7 @@
 	//! Author : Menelion Elensúle : https://github.com/Oire
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51819,16 +52255,16 @@
 
 	}));
 
-/***/ },
-/* 255 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 260 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : bulgarian (bg)
 	//! author : Krasen Borisov : https://github.com/kraz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -51913,16 +52349,16 @@
 
 	}));
 
-/***/ },
-/* 256 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 261 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Bengali (bn)
 	//! author : Kaushik Gandhi : https://github.com/kaushikgandhi
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52036,16 +52472,16 @@
 
 	}));
 
-/***/ },
-/* 257 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 262 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : tibetan (bo)
 	//! author : Thupten N. Chakrishar : https://github.com/vajradog
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52159,16 +52595,16 @@
 
 	}));
 
-/***/ },
-/* 258 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 263 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : breton (br)
 	//! author : Jean-Baptiste Le Duigou : https://github.com/jbleduigou
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52271,9 +52707,9 @@
 
 	}));
 
-/***/ },
-/* 259 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 264 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : bosnian (bs)
@@ -52281,7 +52717,7 @@
 	//! based on (hr) translation by Bojan Marković
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52418,16 +52854,16 @@
 
 	}));
 
-/***/ },
-/* 260 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 265 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : catalan (ca)
 	//! author : Juan G. Hurtado : https://github.com/juanghurtado
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52503,16 +52939,16 @@
 
 	}));
 
-/***/ },
-/* 261 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 266 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : czech (cs)
 	//! author : petrbela : https://github.com/petrbela
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52678,16 +53114,16 @@
 
 	}));
 
-/***/ },
-/* 262 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 267 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : chuvash (cv)
 	//! author : Anatoly Mironov : https://github.com/mirontoli
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52745,16 +53181,16 @@
 
 	}));
 
-/***/ },
-/* 263 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 268 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Welsh (cy)
 	//! author : Robert Allen
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52829,16 +53265,16 @@
 
 	}));
 
-/***/ },
-/* 264 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 269 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : danish (da)
 	//! author : Ulrik Nielsen : https://github.com/mrbase
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52893,9 +53329,9 @@
 
 	}));
 
-/***/ },
-/* 265 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 270 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : german (de)
@@ -52904,7 +53340,7 @@
 	//! author : Mikolaj Dadela : https://github.com/mik01aj
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -52975,9 +53411,9 @@
 
 	}));
 
-/***/ },
-/* 266 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 271 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : austrian german (de-at)
@@ -52987,7 +53423,7 @@
 	//! author : Mikolaj Dadela : https://github.com/mik01aj
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53058,16 +53494,16 @@
 
 	}));
 
-/***/ },
-/* 267 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 272 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : dhivehi (dv)
 	//! author : Jawish Hameed : https://github.com/jawish
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53161,16 +53597,16 @@
 
 	}));
 
-/***/ },
-/* 268 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 273 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : modern greek (el)
 	//! author : Aggelos Karalias : https://github.com/mehiel
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53263,15 +53699,15 @@
 
 	}));
 
-/***/ },
-/* 269 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 274 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : australian english (en-au)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53333,16 +53769,16 @@
 
 	}));
 
-/***/ },
-/* 270 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 275 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : canadian english (en-ca)
 	//! author : Jonathan Abourbih : https://github.com/jonbca
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53400,16 +53836,16 @@
 
 	}));
 
-/***/ },
-/* 271 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 276 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : great britain english (en-gb)
 	//! author : Chris Gedrim : https://github.com/chrisgedrim
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53471,16 +53907,16 @@
 
 	}));
 
-/***/ },
-/* 272 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 277 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Irish english (en-ie)
 	//! author : Chris Cartlidge : https://github.com/chriscartlidge
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53542,15 +53978,15 @@
 
 	}));
 
-/***/ },
-/* 273 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 278 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : New Zealand english (en-nz)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53612,9 +54048,9 @@
 
 	}));
 
-/***/ },
-/* 274 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 279 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : esperanto (eo)
@@ -53623,7 +54059,7 @@
 	//!          Se ne, bonvolu korekti kaj avizi min por ke mi povas lerni!
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53689,16 +54125,16 @@
 
 	}));
 
-/***/ },
-/* 275 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 280 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : spanish (es)
 	//! author : Julio Napurí : https://github.com/julionc
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53774,9 +54210,9 @@
 
 	}));
 
-/***/ },
-/* 276 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 281 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : estonian (et)
@@ -53784,7 +54220,7 @@
 	//! improvements : Illimar Tambek : https://github.com/ragulka
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53858,16 +54294,16 @@
 
 	}));
 
-/***/ },
-/* 277 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 282 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : euskara (eu)
 	//! author : Eneko Illarramendi : https://github.com/eillarra
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -53928,16 +54364,16 @@
 
 	}));
 
-/***/ },
-/* 278 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 283 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Persian (fa)
 	//! author : Ebrahim Byagowi : https://github.com/ebraminio
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54038,16 +54474,16 @@
 
 	}));
 
-/***/ },
-/* 279 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 284 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : finnish (fi)
 	//! author : Tarmo Aidantausta : https://github.com/bleadof
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54149,16 +54585,16 @@
 
 	}));
 
-/***/ },
-/* 280 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 285 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : faroese (fo)
 	//! author : Ragnar Johannesen : https://github.com/ragnar123
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54213,16 +54649,16 @@
 
 	}));
 
-/***/ },
-/* 281 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 286 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : french (fr)
 	//! author : John Fischer : https://github.com/jfroffice
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54281,16 +54717,16 @@
 
 	}));
 
-/***/ },
-/* 282 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 287 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : canadian french (fr-ca)
 	//! author : Jonathan Abourbih : https://github.com/jonbca
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54345,16 +54781,16 @@
 
 	}));
 
-/***/ },
-/* 283 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 288 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : swiss french (fr)
 	//! author : Gaspard Bucher : https://github.com/gaspard
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54413,16 +54849,16 @@
 
 	}));
 
-/***/ },
-/* 284 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 289 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : frisian (fy)
 	//! author : Robin van der Vliet : https://github.com/robin0van0der0v
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54490,16 +54926,16 @@
 
 	}));
 
-/***/ },
-/* 285 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 290 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : great britain scottish gealic (gd)
 	//! author : Jon Ashdown : https://github.com/jonashdown
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54570,16 +55006,16 @@
 
 	}));
 
-/***/ },
-/* 286 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 291 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : galician (gl)
 	//! author : Juan G. Hurtado : https://github.com/juanghurtado
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54651,9 +55087,9 @@
 
 	}));
 
-/***/ },
-/* 287 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 292 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Hebrew (he)
@@ -54662,7 +55098,7 @@
 	//! author : Tal Ater : https://github.com/TalAter
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54754,16 +55190,16 @@
 
 	}));
 
-/***/ },
-/* 288 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 293 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : hindi (hi)
 	//! author : Mayank Singhal : https://github.com/mayanksinghal
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -54882,16 +55318,16 @@
 
 	}));
 
-/***/ },
-/* 289 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 294 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : hrvatski (hr)
 	//! author : Bojan Marković : https://github.com/bmarkovic
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55031,16 +55467,16 @@
 
 	}));
 
-/***/ },
-/* 290 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 295 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : hungarian (hu)
 	//! author : Adam Brunner : https://github.com/adambrunner
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55144,16 +55580,16 @@
 
 	}));
 
-/***/ },
-/* 291 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 296 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Armenian (hy-am)
 	//! author : Armendarabyan : https://github.com/armendarabyan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55243,9 +55679,9 @@
 
 	}));
 
-/***/ },
-/* 292 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 297 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Bahasa Indonesia (id)
@@ -55253,7 +55689,7 @@
 	//! reference: http://id.wikisource.org/wiki/Pedoman_Umum_Ejaan_Bahasa_Indonesia_yang_Disempurnakan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55330,16 +55766,16 @@
 
 	}));
 
-/***/ },
-/* 293 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 298 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : icelandic (is)
 	//! author : Hinrik Örn Sigurðsson : https://github.com/hinrik
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55461,9 +55897,9 @@
 
 	}));
 
-/***/ },
-/* 294 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 299 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : italian (it)
@@ -55471,7 +55907,7 @@
 	//! author: Mattia Larentis: https://github.com/nostalgiaz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55535,16 +55971,16 @@
 
 	}));
 
-/***/ },
-/* 295 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 300 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : japanese (ja)
 	//! author : LI Long : https://github.com/baryon
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55615,9 +56051,9 @@
 
 	}));
 
-/***/ },
-/* 296 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 301 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Boso Jowo (jv)
@@ -55625,7 +56061,7 @@
 	//! reference: http://jv.wikipedia.org/wiki/Basa_Jawa
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55702,16 +56138,16 @@
 
 	}));
 
-/***/ },
-/* 297 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 302 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Georgian (ka)
 	//! author : Irakli Janiashvili : https://github.com/irakli-janiashvili
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55795,16 +56231,16 @@
 
 	}));
 
-/***/ },
-/* 298 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 303 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : kazakh (kk)
 	//! authors : Nurlan Rakhimzhanov : https://github.com/nurlan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55886,16 +56322,16 @@
 
 	}));
 
-/***/ },
-/* 299 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 304 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : khmer (km)
 	//! author : Kruy Vanna : https://github.com/kruyvanna
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -55948,9 +56384,9 @@
 
 	}));
 
-/***/ },
-/* 300 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 305 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : korean (ko)
@@ -55961,7 +56397,7 @@
 	//! - Jeeeyul Lee <jeeeyul@gmail.com>
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56020,16 +56456,16 @@
 
 	}));
 
-/***/ },
-/* 301 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 306 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : kyrgyz (ky)
 	//! author : Chyngyz Arystan uulu : https://github.com/chyngyz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56112,16 +56548,16 @@
 
 	}));
 
-/***/ },
-/* 302 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 307 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Luxembourgish (lb)
 	//! author : mweimerskirch : https://github.com/mweimerskirch, David Raison : https://github.com/kwisatz
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56252,16 +56688,16 @@
 
 	}));
 
-/***/ },
-/* 303 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 308 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : lao (lo)
 	//! author : Ryan Hart : https://github.com/ryanhart2
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56326,16 +56762,16 @@
 
 	}));
 
-/***/ },
-/* 304 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 309 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Lithuanian (lt)
 	//! author : Mindaugas Mozūras : https://github.com/mmozuras
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56446,9 +56882,9 @@
 
 	}));
 
-/***/ },
-/* 305 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 310 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : latvian (lv)
@@ -56456,7 +56892,7 @@
 	//! author : Jānis Elmeris : https://github.com/JanisE
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56547,16 +56983,16 @@
 
 	}));
 
-/***/ },
-/* 306 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 311 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Montenegrin (me)
 	//! author : Miodrag Nikač <miodrag@restartit.me> : https://github.com/miodragnikac
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56662,16 +57098,16 @@
 
 	}));
 
-/***/ },
-/* 307 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 312 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : macedonian (mk)
 	//! author : Borislav Mickov : https://github.com/B0k0
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56756,16 +57192,16 @@
 
 	}));
 
-/***/ },
-/* 308 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 313 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : malayalam (ml)
 	//! author : Floyd Pink : https://github.com/floydpink
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -56841,9 +57277,9 @@
 
 	}));
 
-/***/ },
-/* 309 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 314 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Marathi (mr)
@@ -56851,7 +57287,7 @@
 	//! author : Vivek Athalye : https://github.com/vnathalye
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57004,16 +57440,16 @@
 
 	}));
 
-/***/ },
-/* 310 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 315 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Bahasa Malaysia (ms-MY)
 	//! author : Weldan Jamili : https://github.com/weldan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57090,16 +57526,16 @@
 
 	}));
 
-/***/ },
-/* 311 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 316 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Bahasa Malaysia (ms-MY)
 	//! author : Weldan Jamili : https://github.com/weldan
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57176,16 +57612,16 @@
 
 	}));
 
-/***/ },
-/* 312 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 317 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Burmese (my)
 	//! author : Squar team, mysquar.com
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57273,9 +57709,9 @@
 
 	}));
 
-/***/ },
-/* 313 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 318 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : norwegian bokmål (nb)
@@ -57283,7 +57719,7 @@
 	//!           Sigurd Gartmann : https://github.com/sigurdga
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57340,16 +57776,16 @@
 
 	}));
 
-/***/ },
-/* 314 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 319 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : nepali/nepalese
 	//! author : suvash : https://github.com/suvash
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57467,16 +57903,16 @@
 
 	}));
 
-/***/ },
-/* 315 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 320 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : dutch (nl)
 	//! author : Joris Röling : https://github.com/jjupiter
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57544,16 +57980,16 @@
 
 	}));
 
-/***/ },
-/* 316 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 321 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : norwegian nynorsk (nn)
 	//! author : https://github.com/mechuwind
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57608,16 +58044,16 @@
 
 	}));
 
-/***/ },
-/* 317 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 322 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : punjabi india (pa-in)
 	//! author : Harpreet Singh : https://github.com/harpreetkhalsagtbit
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57736,16 +58172,16 @@
 
 	}));
 
-/***/ },
-/* 318 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 323 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : polish (pl)
 	//! author : Rafal Hirsz : https://github.com/evoL
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57845,16 +58281,16 @@
 
 	}));
 
-/***/ },
-/* 319 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 324 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : portuguese (pt)
 	//! author : Jefferson : https://github.com/jalex79
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57914,16 +58350,16 @@
 
 	}));
 
-/***/ },
-/* 320 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 325 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : brazilian portuguese (pt-br)
 	//! author : Caio Ribeiro Pereira : https://github.com/caio-ribeiro-pereira
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -57979,9 +58415,9 @@
 
 	}));
 
-/***/ },
-/* 321 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 326 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : romanian (ro)
@@ -57989,7 +58425,7 @@
 	//! author : Valentin Agachi : https://github.com/avaly
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58058,9 +58494,9 @@
 
 	}));
 
-/***/ },
-/* 322 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 327 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : russian (ru)
@@ -58069,7 +58505,7 @@
 	//! author : Коренберг Марк : https://github.com/socketpair
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58237,16 +58673,16 @@
 
 	}));
 
-/***/ },
-/* 323 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 328 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Northern Sami (se)
 	//! authors : Bård Rolstad Henriksen : https://github.com/karamell
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58302,16 +58738,16 @@
 
 	}));
 
-/***/ },
-/* 324 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 329 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Sinhalese (si)
 	//! author : Sampath Sitinamaluwa : https://github.com/sampathsris
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58377,9 +58813,9 @@
 
 	}));
 
-/***/ },
-/* 325 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 330 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : slovak (sk)
@@ -58387,7 +58823,7 @@
 	//! based on work of petrbela : https://github.com/petrbela
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58531,16 +58967,16 @@
 
 	}));
 
-/***/ },
-/* 326 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 331 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : slovenian (sl)
 	//! author : Robert Sedovšek : https://github.com/sedovsek
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58697,9 +59133,9 @@
 
 	}));
 
-/***/ },
-/* 327 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 332 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Albanian (sq)
@@ -58708,7 +59144,7 @@
 	//! author : Oerd Cukalla : https://github.com/oerd (fixes)
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58771,16 +59207,16 @@
 
 	}));
 
-/***/ },
-/* 328 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 333 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Serbian-latin (sr)
 	//! author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58885,16 +59321,16 @@
 
 	}));
 
-/***/ },
-/* 329 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 334 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Serbian-cyrillic (sr-cyrl)
 	//! author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -58999,16 +59435,16 @@
 
 	}));
 
-/***/ },
-/* 330 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 335 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : siSwati (ss)
 	//! author : Nicolai Davies<mail@nicolai.io> : https://github.com/nicolaidavies
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59092,16 +59528,16 @@
 
 	}));
 
-/***/ },
-/* 331 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 336 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : swedish (sv)
 	//! author : Jens Alm : https://github.com/ulmus
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59165,16 +59601,16 @@
 
 	}));
 
-/***/ },
-/* 332 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 337 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : swahili (sw)
 	//! author : Fahad Kassim : https://github.com/fadsel
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59228,16 +59664,16 @@
 
 	}));
 
-/***/ },
-/* 333 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 338 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : tamil (ta)
 	//! author : Arjunkumar Krishnamoorthy : https://github.com/tk120404
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59361,16 +59797,16 @@
 
 	}));
 
-/***/ },
-/* 334 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 339 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : telugu (te)
 	//! author : Krishna Chaitanya Thota : https://github.com/kcthota
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59454,16 +59890,16 @@
 
 	}));
 
-/***/ },
-/* 335 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 340 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : thai (th)
 	//! author : Kridsada Thanabulpong : https://github.com/sirn
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59525,16 +59961,16 @@
 
 	}));
 
-/***/ },
-/* 336 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 341 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Tagalog/Filipino (tl-ph)
 	//! author : Dan Hagman
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59591,16 +60027,16 @@
 
 	}));
 
-/***/ },
-/* 337 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 342 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Klingon (tlh)
 	//! author : Dominika Kruk : https://github.com/amaranthrose
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59715,9 +60151,9 @@
 
 	}));
 
-/***/ },
-/* 338 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 343 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : turkish (tr)
@@ -59725,7 +60161,7 @@
 	//!           Burak Yiğit Kaya: https://github.com/BYK
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59809,16 +60245,16 @@
 
 	}));
 
-/***/ },
-/* 339 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 344 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : talossan (tzl)
 	//! author : Robin van der Vliet : https://github.com/robin0van0der0v with the help of Iustì Canun
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59904,16 +60340,16 @@
 
 	}));
 
-/***/ },
-/* 340 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 345 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Morocco Central Atlas Tamaziɣt (tzm)
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -59966,16 +60402,16 @@
 
 	}));
 
-/***/ },
-/* 341 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 346 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : Morocco Central Atlas Tamaziɣt in Latin (tzm-latn)
 	//! author : Abdel Said : https://github.com/abdelsaid
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60028,9 +60464,9 @@
 
 	}));
 
-/***/ },
-/* 342 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 347 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : ukrainian (uk)
@@ -60038,7 +60474,7 @@
 	//! Author : Menelion Elensúle : https://github.com/Oire
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60178,16 +60614,16 @@
 
 	}));
 
-/***/ },
-/* 343 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 348 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : uzbek (uz)
 	//! author : Sardor Muminov : https://github.com/muminoff
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60240,16 +60676,16 @@
 
 	}));
 
-/***/ },
-/* 344 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 349 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : vietnamese (vi)
 	//! author : Bang Nguyen : https://github.com/bangnk
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60323,16 +60759,16 @@
 
 	}));
 
-/***/ },
-/* 345 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 350 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : pseudo (x-pseudo)
 	//! author : Andrew Hood : https://github.com/andrewhood125
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60395,9 +60831,9 @@
 
 	}));
 
-/***/ },
-/* 346 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 351 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : chinese (zh-cn)
@@ -60405,7 +60841,7 @@
 	//! author : Zeno Zeng : https://github.com/zenozeng
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60526,16 +60962,16 @@
 
 	}));
 
-/***/ },
-/* 347 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 352 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 	//! locale : traditional chinese (zh-tw)
 	//! author : Ben : https://github.com/ben-lin
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(245)) :
+	    true ? factory(__webpack_require__(250)) :
 	   typeof define === 'function' && define.amd ? define(['moment'], factory) :
 	   factory(global.moment)
 	}(this, function (moment) { 'use strict';
@@ -60631,9 +61067,9 @@
 
 	}));
 
-/***/ },
-/* 348 */
-/***/ function(module, exports) {
+/***/ }),
+/* 353 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -60724,21 +61160,21 @@
 
 	module.exports = dhis2Map;
 
-/***/ },
-/* 349 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 354 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _graphlib = __webpack_require__(350);
+	var _graphlib = __webpack_require__(355);
 
 	var _graphlib2 = _interopRequireDefault(_graphlib);
 
-	var _utilityFunctions = __webpack_require__(181);
+	var _utilityFunctions = __webpack_require__(185);
 
 	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
 
-	var _turf = __webpack_require__(371);
+	var _turf = __webpack_require__(376);
 
 	var _turf2 = _interopRequireDefault(_turf);
 
@@ -60840,20 +61276,6 @@
 	                var point = getPointGeoJson(allNodesMap[comp[key]]);
 	                geoJsonPointFeatures.features.push(point);
 	                var type = allNodesMap[comp[key]].type;
-	                /*    if (type == "LAB"){
-	                         let mergedCircle= turf.circle(point, radius, steps, units);
-	                        mergedCircle.properties.type="cluster";
-	                        mergedCircle.properties.layerId = "custom";
-	                        mergedCircle.properties.num_points = 1;
-	                        mergedCircle.properties.area = turf.area(mergedCircle);
-	                        mergedCircle.properties.uid = utility.prepareUID(null,key);
-	                         let centroid = point;
-	                        centroid.properties.type = "centroid";
-	                        centroid.properties.layerId = "custom";
-	                        centroid.properties.clusterSize = 1;
-	                         geoJsonPolygonFeatures.features.push(mergedCircle);
-	                        geoJsonPolygonFeatures.features.push(centroid);
-	                    }*/
 	            }
 	        } else {
 	            // is pollyygonn - make boundaries for this
@@ -60973,9 +61395,9 @@
 
 	function buildCoordinates(data, coord) {}
 
-/***/ },
-/* 350 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 355 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright (c) 2014, Chris Pettitt
@@ -61007,34 +61429,34 @@
 	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	var lib = __webpack_require__(351);
+	var lib = __webpack_require__(356);
 
 	module.exports = {
 	  Graph: lib.Graph,
-	  json: __webpack_require__(356),
-	  alg: __webpack_require__(357),
+	  json: __webpack_require__(361),
+	  alg: __webpack_require__(362),
 	  version: lib.version
 	};
 
 
-/***/ },
-/* 351 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 356 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// Includes only the "core" of graphlib
 	module.exports = {
-	  Graph: __webpack_require__(352),
-	  version: __webpack_require__(355)
+	  Graph: __webpack_require__(357),
+	  version: __webpack_require__(360)
 	};
 
 
-/***/ },
-/* 352 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 357 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = Graph;
 
@@ -61553,9 +61975,9 @@
 	}
 
 
-/***/ },
-/* 353 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 358 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* global window */
 
@@ -61563,7 +61985,7 @@
 
 	if (true) {
 	  try {
-	    lodash = __webpack_require__(354);
+	    lodash = __webpack_require__(359);
 	  } catch (e) {}
 	}
 
@@ -61574,9 +61996,9 @@
 	module.exports = lodash;
 
 
-/***/ },
-/* 354 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 359 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
 	 * @license
@@ -78663,21 +79085,21 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(246)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(251)(module)))
 
-/***/ },
-/* 355 */
-/***/ function(module, exports) {
+/***/ }),
+/* 360 */
+/***/ (function(module, exports) {
 
 	module.exports = '2.1.1';
 
 
-/***/ },
-/* 356 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 361 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    Graph = __webpack_require__(352);
+	var _ = __webpack_require__(358),
+	    Graph = __webpack_require__(357);
 
 	module.exports = {
 	  write: write,
@@ -78744,30 +79166,30 @@
 	}
 
 
-/***/ },
-/* 357 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 362 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  components: __webpack_require__(358),
-	  dijkstra: __webpack_require__(359),
-	  dijkstraAll: __webpack_require__(361),
-	  findCycles: __webpack_require__(362),
-	  floydWarshall: __webpack_require__(364),
-	  isAcyclic: __webpack_require__(365),
-	  postorder: __webpack_require__(367),
-	  preorder: __webpack_require__(369),
-	  prim: __webpack_require__(370),
-	  tarjan: __webpack_require__(363),
-	  topsort: __webpack_require__(366)
+	  components: __webpack_require__(363),
+	  dijkstra: __webpack_require__(364),
+	  dijkstraAll: __webpack_require__(366),
+	  findCycles: __webpack_require__(367),
+	  floydWarshall: __webpack_require__(369),
+	  isAcyclic: __webpack_require__(370),
+	  postorder: __webpack_require__(372),
+	  preorder: __webpack_require__(374),
+	  prim: __webpack_require__(375),
+	  tarjan: __webpack_require__(368),
+	  topsort: __webpack_require__(371)
 	};
 
 
-/***/ },
-/* 358 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 363 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = components;
 
@@ -78796,12 +79218,12 @@
 	}
 
 
-/***/ },
-/* 359 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 364 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    PriorityQueue = __webpack_require__(360);
+	var _ = __webpack_require__(358),
+	    PriorityQueue = __webpack_require__(365);
 
 	module.exports = dijkstra;
 
@@ -78856,11 +79278,11 @@
 	}
 
 
-/***/ },
-/* 360 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 365 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = PriorityQueue;
 
@@ -79014,12 +79436,12 @@
 	};
 
 
-/***/ },
-/* 361 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 366 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var dijkstra = __webpack_require__(359),
-	    _ = __webpack_require__(353);
+	var dijkstra = __webpack_require__(364),
+	    _ = __webpack_require__(358);
 
 	module.exports = dijkstraAll;
 
@@ -79030,12 +79452,12 @@
 	}
 
 
-/***/ },
-/* 362 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 367 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    tarjan = __webpack_require__(363);
+	var _ = __webpack_require__(358),
+	    tarjan = __webpack_require__(368);
 
 	module.exports = findCycles;
 
@@ -79046,11 +79468,11 @@
 	}
 
 
-/***/ },
-/* 363 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 368 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = tarjan;
 
@@ -79099,11 +79521,11 @@
 	}
 
 
-/***/ },
-/* 364 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 369 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = floydWarshall;
 
@@ -79155,11 +79577,11 @@
 	}
 
 
-/***/ },
-/* 365 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 370 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var topsort = __webpack_require__(366);
+	var topsort = __webpack_require__(371);
 
 	module.exports = isAcyclic;
 
@@ -79176,11 +79598,11 @@
 	}
 
 
-/***/ },
-/* 366 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 371 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = topsort;
 	topsort.CycleException = CycleException;
@@ -79216,11 +79638,11 @@
 	function CycleException() {}
 
 
-/***/ },
-/* 367 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 372 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(368);
+	var dfs = __webpack_require__(373);
 
 	module.exports = postorder;
 
@@ -79229,11 +79651,11 @@
 	}
 
 
-/***/ },
-/* 368 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 373 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353);
+	var _ = __webpack_require__(358);
 
 	module.exports = dfs;
 
@@ -79277,11 +79699,11 @@
 	}
 
 
-/***/ },
-/* 369 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 374 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(368);
+	var dfs = __webpack_require__(373);
 
 	module.exports = preorder;
 
@@ -79290,13 +79712,13 @@
 	}
 
 
-/***/ },
-/* 370 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 375 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(353),
-	    Graph = __webpack_require__(352),
-	    PriorityQueue = __webpack_require__(360);
+	var _ = __webpack_require__(358),
+	    Graph = __webpack_require__(357),
+	    PriorityQueue = __webpack_require__(365);
 
 	module.exports = prim;
 
@@ -79348,9 +79770,9 @@
 	}
 
 
-/***/ },
-/* 371 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 376 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/*eslint global-require: 0*/
 
@@ -79361,57 +79783,67 @@
 	 * @module turf
 	 * @summary Geospatial analysis for JavaScript
 	 */
-	var helpers = __webpack_require__(372);
-	var invariant = __webpack_require__(373);
+	var helpers = __webpack_require__(377);
+	var invariant = __webpack_require__(378);
+	var meta = __webpack_require__(379);
 
 	var turf = {
-	    isolines: __webpack_require__(374),
-	    convex: __webpack_require__(384),
-	    within: __webpack_require__(401),
-	    concave: __webpack_require__(402),
-	    difference: __webpack_require__(405),
-	    collect: __webpack_require__(406),
-	    flip: __webpack_require__(407),
-	    simplify: __webpack_require__(408),
-	    bezier: __webpack_require__(410),
-	    tag: __webpack_require__(412),
-	    sample: __webpack_require__(413),
-	    envelope: __webpack_require__(414),
-	    square: __webpack_require__(382),
-	    circle: __webpack_require__(416),
-	    midpoint: __webpack_require__(418),
-	    buffer: __webpack_require__(420),
-	    center: __webpack_require__(422),
-	    centerOfMass: __webpack_require__(423),
-	    centroid: __webpack_require__(424),
-	    combine: __webpack_require__(426),
-	    distance: __webpack_require__(378),
-	    explode: __webpack_require__(425),
-	    bbox: __webpack_require__(379),
-	    tesselate: __webpack_require__(427),
-	    bboxPolygon: __webpack_require__(415),
-	    inside: __webpack_require__(376),
-	    intersect: __webpack_require__(429),
-	    nearest: __webpack_require__(430),
-	    planepoint: __webpack_require__(381),
-	    random: __webpack_require__(431),
-	    tin: __webpack_require__(375),
-	    union: __webpack_require__(403),
-	    bearing: __webpack_require__(419),
-	    destination: __webpack_require__(417),
-	    kinks: __webpack_require__(433),
-	    pointOnSurface: __webpack_require__(434),
-	    area: __webpack_require__(435),
-	    along: __webpack_require__(438),
-	    lineDistance: __webpack_require__(439),
-	    lineSlice: __webpack_require__(440),
-	    lineSliceAlong: __webpack_require__(442),
-	    pointOnLine: __webpack_require__(441),
-	    pointGrid: __webpack_require__(377),
-	    squareGrid: __webpack_require__(443),
-	    triangleGrid: __webpack_require__(444),
-	    hexGrid: __webpack_require__(445),
-	    idw: __webpack_require__(446),
+	    isolines: __webpack_require__(380),
+	    convex: __webpack_require__(389),
+	    within: __webpack_require__(406),
+	    concave: __webpack_require__(407),
+	    difference: __webpack_require__(410),
+	    dissolve: __webpack_require__(411),
+	    collect: __webpack_require__(419),
+	    flip: __webpack_require__(420),
+	    simplify: __webpack_require__(421),
+	    bezier: __webpack_require__(423),
+	    tag: __webpack_require__(425),
+	    sample: __webpack_require__(426),
+	    envelope: __webpack_require__(427),
+	    square: __webpack_require__(387),
+	    circle: __webpack_require__(429),
+	    midpoint: __webpack_require__(431),
+	    buffer: __webpack_require__(433),
+	    center: __webpack_require__(435),
+	    centerOfMass: __webpack_require__(436),
+	    centroid: __webpack_require__(437),
+	    combine: __webpack_require__(439),
+	    distance: __webpack_require__(384),
+	    explode: __webpack_require__(438),
+	    bbox: __webpack_require__(385),
+	    tesselate: __webpack_require__(440),
+	    bboxPolygon: __webpack_require__(428),
+	    inside: __webpack_require__(382),
+	    intersect: __webpack_require__(442),
+	    nearest: __webpack_require__(443),
+	    planepoint: __webpack_require__(386),
+	    random: __webpack_require__(444),
+	    tin: __webpack_require__(381),
+	    union: __webpack_require__(408),
+	    bearing: __webpack_require__(432),
+	    destination: __webpack_require__(430),
+	    kinks: __webpack_require__(446),
+	    pointOnSurface: __webpack_require__(447),
+	    area: __webpack_require__(448),
+	    along: __webpack_require__(451),
+	    lineDistance: __webpack_require__(452),
+	    lineSlice: __webpack_require__(454),
+	    lineSliceAlong: __webpack_require__(456),
+	    pointOnLine: __webpack_require__(455),
+	    pointGrid: __webpack_require__(383),
+	    squareGrid: __webpack_require__(457),
+	    triangleGrid: __webpack_require__(458),
+	    hexGrid: __webpack_require__(459),
+	    idw: __webpack_require__(460),
+	    truncate: __webpack_require__(461),
+	    flatten: __webpack_require__(453),
+	    lineIntersect: __webpack_require__(462),
+	    mask: __webpack_require__(465),
+	    lineChunk: __webpack_require__(466),
+	    unkinkPolygon: __webpack_require__(467),
+	    greatCircle: __webpack_require__(473),
+	    lineSegment: __webpack_require__(463),
 	    point: helpers.point,
 	    polygon: helpers.polygon,
 	    lineString: helpers.lineString,
@@ -79422,20 +79854,27 @@
 	    featureCollection: helpers.featureCollection,
 	    geometryCollection: helpers.geometryCollection,
 	    getCoord: invariant.getCoord,
+	    getCoords: invariant.getCoords,
 	    geojsonType: invariant.geojsonType,
 	    featureOf: invariant.featureOf,
-	    collectionOf: invariant.collectionOf
+	    collectionOf: invariant.collectionOf,
+	    coordEach: meta.coordEach,
+	    coordReduce: meta.coordReduce,
+	    propEach: meta.propEach,
+	    propReduce: meta.propReduce,
+	    featureEach: meta.featureEach,
+	    featureReduce: meta.featureReduce,
+	    coordAll: meta.coordAll,
+	    geomEach: meta.geomEach,
+	    geomReduce: meta.geomReduce
 	};
 
 	module.exports = turf;
 
-	// Allow use of default import syntax in TypeScript
-	module.exports.default = turf;
 
-
-/***/ },
-/* 372 */
-/***/ function(module, exports) {
+/***/ }),
+/* 377 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Wraps a GeoJSON {@link Geometry} in a GeoJSON {@link Feature}.
@@ -79458,13 +79897,14 @@
 	 * //=feature
 	 */
 	function feature(geometry, properties) {
+	    if (!geometry) throw new Error('No geometry passed');
+
 	    return {
 	        type: 'Feature',
 	        properties: properties || {},
 	        geometry: geometry
 	    };
 	}
-
 	module.exports.feature = feature;
 
 	/**
@@ -79481,11 +79921,14 @@
 	 * //=pt1
 	 */
 	module.exports.point = function (coordinates, properties) {
-	    if (!Array.isArray(coordinates)) throw new Error('Coordinates must be an array');
+	    if (!coordinates) throw new Error('No coordinates passed');
+	    if (coordinates.length === undefined) throw new Error('Coordinates must be an array');
 	    if (coordinates.length < 2) throw new Error('Coordinates must be at least 2 numbers long');
+	    if (typeof coordinates[0] !== 'number' || typeof coordinates[1] !== 'number') throw new Error('Coordinates must numbers');
+
 	    return feature({
 	        type: 'Point',
-	        coordinates: coordinates.slice()
+	        coordinates: coordinates
 	    }, properties);
 	};
 
@@ -79511,7 +79954,6 @@
 	 * //=polygon
 	 */
 	module.exports.polygon = function (coordinates, properties) {
-
 	    if (!coordinates) throw new Error('No coordinates passed');
 
 	    for (var i = 0; i < coordinates.length; i++) {
@@ -79543,16 +79985,16 @@
 	 * @throws {Error} if no coordinates are passed
 	 * @example
 	 * var linestring1 = turf.lineString([
-	 *	[-21.964416, 64.148203],
-	 *	[-21.956176, 64.141316],
-	 *	[-21.93901, 64.135924],
-	 *	[-21.927337, 64.136673]
+	 *   [-21.964416, 64.148203],
+	 *   [-21.956176, 64.141316],
+	 *   [-21.93901, 64.135924],
+	 *   [-21.927337, 64.136673]
 	 * ]);
 	 * var linestring2 = turf.lineString([
-	 *	[-21.929054, 64.127985],
-	 *	[-21.912918, 64.134726],
-	 *	[-21.916007, 64.141016],
-	 * 	[-21.930084, 64.14446]
+	 *   [-21.929054, 64.127985],
+	 *   [-21.912918, 64.134726],
+	 *   [-21.916007, 64.141016],
+	 *   [-21.930084, 64.14446]
 	 * ], {name: 'line 1', distance: 145});
 	 *
 	 * //=linestring1
@@ -79560,9 +80002,8 @@
 	 * //=linestring2
 	 */
 	module.exports.lineString = function (coordinates, properties) {
-	    if (!coordinates) {
-	        throw new Error('No coordinates passed');
-	    }
+	    if (!coordinates) throw new Error('No coordinates passed');
+
 	    return feature({
 	        type: 'LineString',
 	        coordinates: coordinates
@@ -79587,6 +80028,8 @@
 	 * //=fc
 	 */
 	module.exports.featureCollection = function (features) {
+	    if (!features) throw new Error('No features passed');
+
 	    return {
 	        type: 'FeatureCollection',
 	        features: features
@@ -79609,9 +80052,8 @@
 	 *
 	 */
 	module.exports.multiLineString = function (coordinates, properties) {
-	    if (!coordinates) {
-	        throw new Error('No coordinates passed');
-	    }
+	    if (!coordinates) throw new Error('No coordinates passed');
+
 	    return feature({
 	        type: 'MultiLineString',
 	        coordinates: coordinates
@@ -79634,9 +80076,8 @@
 	 *
 	 */
 	module.exports.multiPoint = function (coordinates, properties) {
-	    if (!coordinates) {
-	        throw new Error('No coordinates passed');
-	    }
+	    if (!coordinates) throw new Error('No coordinates passed');
+
 	    return feature({
 	        type: 'MultiPoint',
 	        coordinates: coordinates
@@ -79654,15 +80095,14 @@
 	 * @returns {Feature<MultiPolygon>} a multipolygon feature
 	 * @throws {Error} if no coordinates are passed
 	 * @example
-	 * var multiPoly = turf.multiPolygon([[[[0,0],[0,10],[10,10],[10,0],[0,0]]]);
+	 * var multiPoly = turf.multiPolygon([[[[0,0],[0,10],[10,10],[10,0],[0,0]]]]);
 	 *
 	 * //=multiPoly
 	 *
 	 */
 	module.exports.multiPolygon = function (coordinates, properties) {
-	    if (!coordinates) {
-	        throw new Error('No coordinates passed');
-	    }
+	    if (!coordinates) throw new Error('No coordinates passed');
+
 	    return feature({
 	        type: 'MultiPolygon',
 	        coordinates: coordinates
@@ -79691,6 +80131,8 @@
 	 * //=collection
 	 */
 	module.exports.geometryCollection = function (geometries, properties) {
+	    if (!geometries) throw new Error('No geometries passed');
+
 	    return feature({
 	        type: 'GeometryCollection',
 	        geometries: geometries
@@ -79722,9 +80164,8 @@
 	 */
 	module.exports.radiansToDistance = function (radians, units) {
 	    var factor = factors[units || 'kilometers'];
-	    if (factor === undefined) {
-	        throw new Error('Invalid unit');
-	    }
+	    if (factor === undefined) throw new Error('Invalid unit');
+
 	    return radians * factor;
 	};
 
@@ -79739,9 +80180,8 @@
 	 */
 	module.exports.distanceToRadians = function (distance, units) {
 	    var factor = factors[units || 'kilometers'];
-	    if (factor === undefined) {
-	        throw new Error('Invalid unit');
-	    }
+	    if (factor === undefined) throw new Error('Invalid unit');
+
 	    return distance / factor;
 	};
 
@@ -79756,41 +80196,84 @@
 	 */
 	module.exports.distanceToDegrees = function (distance, units) {
 	    var factor = factors[units || 'kilometers'];
-	    if (factor === undefined) {
-	        throw new Error('Invalid unit');
-	    }
+	    if (factor === undefined) throw new Error('Invalid unit');
+
 	    return (distance / factor) * 57.2958;
 	};
 
 
-/***/ },
-/* 373 */
-/***/ function(module, exports) {
+/***/ }),
+/* 378 */
+/***/ (function(module, exports) {
 
 	/**
-	 * Unwrap a coordinate from a Feature with a Point geometry, a Point
-	 * geometry, or a single coordinate.
+	 * Unwrap a coordinate from a Point Feature, Geometry or a single coordinate.
 	 *
-	 * @param {*} obj any value
-	 * @returns {Array<number>} a coordinate
+	 * @param {Array<any>|Geometry|Feature<Point>} obj any value
+	 * @returns {Array<number>} coordinates
 	 */
 	function getCoord(obj) {
-	    if (Array.isArray(obj) &&
-	        typeof obj[0] === 'number' &&
-	        typeof obj[1] === 'number') {
-	        return obj;
-	    } else if (obj) {
-	        if (obj.type === 'Feature' &&
-	            obj.geometry &&
-	            obj.geometry.type === 'Point' &&
-	            Array.isArray(obj.geometry.coordinates)) {
-	            return obj.geometry.coordinates;
-	        } else if (obj.type === 'Point' &&
-	            Array.isArray(obj.coordinates)) {
-	            return obj.coordinates;
-	        }
+	    if (!obj) throw new Error('No obj passed');
+
+	    var coordinates = getCoords(obj);
+
+	    // getCoord() must contain at least two numbers (Point)
+	    if (coordinates.length > 1 &&
+	        typeof coordinates[0] === 'number' &&
+	        typeof coordinates[1] === 'number') {
+	        return coordinates;
+	    } else {
+	        throw new Error('Coordinate is not a valid Point');
 	    }
-	    throw new Error('A coordinate, feature, or point geometry is required');
+	}
+
+	/**
+	 * Unwrap coordinates from a Feature, Geometry Object or an Array of numbers
+	 *
+	 * @param {Array<any>|Geometry|Feature<any>} obj any value
+	 * @returns {Array<any>} coordinates
+	 */
+	function getCoords(obj) {
+	    if (!obj) throw new Error('No obj passed');
+	    var coordinates;
+
+	    // Array of numbers
+	    if (obj.length) {
+	        coordinates = obj;
+
+	    // Geometry Object
+	    } else if (obj.coordinates) {
+	        coordinates = obj.coordinates;
+
+	    // Feature
+	    } else if (obj.geometry && obj.geometry.coordinates) {
+	        coordinates = obj.geometry.coordinates;
+	    }
+	    // Checks if coordinates contains a number
+	    if (coordinates) {
+	        containsNumber(coordinates);
+	        return coordinates;
+	    }
+	    throw new Error('No valid coordinates');
+	}
+
+	/**
+	 * Checks if coordinates contains a number
+	 *
+	 * @private
+	 * @param {Array<any>} coordinates GeoJSON Coordinates
+	 * @returns {boolean} true if Array contains a number
+	 */
+	function containsNumber(coordinates) {
+	    if (coordinates.length > 1 &&
+	        typeof coordinates[0] === 'number' &&
+	        typeof coordinates[1] === 'number') {
+	        return true;
+	    }
+	    if (coordinates[0].length) {
+	        return containsNumber(coordinates[0]);
+	    }
+	    throw new Error('coordinates must only contain numbers');
 	}
 
 	/**
@@ -79821,6 +80304,7 @@
 	 * @throws {Error} error if value is not the expected type.
 	 */
 	function featureOf(feature, type, name) {
+	    if (!feature) throw new Error('No feature passed');
 	    if (!name) throw new Error('.featureOf() requires a name');
 	    if (!feature || feature.type !== 'Feature' || !feature.geometry) {
 	        throw new Error('Invalid input to ' + name + ', Feature with geometry required');
@@ -79835,18 +80319,19 @@
 	 * Internally this uses {@link geojsonType} to judge geometry types.
 	 *
 	 * @alias collectionOf
-	 * @param {FeatureCollection} featurecollection a featurecollection for which features will be judged
+	 * @param {FeatureCollection} featureCollection a FeatureCollection for which features will be judged
 	 * @param {string} type expected GeoJSON type
 	 * @param {string} name name of calling function
 	 * @throws {Error} if value is not the expected type.
 	 */
-	function collectionOf(featurecollection, type, name) {
+	function collectionOf(featureCollection, type, name) {
+	    if (!featureCollection) throw new Error('No featureCollection passed');
 	    if (!name) throw new Error('.collectionOf() requires a name');
-	    if (!featurecollection || featurecollection.type !== 'FeatureCollection') {
+	    if (!featureCollection || featureCollection.type !== 'FeatureCollection') {
 	        throw new Error('Invalid input to ' + name + ', FeatureCollection required');
 	    }
-	    for (var i = 0; i < featurecollection.features.length; i++) {
-	        var feature = featurecollection.features[i];
+	    for (var i = 0; i < featureCollection.features.length; i++) {
+	        var feature = featureCollection.features[i];
 	        if (!feature || feature.type !== 'Feature' || !feature.geometry) {
 	            throw new Error('Invalid input to ' + name + ', Feature with geometry required');
 	        }
@@ -79860,25 +80345,682 @@
 	module.exports.collectionOf = collectionOf;
 	module.exports.featureOf = featureOf;
 	module.exports.getCoord = getCoord;
+	module.exports.getCoords = getCoords;
 
 
-/***/ },
-/* 374 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 379 */
+/***/ (function(module, exports) {
+
+	/**
+	 * Callback for coordEach
+	 *
+	 * @private
+	 * @callback coordEachCallback
+	 * @param {[number, number]} currentCoords The current coordinates being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Iterate over coordinates in any GeoJSON object, similar to Array.forEach()
+	 *
+	 * @name coordEach
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (currentCoords, currentIndex)
+	 * @param {boolean} [excludeWrapCoord=false] whether or not to include
+	 * the final coordinate of LinearRings that wraps the ring in its iteration.
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.coordEach(features, function (currentCoords, currentIndex) {
+	 *   //=currentCoords
+	 *   //=currentIndex
+	 * });
+	 */
+	function coordEach(layer, callback, excludeWrapCoord) {
+	    var i, j, k, g, l, geometry, stopG, coords,
+	        geometryMaybeCollection,
+	        wrapShrink = 0,
+	        currentIndex = 0,
+	        isGeometryCollection,
+	        isFeatureCollection = layer.type === 'FeatureCollection',
+	        isFeature = layer.type === 'Feature',
+	        stop = isFeatureCollection ? layer.features.length : 1;
+
+	  // This logic may look a little weird. The reason why it is that way
+	  // is because it's trying to be fast. GeoJSON supports multiple kinds
+	  // of objects at its root: FeatureCollection, Features, Geometries.
+	  // This function has the responsibility of handling all of them, and that
+	  // means that some of the `for` loops you see below actually just don't apply
+	  // to certain inputs. For instance, if you give this just a
+	  // Point geometry, then both loops are short-circuited and all we do
+	  // is gradually rename the input until it's called 'geometry'.
+	  //
+	  // This also aims to allocate as few resources as possible: just a
+	  // few numbers and booleans, rather than any temporary arrays as would
+	  // be required with the normalization approach.
+	    for (i = 0; i < stop; i++) {
+
+	        geometryMaybeCollection = (isFeatureCollection ? layer.features[i].geometry :
+	        (isFeature ? layer.geometry : layer));
+	        isGeometryCollection = geometryMaybeCollection.type === 'GeometryCollection';
+	        stopG = isGeometryCollection ? geometryMaybeCollection.geometries.length : 1;
+
+	        for (g = 0; g < stopG; g++) {
+	            geometry = isGeometryCollection ?
+	            geometryMaybeCollection.geometries[g] : geometryMaybeCollection;
+	            coords = geometry.coordinates;
+
+	            wrapShrink = (excludeWrapCoord &&
+	                (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')) ?
+	                1 : 0;
+
+	            if (geometry.type === 'Point') {
+	                callback(coords, currentIndex);
+	                currentIndex++;
+	            } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
+	                for (j = 0; j < coords.length; j++) {
+	                    callback(coords[j], currentIndex);
+	                    currentIndex++;
+	                }
+	            } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
+	                for (j = 0; j < coords.length; j++)
+	                    for (k = 0; k < coords[j].length - wrapShrink; k++) {
+	                        callback(coords[j][k], currentIndex);
+	                        currentIndex++;
+	                    }
+	            } else if (geometry.type === 'MultiPolygon') {
+	                for (j = 0; j < coords.length; j++)
+	                    for (k = 0; k < coords[j].length; k++)
+	                        for (l = 0; l < coords[j][k].length - wrapShrink; l++) {
+	                            callback(coords[j][k][l], currentIndex);
+	                            currentIndex++;
+	                        }
+	            } else if (geometry.type === 'GeometryCollection') {
+	                for (j = 0; j < geometry.geometries.length; j++)
+	                    coordEach(geometry.geometries[j], callback, excludeWrapCoord);
+	            } else {
+	                throw new Error('Unknown Geometry Type');
+	            }
+	        }
+	    }
+	}
+	module.exports.coordEach = coordEach;
+
+	/**
+	 * Callback for coordReduce
+	 *
+	 * The first time the callback function is called, the values provided as arguments depend
+	 * on whether the reduce method has an initialValue argument.
+	 *
+	 * If an initialValue is provided to the reduce method:
+	 *  - The previousValue argument is initialValue.
+	 *  - The currentValue argument is the value of the first element present in the array.
+	 *
+	 * If an initialValue is not provided:
+	 *  - The previousValue argument is the value of the first element present in the array.
+	 *  - The currentValue argument is the value of the second element present in the array.
+	 *
+	 * @private
+	 * @callback coordReduceCallback
+	 * @param {*} previousValue The accumulated value previously returned in the last invocation
+	 * of the callback, or initialValue, if supplied.
+	 * @param {[number, number]} currentCoords The current coordinate being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Reduce coordinates in any GeoJSON object, similar to Array.reduce()
+	 *
+	 * @name coordReduce
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (previousValue, currentCoords, currentIndex)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @param {boolean} [excludeWrapCoord=false] whether or not to include
+	 * the final coordinate of LinearRings that wraps the ring in its iteration.
+	 * @returns {*} The value that results from the reduction.
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.coordReduce(features, function (previousValue, currentCoords, currentIndex) {
+	 *   //=previousValue
+	 *   //=currentCoords
+	 *   //=currentIndex
+	 *   return currentCoords;
+	 * });
+	 */
+	function coordReduce(layer, callback, initialValue, excludeWrapCoord) {
+	    var previousValue = initialValue;
+	    coordEach(layer, function (currentCoords, currentIndex) {
+	        if (currentIndex === 0 && initialValue === undefined) {
+	            previousValue = currentCoords;
+	        } else {
+	            previousValue = callback(previousValue, currentCoords, currentIndex);
+	        }
+	    }, excludeWrapCoord);
+	    return previousValue;
+	}
+	module.exports.coordReduce = coordReduce;
+
+	/**
+	 * Callback for propEach
+	 *
+	 * @private
+	 * @callback propEachCallback
+	 * @param {*} currentProperties The current properties being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Iterate over properties in any GeoJSON object, similar to Array.forEach()
+	 *
+	 * @name propEach
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (currentProperties, currentIndex)
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"foo": "bar"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"hello": "world"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.propEach(features, function (currentProperties, currentIndex) {
+	 *   //=currentProperties
+	 *   //=currentIndex
+	 * });
+	 */
+	function propEach(layer, callback) {
+	    var i;
+	    switch (layer.type) {
+	    case 'FeatureCollection':
+	        for (i = 0; i < layer.features.length; i++) {
+	            callback(layer.features[i].properties, i);
+	        }
+	        break;
+	    case 'Feature':
+	        callback(layer.properties, 0);
+	        break;
+	    }
+	}
+	module.exports.propEach = propEach;
+
+
+	/**
+	 * Callback for propReduce
+	 *
+	 * The first time the callback function is called, the values provided as arguments depend
+	 * on whether the reduce method has an initialValue argument.
+	 *
+	 * If an initialValue is provided to the reduce method:
+	 *  - The previousValue argument is initialValue.
+	 *  - The currentValue argument is the value of the first element present in the array.
+	 *
+	 * If an initialValue is not provided:
+	 *  - The previousValue argument is the value of the first element present in the array.
+	 *  - The currentValue argument is the value of the second element present in the array.
+	 *
+	 * @private
+	 * @callback propReduceCallback
+	 * @param {*} previousValue The accumulated value previously returned in the last invocation
+	 * of the callback, or initialValue, if supplied.
+	 * @param {*} currentProperties The current properties being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Reduce properties in any GeoJSON object into a single value,
+	 * similar to how Array.reduce works. However, in this case we lazily run
+	 * the reduction, so an array of all properties is unnecessary.
+	 *
+	 * @name propReduce
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (previousValue, currentProperties, currentIndex)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @returns {*} The value that results from the reduction.
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"foo": "bar"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"hello": "world"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.propReduce(features, function (previousValue, currentProperties, currentIndex) {
+	 *   //=previousValue
+	 *   //=currentProperties
+	 *   //=currentIndex
+	 *   return currentProperties
+	 * });
+	 */
+	function propReduce(layer, callback, initialValue) {
+	    var previousValue = initialValue;
+	    propEach(layer, function (currentProperties, currentIndex) {
+	        if (currentIndex === 0 && initialValue === undefined) {
+	            previousValue = currentProperties;
+	        } else {
+	            previousValue = callback(previousValue, currentProperties, currentIndex);
+	        }
+	    });
+	    return previousValue;
+	}
+	module.exports.propReduce = propReduce;
+
+	/**
+	 * Callback for featureEach
+	 *
+	 * @private
+	 * @callback featureEachCallback
+	 * @param {Feature<any>} currentFeature The current feature being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Iterate over features in any GeoJSON object, similar to
+	 * Array.forEach.
+	 *
+	 * @name featureEach
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (currentFeature, currentIndex)
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.featureEach(features, function (currentFeature, currentIndex) {
+	 *   //=currentFeature
+	 *   //=currentIndex
+	 * });
+	 */
+	function featureEach(layer, callback) {
+	    if (layer.type === 'Feature') {
+	        callback(layer, 0);
+	    } else if (layer.type === 'FeatureCollection') {
+	        for (var i = 0; i < layer.features.length; i++) {
+	            callback(layer.features[i], i);
+	        }
+	    }
+	}
+	module.exports.featureEach = featureEach;
+
+	/**
+	 * Callback for featureReduce
+	 *
+	 * The first time the callback function is called, the values provided as arguments depend
+	 * on whether the reduce method has an initialValue argument.
+	 *
+	 * If an initialValue is provided to the reduce method:
+	 *  - The previousValue argument is initialValue.
+	 *  - The currentValue argument is the value of the first element present in the array.
+	 *
+	 * If an initialValue is not provided:
+	 *  - The previousValue argument is the value of the first element present in the array.
+	 *  - The currentValue argument is the value of the second element present in the array.
+	 *
+	 * @private
+	 * @callback featureReduceCallback
+	 * @param {*} previousValue The accumulated value previously returned in the last invocation
+	 * of the callback, or initialValue, if supplied.
+	 * @param {Feature<any>} currentFeature The current Feature being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Reduce features in any GeoJSON object, similar to Array.reduce().
+	 *
+	 * @name featureReduce
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (previousValue, currentFeature, currentIndex)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @returns {*} The value that results from the reduction.
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"foo": "bar"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"hello": "world"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.featureReduce(features, function (previousValue, currentFeature, currentIndex) {
+	 *   //=previousValue
+	 *   //=currentFeature
+	 *   //=currentIndex
+	 *   return currentFeature
+	 * });
+	 */
+	function featureReduce(layer, callback, initialValue) {
+	    var previousValue = initialValue;
+	    featureEach(layer, function (currentFeature, currentIndex) {
+	        if (currentIndex === 0 && initialValue === undefined) {
+	            previousValue = currentFeature;
+	        } else {
+	            previousValue = callback(previousValue, currentFeature, currentIndex);
+	        }
+	    });
+	    return previousValue;
+	}
+	module.exports.featureReduce = featureReduce;
+
+	/**
+	 * Get all coordinates from any GeoJSON object.
+	 *
+	 * @name coordAll
+	 * @param {Object} layer any GeoJSON object
+	 * @returns {Array<Array<number>>} coordinate position array
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * var coords = turf.coordAll(features);
+	 * //=coords
+	 */
+	function coordAll(layer) {
+	    var coords = [];
+	    coordEach(layer, function (coord) {
+	        coords.push(coord);
+	    });
+	    return coords;
+	}
+	module.exports.coordAll = coordAll;
+
+	/**
+	 * Iterate over each geometry in any GeoJSON object, similar to Array.forEach()
+	 *
+	 * @name geomEach
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (currentGeometry, currentIndex)
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.geomEach(features, function (currentGeometry, currentIndex) {
+	 *   //=currentGeometry
+	 *   //=currentIndex
+	 * });
+	 */
+	function geomEach(layer, callback) {
+	    var i, j, g, geometry, stopG,
+	        geometryMaybeCollection,
+	        isGeometryCollection,
+	        currentIndex = 0,
+	        isFeatureCollection = layer.type === 'FeatureCollection',
+	        isFeature = layer.type === 'Feature',
+	        stop = isFeatureCollection ? layer.features.length : 1;
+
+	  // This logic may look a little weird. The reason why it is that way
+	  // is because it's trying to be fast. GeoJSON supports multiple kinds
+	  // of objects at its root: FeatureCollection, Features, Geometries.
+	  // This function has the responsibility of handling all of them, and that
+	  // means that some of the `for` loops you see below actually just don't apply
+	  // to certain inputs. For instance, if you give this just a
+	  // Point geometry, then both loops are short-circuited and all we do
+	  // is gradually rename the input until it's called 'geometry'.
+	  //
+	  // This also aims to allocate as few resources as possible: just a
+	  // few numbers and booleans, rather than any temporary arrays as would
+	  // be required with the normalization approach.
+	    for (i = 0; i < stop; i++) {
+
+	        geometryMaybeCollection = (isFeatureCollection ? layer.features[i].geometry :
+	        (isFeature ? layer.geometry : layer));
+	        isGeometryCollection = geometryMaybeCollection.type === 'GeometryCollection';
+	        stopG = isGeometryCollection ? geometryMaybeCollection.geometries.length : 1;
+
+	        for (g = 0; g < stopG; g++) {
+	            geometry = isGeometryCollection ?
+	            geometryMaybeCollection.geometries[g] : geometryMaybeCollection;
+
+	            if (geometry.type === 'Point' ||
+	                geometry.type === 'LineString' ||
+	                geometry.type === 'MultiPoint' ||
+	                geometry.type === 'Polygon' ||
+	                geometry.type === 'MultiLineString' ||
+	                geometry.type === 'MultiPolygon') {
+	                callback(geometry, currentIndex);
+	                currentIndex++;
+	            } else if (geometry.type === 'GeometryCollection') {
+	                for (j = 0; j < geometry.geometries.length; j++) {
+	                    callback(geometry.geometries[j], currentIndex);
+	                    currentIndex++;
+	                }
+	            } else {
+	                throw new Error('Unknown Geometry Type');
+	            }
+	        }
+	    }
+	}
+	module.exports.geomEach = geomEach;
+
+	/**
+	 * Callback for geomReduce
+	 *
+	 * The first time the callback function is called, the values provided as arguments depend
+	 * on whether the reduce method has an initialValue argument.
+	 *
+	 * If an initialValue is provided to the reduce method:
+	 *  - The previousValue argument is initialValue.
+	 *  - The currentValue argument is the value of the first element present in the array.
+	 *
+	 * If an initialValue is not provided:
+	 *  - The previousValue argument is the value of the first element present in the array.
+	 *  - The currentValue argument is the value of the second element present in the array.
+	 *
+	 * @private
+	 * @callback geomReduceCallback
+	 * @param {*} previousValue The accumulated value previously returned in the last invocation
+	 * of the callback, or initialValue, if supplied.
+	 * @param {*} currentGeometry The current Feature being processed.
+	 * @param {number} currentIndex The index of the current element being processed in the
+	 * array.Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
+	 */
+
+	/**
+	 * Reduce geometry in any GeoJSON object, similar to Array.reduce().
+	 *
+	 * @name geomReduce
+	 * @param {Object} layer any GeoJSON object
+	 * @param {Function} callback a method that takes (previousValue, currentGeometry, currentIndex)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @returns {*} The value that results from the reduction.
+	 * @example
+	 * var features = {
+	 *   "type": "FeatureCollection",
+	 *   "features": [
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"foo": "bar"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [26, 37]
+	 *       }
+	 *     },
+	 *     {
+	 *       "type": "Feature",
+	 *       "properties": {"hello": "world"},
+	 *       "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [36, 53]
+	 *       }
+	 *     }
+	 *   ]
+	 * };
+	 * turf.geomReduce(features, function (previousValue, currentGeometry, currentIndex) {
+	 *   //=previousValue
+	 *   //=currentGeometry
+	 *   //=currentIndex
+	 *   return currentGeometry
+	 * });
+	 */
+	function geomReduce(layer, callback, initialValue) {
+	    var previousValue = initialValue;
+	    geomEach(layer, function (currentGeometry, currentIndex) {
+	        if (currentIndex === 0 && initialValue === undefined) {
+	            previousValue = currentGeometry;
+	        } else {
+	            previousValue = callback(previousValue, currentGeometry, currentIndex);
+	        }
+	    });
+	    return previousValue;
+	}
+	module.exports.geomReduce = geomReduce;
+
+
+/***/ }),
+/* 380 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//https://github.com/jasondavies/conrec.js
 	//http://stackoverflow.com/questions/263305/drawing-a-topographical-map
-	var tin = __webpack_require__(375);
-	var inside = __webpack_require__(376);
-	var grid = __webpack_require__(377);
-	var distance = __webpack_require__(378);
-	var bbox = __webpack_require__(379);
-	var planepoint = __webpack_require__(381);
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var linestring = __webpack_require__(372).lineString;
-	var point = __webpack_require__(372).point;
-	var square = __webpack_require__(382);
-	var Conrec = __webpack_require__(383);
+	var tin = __webpack_require__(381);
+	var inside = __webpack_require__(382);
+	var grid = __webpack_require__(383);
+	var distance = __webpack_require__(384);
+	var bbox = __webpack_require__(385);
+	var planepoint = __webpack_require__(386);
+	var featurecollection = __webpack_require__(377).featureCollection;
+	var linestring = __webpack_require__(377).lineString;
+	var point = __webpack_require__(377).point;
+	var square = __webpack_require__(387);
+	var Conrec = __webpack_require__(388);
 
 	/**
 	 * Takes {@link Point|points} with z-values and an array of
@@ -79967,14 +81109,14 @@
 	};
 
 
-/***/ },
-/* 375 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 381 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Delaunay_triangulation
 	//https://github.com/ironwallaby/delaunay
-	var polygon = __webpack_require__(372).polygon;
-	var featurecollection = __webpack_require__(372).featureCollection;
+	var polygon = __webpack_require__(377).polygon;
+	var featurecollection = __webpack_require__(377).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and the name of a z-value property and
@@ -79990,7 +81132,7 @@
 	 * @param {FeatureCollection<Point>} points input points
 	 * @param {String} [z] name of the property from which to pull z values
 	 * This is optional: if not given, then there will be no extra data added to the derived triangles.
-	 * @return {FeatureCollection<Polygon>} TIN output
+	 * @returns {FeatureCollection<Polygon>} TIN output
 	 * @example
 	 * // generate some random point data
 	 * var points = turf.random('points', 30, {
@@ -80215,11 +81357,11 @@
 	}
 
 
-/***/ },
-/* 376 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 382 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var invariant = __webpack_require__(373);
+	var invariant = __webpack_require__(378);
 
 	// http://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
 	// modified from: https://github.com/substack/point-in-polygon/blob/master/index.js
@@ -80232,10 +81374,10 @@
 	 * @name inside
 	 * @param {Feature<Point>} point input point
 	 * @param {Feature<(Polygon|MultiPolygon)>} polygon input polygon or multipolygon
-	 * @return {boolean} `true` if the Point is inside the Polygon; `false` if the Point is not inside the Polygon
+	 * @returns {boolean} `true` if the Point is inside the Polygon; `false` if the Point is not inside the Polygon
 	 * @example
-	 * var pt = point([-77, 44]);
-	 * var poly = polygon([[
+	 * var pt = turf.point([-77, 44]);
+	 * var poly = turf.polygon([[
 	 *   [-81, 41],
 	 *   [-81, 47],
 	 *   [-72, 47],
@@ -80247,7 +81389,7 @@
 	 *
 	 * //=isInside
 	 */
-	module.exports = function input(point, polygon) {
+	module.exports = function (point, polygon) {
 	    var pt = invariant.getCoord(point);
 	    var polys = polygon.geometry.coordinates;
 	    // normalize to multipolygon
@@ -80260,7 +81402,7 @@
 	            var k = 1;
 	            // check for the point in any of the holes
 	            while (k < polys[i].length && !inHole) {
-	                if (inRing(pt, polys[i][k])) {
+	                if (inRing(pt, polys[i][k], true)) {
 	                    inHole = true;
 	                }
 	                k++;
@@ -80272,12 +81414,16 @@
 	};
 
 	// pt is [x,y] and ring is [[x,y], [x,y],..]
-	function inRing(pt, ring) {
+	function inRing(pt, ring, ignoreBoundary) {
 	    var isInside = false;
+	    if (ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]) ring = ring.slice(0, ring.length - 1);
+
 	    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
 	        var xi = ring[i][0], yi = ring[i][1];
 	        var xj = ring[j][0], yj = ring[j][1];
-	        if ((xi == pt[0] && yi == pt[1]) || (xj == pt[0] && yj == pt[1])) return true;
+	        var onBoundary = (pt[1] * (xi - xj) + yi * (xj - pt[0]) + yj * (pt[0] - xi) === 0) &&
+	            ((xi - pt[0]) * (xj - pt[0]) <= 0) && ((yi - pt[1]) * (yj - pt[1]) <= 0);
+	        if (onBoundary) return !ignoreBoundary;
 	        var intersect = ((yi > pt[1]) !== (yj > pt[1])) &&
 	        (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi);
 	        if (intersect) isInside = !isInside;
@@ -80286,21 +81432,23 @@
 	}
 
 
-/***/ },
-/* 377 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 383 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(372).point;
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var distance = __webpack_require__(378);
+	var point = __webpack_require__(377).point;
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var distance = __webpack_require__(384);
+	var turfBBox = __webpack_require__(385);
+
 	/**
-	 * Takes a bounding box and a cell depth and returns a set of {@link Point|points} in a grid.
+	 * Creates a {@link Point} grid from a bounding box, {@link FeatureCollection} or {@link Feature}.
 	 *
 	 * @name pointGrid
-	 * @param {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
+	 * @param {Array<number>|FeatureCollection|Feature<any>} bbox extent in [minX, minY, maxX, maxY] order
 	 * @param {number} cellSize the distance across each cell
 	 * @param {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
-	 * @return {FeatureCollection<Point>} grid of points
+	 * @returns {FeatureCollection<Point>} grid of points
 	 * @example
 	 * var extent = [-70.823364, -33.553984, -70.473175, -33.302986];
 	 * var cellSize = 3;
@@ -80310,34 +81458,44 @@
 	 *
 	 * //=grid
 	 */
-	module.exports = function pointGrid(bbox, cellSize, units) {
-	    var fc = featurecollection([]);
-	    var xFraction = cellSize / (distance(point([bbox[0], bbox[1]]), point([bbox[2], bbox[1]]), units));
-	    var cellWidth = xFraction * (bbox[2] - bbox[0]);
-	    var yFraction = cellSize / (distance(point([bbox[0], bbox[1]]), point([bbox[0], bbox[3]]), units));
-	    var cellHeight = yFraction * (bbox[3] - bbox[1]);
+	module.exports = function (bbox, cellSize, units) {
+	    var results = [];
 
-	    var currentX = bbox[0];
-	    while (currentX <= bbox[2]) {
-	        var currentY = bbox[1];
-	        while (currentY <= bbox[3]) {
-	            fc.features.push(point([currentX, currentY]));
+	    // validation
+	    if (!bbox) throw new Error('bbox is required');
+	    if (!Array.isArray(bbox)) bbox = turfBBox(bbox); // Convert GeoJSON to bbox
+	    if (bbox.length !== 4) throw new Error('bbox must contain 4 numbers');
 
+	    var west = bbox[0];
+	    var south = bbox[1];
+	    var east = bbox[2];
+	    var north = bbox[3];
+
+	    var xFraction = cellSize / (distance(point([west, south]), point([east, south]), units));
+	    var cellWidth = xFraction * (east - west);
+	    var yFraction = cellSize / (distance(point([west, south]), point([west, north]), units));
+	    var cellHeight = yFraction * (north - south);
+
+	    var currentX = west;
+	    while (currentX <= east) {
+	        var currentY = south;
+	        while (currentY <= north) {
+	            results.push(point([currentX, currentY]));
 	            currentY += cellHeight;
 	        }
 	        currentX += cellWidth;
 	    }
 
-	    return fc;
+	    return featureCollection(results);
 	};
 
 
-/***/ },
-/* 378 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 384 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(373).getCoord;
-	var radiansToDistance = __webpack_require__(372).radiansToDistance;
+	var getCoord = __webpack_require__(378).getCoord;
+	var radiansToDistance = __webpack_require__(377).radiansToDistance;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -80351,7 +81509,7 @@
 	 * @param {Feature<Point>} from origin point
 	 * @param {Feature<Point>} to destination point
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {number} distance between the two points
+	 * @returns {number} distance between the two points
 	 * @example
 	 * var from = {
 	 *   "type": "Feature",
@@ -80398,25 +81556,26 @@
 	};
 
 
-/***/ },
-/* 379 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 385 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
+	var each = __webpack_require__(379).coordEach;
 
 	/**
 	 * Takes a set of features, calculates the bbox of all input features, and returns a bounding box.
 	 *
 	 * @name bbox
 	 * @param {(Feature|FeatureCollection)} geojson input features
-	 * @return {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
+	 * @returns {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
+	 * @addToMap features, bboxPolygon
 	 * @example
-	 * var pt1 = point([114.175329, 22.2524])
-	 * var pt2 = point([114.170007, 22.267969])
-	 * var pt3 = point([114.200649, 22.274641])
-	 * var pt4 = point([114.200649, 22.274641])
-	 * var pt5 = point([114.186744, 22.265745])
-	 * var features = featureCollection([pt1, pt2, pt3, pt4, pt5])
+	 * var pt1 = turf.point([114.175329, 22.2524])
+	 * var pt2 = turf.point([114.170007, 22.267969])
+	 * var pt3 = turf.point([114.200649, 22.274641])
+	 * var pt4 = turf.point([114.200649, 22.274641])
+	 * var pt5 = turf.point([114.186744, 22.265745])
+	 * var features = turf.featureCollection([pt1, pt2, pt3, pt4, pt5])
 	 *
 	 * var bbox = turf.bbox(features);
 	 *
@@ -80438,279 +81597,9 @@
 	};
 
 
-/***/ },
-/* 380 */
-/***/ function(module, exports) {
-
-	/**
-	 * Iterate over coordinates in any GeoJSON object, similar to
-	 * Array.forEach.
-	 *
-	 * @name coordEach
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (value)
-	 * @param {boolean=} excludeWrapCoord whether or not to include
-	 * the final coordinate of LinearRings that wraps the ring in its iteration.
-	 * @example
-	 * var point = { type: 'Point', coordinates: [0, 0] };
-	 * coordEach(point, function(coords) {
-	 *   // coords is equal to [0, 0]
-	 * });
-	 */
-	function coordEach(layer, callback, excludeWrapCoord) {
-	    var i, j, k, g, l, geometry, stopG, coords,
-	        geometryMaybeCollection,
-	        wrapShrink = 0,
-	        isGeometryCollection,
-	        isFeatureCollection = layer.type === 'FeatureCollection',
-	        isFeature = layer.type === 'Feature',
-	        stop = isFeatureCollection ? layer.features.length : 1;
-
-	  // This logic may look a little weird. The reason why it is that way
-	  // is because it's trying to be fast. GeoJSON supports multiple kinds
-	  // of objects at its root: FeatureCollection, Features, Geometries.
-	  // This function has the responsibility of handling all of them, and that
-	  // means that some of the `for` loops you see below actually just don't apply
-	  // to certain inputs. For instance, if you give this just a
-	  // Point geometry, then both loops are short-circuited and all we do
-	  // is gradually rename the input until it's called 'geometry'.
-	  //
-	  // This also aims to allocate as few resources as possible: just a
-	  // few numbers and booleans, rather than any temporary arrays as would
-	  // be required with the normalization approach.
-	    for (i = 0; i < stop; i++) {
-
-	        geometryMaybeCollection = (isFeatureCollection ? layer.features[i].geometry :
-	        (isFeature ? layer.geometry : layer));
-	        isGeometryCollection = geometryMaybeCollection.type === 'GeometryCollection';
-	        stopG = isGeometryCollection ? geometryMaybeCollection.geometries.length : 1;
-
-	        for (g = 0; g < stopG; g++) {
-	            geometry = isGeometryCollection ?
-	            geometryMaybeCollection.geometries[g] : geometryMaybeCollection;
-	            coords = geometry.coordinates;
-
-	            wrapShrink = (excludeWrapCoord &&
-	                (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')) ?
-	                1 : 0;
-
-	            if (geometry.type === 'Point') {
-	                callback(coords);
-	            } else if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
-	                for (j = 0; j < coords.length; j++) callback(coords[j]);
-	            } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
-	                for (j = 0; j < coords.length; j++)
-	                    for (k = 0; k < coords[j].length - wrapShrink; k++)
-	                        callback(coords[j][k]);
-	            } else if (geometry.type === 'MultiPolygon') {
-	                for (j = 0; j < coords.length; j++)
-	                    for (k = 0; k < coords[j].length; k++)
-	                        for (l = 0; l < coords[j][k].length - wrapShrink; l++)
-	                            callback(coords[j][k][l]);
-	            } else if (geometry.type === 'GeometryCollection') {
-	                for (j = 0; j < geometry.geometries.length; j++)
-	                    coordEach(geometry.geometries[j], callback, excludeWrapCoord);
-	            } else {
-	                throw new Error('Unknown Geometry Type');
-	            }
-	        }
-	    }
-	}
-	module.exports.coordEach = coordEach;
-
-	/**
-	 * Reduce coordinates in any GeoJSON object into a single value,
-	 * similar to how Array.reduce works. However, in this case we lazily run
-	 * the reduction, so an array of all coordinates is unnecessary.
-	 *
-	 * @name coordReduce
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (memo, value) and returns
-	 * a new memo
-	 * @param {*} memo the starting value of memo: can be any type.
-	 * @param {boolean=} excludeWrapCoord whether or not to include
-	 * the final coordinate of LinearRings that wraps the ring in its iteration.
-	 * @returns {*} combined value
-	 */
-	function coordReduce(layer, callback, memo, excludeWrapCoord) {
-	    coordEach(layer, function (coord) {
-	        memo = callback(memo, coord);
-	    }, excludeWrapCoord);
-	    return memo;
-	}
-	module.exports.coordReduce = coordReduce;
-
-	/**
-	 * Iterate over property objects in any GeoJSON object, similar to
-	 * Array.forEach.
-	 *
-	 * @name propEach
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (value)
-	 * @example
-	 * var point = { type: 'Feature', geometry: null, properties: { foo: 1 } };
-	 * propEach(point, function(props) {
-	 *   // props is equal to { foo: 1}
-	 * });
-	 */
-	function propEach(layer, callback) {
-	    var i;
-	    switch (layer.type) {
-	    case 'FeatureCollection':
-	        for (i = 0; i < layer.features.length; i++) {
-	            callback(layer.features[i].properties, i);
-	        }
-	        break;
-	    case 'Feature':
-	        callback(layer.properties, 0);
-	        break;
-	    }
-	}
-	module.exports.propEach = propEach;
-
-	/**
-	 * Reduce properties in any GeoJSON object into a single value,
-	 * similar to how Array.reduce works. However, in this case we lazily run
-	 * the reduction, so an array of all properties is unnecessary.
-	 *
-	 * @name propReduce
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (memo, coord) and returns
-	 * a new memo
-	 * @param {*} memo the starting value of memo: can be any type.
-	 * @returns {*} combined value
-	 * @example
-	 * // an example of an even more advanced function that gives you the
-	 * // javascript type of each property of every feature
-	 * function propTypes (layer) {
-	 *   opts = opts || {}
-	 *   return propReduce(layer, function (prev, props) {
-	 *     for (var prop in props) {
-	 *       if (prev[prop]) continue
-	 *       prev[prop] = typeof props[prop]
-	 *     }
-	 *   }, {})
-	 * }
-	 */
-	function propReduce(layer, callback, memo) {
-	    propEach(layer, function (prop, i) {
-	        memo = callback(memo, prop, i);
-	    });
-	    return memo;
-	}
-	module.exports.propReduce = propReduce;
-
-	/**
-	 * Iterate over features in any GeoJSON object, similar to
-	 * Array.forEach.
-	 *
-	 * @name featureEach
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (value)
-	 * @example
-	 * var feature = { type: 'Feature', geometry: null, properties: {} };
-	 * featureEach(feature, function(feature) {
-	 *   // feature == feature
-	 * });
-	 */
-	function featureEach(layer, callback) {
-	    if (layer.type === 'Feature') {
-	        callback(layer, 0);
-	    } else if (layer.type === 'FeatureCollection') {
-	        for (var i = 0; i < layer.features.length; i++) {
-	            callback(layer.features[i], i);
-	        }
-	    }
-	}
-	module.exports.featureEach = featureEach;
-
-	/**
-	 * Get all coordinates from any GeoJSON object, returning an array of coordinate
-	 * arrays.
-	 *
-	 * @name coordAll
-	 * @param {Object} layer any GeoJSON object
-	 * @returns {Array<Array<number>>} coordinate position array
-	 */
-	function coordAll(layer) {
-	    var coords = [];
-	    coordEach(layer, function (coord) {
-	        coords.push(coord);
-	    });
-	    return coords;
-	}
-	module.exports.coordAll = coordAll;
-
-	/**
-	 * Iterate over each geometry in any GeoJSON object, similar to
-	 * Array.forEach.
-	 *
-	 * @name geomEach
-	 * @param {Object} layer any GeoJSON object
-	 * @param {Function} callback a method that takes (value)
-	 * @example
-	 * var point = {
-	 *   type: 'Feature',
-	 *   geometry: { type: 'Point', coordinates: [0, 0] },
-	 *   properties: {}
-	 * };
-	 * geomEach(point, function(geom) {
-	 *   // geom is the point geometry
-	 * });
-	 */
-	function geomEach(layer, callback) {
-	    var i, j, g, geometry, stopG,
-	        geometryMaybeCollection,
-	        isGeometryCollection,
-	        isFeatureCollection = layer.type === 'FeatureCollection',
-	        isFeature = layer.type === 'Feature',
-	        stop = isFeatureCollection ? layer.features.length : 1;
-
-	  // This logic may look a little weird. The reason why it is that way
-	  // is because it's trying to be fast. GeoJSON supports multiple kinds
-	  // of objects at its root: FeatureCollection, Features, Geometries.
-	  // This function has the responsibility of handling all of them, and that
-	  // means that some of the `for` loops you see below actually just don't apply
-	  // to certain inputs. For instance, if you give this just a
-	  // Point geometry, then both loops are short-circuited and all we do
-	  // is gradually rename the input until it's called 'geometry'.
-	  //
-	  // This also aims to allocate as few resources as possible: just a
-	  // few numbers and booleans, rather than any temporary arrays as would
-	  // be required with the normalization approach.
-	    for (i = 0; i < stop; i++) {
-
-	        geometryMaybeCollection = (isFeatureCollection ? layer.features[i].geometry :
-	        (isFeature ? layer.geometry : layer));
-	        isGeometryCollection = geometryMaybeCollection.type === 'GeometryCollection';
-	        stopG = isGeometryCollection ? geometryMaybeCollection.geometries.length : 1;
-
-	        for (g = 0; g < stopG; g++) {
-	            geometry = isGeometryCollection ?
-	            geometryMaybeCollection.geometries[g] : geometryMaybeCollection;
-
-	            if (geometry.type === 'Point' ||
-	                geometry.type === 'LineString' ||
-	                geometry.type === 'MultiPoint' ||
-	                geometry.type === 'Polygon' ||
-	                geometry.type === 'MultiLineString' ||
-	                geometry.type === 'MultiPolygon') {
-	                callback(geometry);
-	            } else if (geometry.type === 'GeometryCollection') {
-	                for (j = 0; j < geometry.geometries.length; j++)
-	                    callback(geometry.geometries[j]);
-	            } else {
-	                throw new Error('Unknown Geometry Type');
-	            }
-	        }
-	    }
-	}
-	module.exports.geomEach = geomEach;
-
-
-/***/ },
-/* 381 */
-/***/ function(module, exports) {
+/***/ }),
+/* 386 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Takes a triangular plane as a {@link Polygon}
@@ -80721,7 +81610,7 @@
 	 * @name planepoint
 	 * @param {Feature<Point>} point the Point for which a z-value will be calculated
 	 * @param {Feature<Polygon>} triangle a Polygon feature with three vertices
-	 * @return {number} the z-value for `interpolatedPoint`
+	 * @returns {number} the z-value for `interpolatedPoint`
 	 * @example
 	 * var point = {
 	 *   "type": "Feature",
@@ -80786,19 +81675,20 @@
 	};
 
 
-/***/ },
-/* 382 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 387 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
+	var distance = __webpack_require__(384);
 
 	/**
 	 * Takes a bounding box and calculates the minimum square bounding box that
 	 * would contain the input.
 	 *
 	 * @name square
-	 * @param {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
-	 * @return {Array<number>} a square surrounding `bbox`
+	 * @param {Array<number>} bbox extent in [west, south, east, north] order
+	 * @returns {Array<number>} a square surrounding `bbox`
+	 * @addToMap features
 	 * @example
 	 * var bbox = [-20,-20,-15,0];
 	 *
@@ -80815,31 +81705,36 @@
 	 * //=features
 	 */
 	module.exports = function (bbox) {
-	    var horizontalDistance = distance(bbox.slice(0, 2), [bbox[2], bbox[1]], 'miles');
-	    var verticalDistance = distance(bbox.slice(0, 2), [bbox[0], bbox[3]], 'miles');
+	    var west = bbox[0];
+	    var south = bbox[1];
+	    var east = bbox[2];
+	    var north = bbox[3];
+
+	    var horizontalDistance = distance(bbox.slice(0, 2), [east, south]);
+	    var verticalDistance = distance(bbox.slice(0, 2), [west, north]);
 	    if (horizontalDistance >= verticalDistance) {
-	        var verticalMidpoint = (bbox[1] + bbox[3]) / 2;
+	        var verticalMidpoint = (south + north) / 2;
 	        return [
-	            bbox[0],
-	            verticalMidpoint - ((bbox[2] - bbox[0]) / 2),
-	            bbox[2],
-	            verticalMidpoint + ((bbox[2] - bbox[0]) / 2)
+	            west,
+	            verticalMidpoint - ((east - west) / 2),
+	            east,
+	            verticalMidpoint + ((east - west) / 2)
 	        ];
 	    } else {
-	        var horizontalMidpoint = (bbox[0] + bbox[2]) / 2;
+	        var horizontalMidpoint = (west + east) / 2;
 	        return [
-	            horizontalMidpoint - ((bbox[3] - bbox[1]) / 2),
-	            bbox[1],
-	            horizontalMidpoint + ((bbox[3] - bbox[1]) / 2),
-	            bbox[3]
+	            horizontalMidpoint - ((north - south) / 2),
+	            south,
+	            horizontalMidpoint + ((north - south) / 2),
+	            north
 	        ];
 	    }
 	};
 
 
-/***/ },
-/* 383 */
-/***/ function(module, exports) {
+/***/ }),
+/* 388 */
+/***/ (function(module, exports) {
 
 	/* eslint-disable */
 
@@ -81360,25 +82255,23 @@
 	  };
 
 
-/***/ },
-/* 384 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 389 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    convexHull = __webpack_require__(385),
-	    polygon = __webpack_require__(372).polygon;
+	var each = __webpack_require__(379).coordEach,
+	    convexHull = __webpack_require__(390),
+	    polygon = __webpack_require__(377).polygon;
 
 	/**
-	 * Takes a [feature](http://geojson.org/geojson-spec.html#feature-objects)
-	 * or a [featureCollection](http://geojson.org/geojson-spec.html#feature-collection-objects)
-	 * and returns a [convex hull](http://en.wikipedia.org/wiki/Convex_hull) polygon.
+	 * Takes a {@link Feature} or a {@link FeatureCollection} and returns a convex hull {@link Polygon}.
 	 *
 	 * Internally this uses
 	 * the [convex-hull](https://github.com/mikolalysenko/convex-hull) module that
 	 * implements a [monotone chain hull](http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain).
 	 *
 	 * @name convex
-	 * @param {(Feature|FeatureCollection)} feature input Feature or FeatureCollection
+	 * @param {Feature|FeatureCollection} feature input Feature or FeatureCollection
 	 * @returns {Feature<Polygon>} a convex hull
 	 * @example
 	 * var points = {
@@ -81463,15 +82356,15 @@
 	};
 
 
-/***/ },
-/* 385 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 390 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var convexHull1d = __webpack_require__(386)
-	var convexHull2d = __webpack_require__(387)
-	var convexHullnd = __webpack_require__(395)
+	var convexHull1d = __webpack_require__(391)
+	var convexHull2d = __webpack_require__(392)
+	var convexHullnd = __webpack_require__(400)
 
 	module.exports = convexHull
 
@@ -81493,9 +82386,9 @@
 	  return convexHullnd(points, d)
 	}
 
-/***/ },
-/* 386 */
-/***/ function(module, exports) {
+/***/ }),
+/* 391 */
+/***/ (function(module, exports) {
 
 	"use strict"
 
@@ -81521,15 +82414,15 @@
 	  }
 	}
 
-/***/ },
-/* 387 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 392 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHull2D
 
-	var monotoneHull = __webpack_require__(388)
+	var monotoneHull = __webpack_require__(393)
 
 	function convexHull2D(points) {
 	  var hull = monotoneHull(points)
@@ -81548,15 +82441,15 @@
 	}
 
 
-/***/ },
-/* 388 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 393 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = monotoneConvexHull2D
 
-	var orient = __webpack_require__(389)[3]
+	var orient = __webpack_require__(394)[3]
 
 	function monotoneConvexHull2D(points) {
 	  var n = points.length
@@ -81634,16 +82527,16 @@
 	  return result
 	}
 
-/***/ },
-/* 389 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 394 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(390)
-	var robustSum = __webpack_require__(391)
-	var robustScale = __webpack_require__(392)
-	var robustSubtract = __webpack_require__(394)
+	var twoProduct = __webpack_require__(395)
+	var robustSum = __webpack_require__(396)
+	var robustScale = __webpack_require__(397)
+	var robustSubtract = __webpack_require__(399)
 
 	var NUM_EXPAND = 5
 
@@ -81829,9 +82722,9 @@
 
 	generateOrientationProc()
 
-/***/ },
-/* 390 */
-/***/ function(module, exports) {
+/***/ }),
+/* 395 */
+/***/ (function(module, exports) {
 
 	"use strict"
 
@@ -81867,9 +82760,9 @@
 	  return [ y, x ]
 	}
 
-/***/ },
-/* 391 */
-/***/ function(module, exports) {
+/***/ }),
+/* 396 */
+/***/ (function(module, exports) {
 
 	"use strict"
 
@@ -82028,14 +82921,14 @@
 	  return g
 	}
 
-/***/ },
-/* 392 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 397 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(390)
-	var twoSum = __webpack_require__(393)
+	var twoProduct = __webpack_require__(395)
+	var twoSum = __webpack_require__(398)
 
 	module.exports = scaleLinearExpansion
 
@@ -82083,9 +82976,9 @@
 	  return g
 	}
 
-/***/ },
-/* 393 */
-/***/ function(module, exports) {
+/***/ }),
+/* 398 */
+/***/ (function(module, exports) {
 
 	"use strict"
 
@@ -82105,9 +82998,9 @@
 		return [ar+br, x]
 	}
 
-/***/ },
-/* 394 */
-/***/ function(module, exports) {
+/***/ }),
+/* 399 */
+/***/ (function(module, exports) {
 
 	"use strict"
 
@@ -82266,16 +83159,16 @@
 	  return g
 	}
 
-/***/ },
-/* 395 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 400 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHullnD
 
-	var ich = __webpack_require__(396)
-	var aff = __webpack_require__(400)
+	var ich = __webpack_require__(401)
+	var aff = __webpack_require__(405)
 
 	function permute(points, front) {
 	  var n = points.length
@@ -82331,9 +83224,9 @@
 	  }
 	}
 
-/***/ },
-/* 396 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 401 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
@@ -82343,8 +83236,8 @@
 
 	module.exports = incrementalConvexHull
 
-	var orient = __webpack_require__(389)
-	var compareCell = __webpack_require__(397).compareCells
+	var orient = __webpack_require__(394)
+	var compareCell = __webpack_require__(402).compareCells
 
 	function compareInt(a, b) {
 	  return a - b
@@ -82782,14 +83675,14 @@
 	  return triangles.boundary()
 	}
 
-/***/ },
-/* 397 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 402 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"; "use restrict";
 
-	var bits      = __webpack_require__(398)
-	  , UnionFind = __webpack_require__(399)
+	var bits      = __webpack_require__(403)
+	  , UnionFind = __webpack_require__(404)
 
 	//Returns the dimension of a cell complex
 	function dimension(cells) {
@@ -83130,9 +84023,9 @@
 	exports.connectedComponents = connectedComponents
 
 
-/***/ },
-/* 398 */
-/***/ function(module, exports) {
+/***/ }),
+/* 403 */
+/***/ (function(module, exports) {
 
 	/**
 	 * Bit twiddling hacks for JavaScript.
@@ -83340,9 +84233,9 @@
 
 
 
-/***/ },
-/* 399 */
-/***/ function(module, exports) {
+/***/ }),
+/* 404 */
+/***/ (function(module, exports) {
 
 	"use strict"; "use restrict";
 
@@ -83407,15 +84300,15 @@
 	  }
 	}
 
-/***/ },
-/* 400 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 405 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = affineHull
 
-	var orient = __webpack_require__(389)
+	var orient = __webpack_require__(394)
 
 	function linearlyIndependent(points, d) {
 	  var nhull = new Array(d+1)
@@ -83463,12 +84356,12 @@
 	  return index
 	}
 
-/***/ },
-/* 401 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 406 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
-	var featureCollection = __webpack_require__(372).featureCollection;
+	var inside = __webpack_require__(382);
+	var featureCollection = __webpack_require__(377).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and returns the points that fall within the polygons.
@@ -83476,7 +84369,7 @@
 	 * @name within
 	 * @param {FeatureCollection<Point>} points input points
 	 * @param {FeatureCollection<Polygon>} polygons input polygons
-	 * @return {FeatureCollection<Point>} points that land within at least one polygon
+	 * @returns {FeatureCollection<Point>} points that land within at least one polygon
 	 * @example
 	 * var searchWithin = {
 	 *   "type": "FeatureCollection",
@@ -83563,18 +84456,18 @@
 	};
 
 
-/***/ },
-/* 402 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 407 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// 1. run tin on points
 	// 2. calculate lenth of all edges and area of all triangles
 	// 3. remove triangles that fail the max length test
 	// 4. buffer the results slightly
 	// 5. merge the results
-	var tin = __webpack_require__(375);
-	var union = __webpack_require__(403);
-	var distance = __webpack_require__(378);
+	var tin = __webpack_require__(381);
+	var union = __webpack_require__(408);
+	var distance = __webpack_require__(384);
 
 	/**
 	 * Takes a set of {@link Point|points} and returns a concave hull polygon.
@@ -83586,7 +84479,7 @@
 	 * hull to become concave (in miles)
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
 	 * @returns {Feature<Polygon>} a concave hull
-	 * @throws {Error} if maxEdge parameter is missing
+	 * @throws {Error} if maxEdge parameter is missing or unable to compute hull
 	 * @example
 	 * var points = {
 	 *   "type": "FeatureCollection",
@@ -83653,6 +84546,9 @@
 	    var tinPolys = tin(points);
 	    var filteredPolys = tinPolys.features.filter(filterTriangles);
 	    tinPolys.features = filteredPolys;
+	    if (tinPolys.features.length < 1) {
+	        throw new Error('too few polygons found to compute concave hull');
+	    }
 
 	    function filterTriangles(triangle) {
 	        var pt1 = triangle.geometry.coordinates[0][0];
@@ -83683,23 +84579,18 @@
 	module.exports = concave;
 
 
-/***/ },
-/* 403 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 408 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	// look here for help http://svn.osgeo.org/grass/grass/branches/releasebranch_6_4/vector/v.overlay/main.c
-	//must be array of polygons
-
-	// depend on jsts for now https://github.com/bjornharrtell/jsts/blob/master/examples/overlay.html
-
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(409);
 
 	/**
 	 * Takes two or more {@link Polygon|polygons} and returns a combined polygon. If the input polygons are not contiguous, this function returns a {@link MultiPolygon} feature.
 	 *
 	 * @name union
 	 * @param {...Feature<Polygon>} A polygon to combine
-	 * @return {Feature<(Polygon|MultiPolygon)>} a combined {@link Polygon} or {@link MultiPolygon} feature
+	 * @returns {Feature<(Polygon|MultiPolygon)>} a combined {@link Polygon} or {@link MultiPolygon} feature
 	 * @example
 	 * var poly1 = {
 	 *   "type": "Feature",
@@ -83763,9 +84654,9 @@
 	};
 
 
-/***/ },
-/* 404 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 409 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// JSTS. See https://github.com/bjornharrtell/jsts
 	// Licenses:
@@ -83788,12 +84679,12 @@
 	return v>0},Rs.isInCircleDDSlow=function(t,e,n,i){var r=_.valueOf(i.x),s=_.valueOf(i.y),o=_.valueOf(t.x),a=_.valueOf(t.y),u=_.valueOf(e.x),l=_.valueOf(e.y),h=_.valueOf(n.x),c=_.valueOf(n.y),f=o.multiply(o).add(a.multiply(a)).multiply(Rs.triAreaDDSlow(u,l,h,c,r,s)),g=u.multiply(u).add(l.multiply(l)).multiply(Rs.triAreaDDSlow(o,a,h,c,r,s)),d=h.multiply(h).add(c.multiply(c)).multiply(Rs.triAreaDDSlow(o,a,u,l,r,s)),p=r.multiply(r).add(s.multiply(s)).multiply(Rs.triAreaDDSlow(o,a,u,l,h,c)),v=f.subtract(g).add(d).subtract(p),m=v.doubleValue()>0;return m},Rs.isInCircleNonRobust=function(t,e,n,i){var r=(t.x*t.x+t.y*t.y)*Rs.triArea(e,n,i)-(e.x*e.x+e.y*e.y)*Rs.triArea(t,n,i)+(n.x*n.x+n.y*n.y)*Rs.triArea(t,e,i)-(i.x*i.x+i.y*i.y)*Rs.triArea(t,e,n)>0;return r},Rs.isInCircleRobust=function(t,e,n,i){return Rs.isInCircleNormalized(t,e,n,i)},Rs.triAreaDDSlow=function(t,e,n,i,r,s){return n.subtract(t).multiply(s.subtract(e)).subtract(i.subtract(e).multiply(r.subtract(t)))},Rs.triAreaDDFast=function(t,e,n){var i=_.valueOf(e.x).selfSubtract(t.x).selfMultiply(_.valueOf(n.y).selfSubtract(t.y)),r=_.valueOf(e.y).selfSubtract(t.y).selfMultiply(_.valueOf(n.x).selfSubtract(t.x));return i.selfSubtract(r)},e(Ts.prototype,{circleCenter:function(t,e){var n=new Ts(this.getX(),this.getY()),i=this.bisector(n,t),r=this.bisector(t,e),s=new F(i,r),o=null;try{o=new Ts(s.getX(),s.getY())}catch(i){if(!(i instanceof w))throw i;A.err.println("a: "+n+"  b: "+t+"  c: "+e),A.err.println(i)}finally{}return o},dot:function(t){return this.p.x*t.getX()+this.p.y*t.getY()},magn:function(){return Math.sqrt(this.p.x*this.p.x+this.p.y*this.p.y)},getZ:function(){return this.p.z},bisector:function(t,e){var n=e.getX()-t.getX(),i=e.getY()-t.getY(),r=new F(t.getX()+n/2,t.getY()+i/2,1),s=new F(t.getX()-i+n/2,t.getY()+n+i/2,1);return new F(r,s)},equals:function(){if(1===arguments.length){var t=arguments[0];return this.p.x===t.getX()&&this.p.y===t.getY()}if(2===arguments.length){var e=arguments[0],n=arguments[1];return this.p.distance(e.getCoordinate())<n}},getCoordinate:function(){return this.p},isInCircle:function(t,e,n){return Rs.isInCircleRobust(t.p,e.p,n.p,this.p)},interpolateZValue:function(t,e,n){var i=t.getX(),r=t.getY(),s=e.getX()-i,o=n.getX()-i,a=e.getY()-r,u=n.getY()-r,l=s*u-o*a,h=this.getX()-i,c=this.getY()-r,f=(u*h-o*c)/l,g=(-a*h+s*c)/l,d=t.getZ()+f*(e.getZ()-t.getZ())+g*(n.getZ()-t.getZ());return d},midPoint:function(t){var e=(this.p.x+t.getX())/2,n=(this.p.y+t.getY())/2,i=(this.p.z+t.getZ())/2;return new Ts(e,n,i)},rightOf:function(t){return this.isCCW(t.dest(),t.orig())},isCCW:function(t,e){return(t.p.x-this.p.x)*(e.p.y-this.p.y)-(t.p.y-this.p.y)*(e.p.x-this.p.x)>0},getX:function(){return this.p.x},crossProduct:function(t){return this.p.x*t.getY()-this.p.y*t.getX()},setZ:function(t){this.p.z=t},times:function(t){return new Ts(t*this.p.x,t*this.p.y)},cross:function(){return new Ts(this.p.y,(-this.p.x))},leftOf:function(t){return this.isCCW(t.orig(),t.dest())},toString:function(){return"POINT ("+this.p.x+" "+this.p.y+")"},sub:function(t){return new Ts(this.p.x-t.getX(),this.p.y-t.getY())},getY:function(){return this.p.y},classify:function(t,e){var n=this,i=e.sub(t),r=n.sub(t),s=i.crossProduct(r);return s>0?Ts.LEFT:s<0?Ts.RIGHT:i.getX()*r.getX()<0||i.getY()*r.getY()<0?Ts.BEHIND:i.magn()<r.magn()?Ts.BEYOND:t.equals(n)?Ts.ORIGIN:e.equals(n)?Ts.DESTINATION:Ts.BETWEEN},sum:function(t){return new Ts(this.p.x+t.getX(),this.p.y+t.getY())},distance:function(t,e){return Math.sqrt(Math.pow(e.getX()-t.getX(),2)+Math.pow(e.getY()-t.getY(),2))},circumRadiusRatio:function(t,e){var n=this.circleCenter(t,e),i=this.distance(n,t),r=this.distance(this,t),s=this.distance(t,e);return s<r&&(r=s),s=this.distance(e,this),s<r&&(r=s),i/r},interfaces_:function(){return[]},getClass:function(){return Ts}}),Ts.interpolateZ=function(){if(3===arguments.length){var t=arguments[0],e=arguments[1],n=arguments[2],i=e.distance(n),r=t.distance(e),s=n.z-e.z,o=e.z+s*(r/i);return o}if(4===arguments.length){var a=arguments[0],u=arguments[1],l=arguments[2],h=arguments[3],c=u.x,f=u.y,g=l.x-c,d=h.x-c,p=l.y-f,v=h.y-f,m=g*v-d*p,y=a.x-c,x=a.y-f,E=(v*y-d*x)/m,I=(-p*y+g*x)/m,N=u.z+E*(l.z-u.z)+I*(h.z-u.z);return N}},Ts.LEFT=0,Ts.RIGHT=1,Ts.BEYOND=2,Ts.BEHIND=3,Ts.BETWEEN=4,Ts.ORIGIN=5,Ts.DESTINATION=6,h(Ps,Ts),e(Ps.prototype,{getConstraint:function(){return this.constraint},setOnConstraint:function(t){this._isOnConstraint=t},merge:function(t){t._isOnConstraint&&(this._isOnConstraint=!0,this.constraint=t.constraint)},isOnConstraint:function(){return this._isOnConstraint},setConstraint:function(t){this._isOnConstraint=!0,this.constraint=t},interfaces_:function(){return[]},getClass:function(){return Ps}}),e(bs.prototype,{equalsNonOriented:function(t){return!!this.equalsOriented(t)||!!this.equalsOriented(t.sym())},toLineSegment:function(){return new ce(this.vertex.getCoordinate(),this.dest().getCoordinate())},dest:function(){return this.sym().orig()},oNext:function(){return this.next},equalsOriented:function(t){return!(!this.orig().getCoordinate().equals2D(t.orig().getCoordinate())||!this.dest().getCoordinate().equals2D(t.dest().getCoordinate()))},dNext:function(){return this.sym().oNext().sym()},lPrev:function(){return this.next.sym()},rPrev:function(){return this.sym().oNext()},rot:function(){return this._rot},oPrev:function(){return this._rot.next._rot},sym:function(){return this._rot._rot},setOrig:function(t){this.vertex=t},lNext:function(){return this.invRot().oNext().rot()},getLength:function(){return this.orig().getCoordinate().distance(this.dest().getCoordinate())},invRot:function(){return this._rot.sym()},setDest:function(t){this.sym().setOrig(t)},setData:function(t){this.data=t},getData:function(){return this.data},delete:function(){this._rot=null},orig:function(){return this.vertex},rNext:function(){return this._rot.next.invRot()},toString:function(){var t=this.vertex.getCoordinate(),e=this.dest().getCoordinate();return se.toLineString(t,e)},isLive:function(){return null!==this._rot},getPrimary:function(){return this.orig().getCoordinate().compareTo(this.dest().getCoordinate())<=0?this:this.sym()},dPrev:function(){return this.invRot().oNext().invRot()},setNext:function(t){this.next=t},interfaces_:function(){return[]},getClass:function(){return bs}}),bs.makeEdge=function(t,e){var n=new bs,i=new bs,r=new bs,s=new bs;n._rot=i,i._rot=r,r._rot=s,s._rot=n,n.setNext(n),i.setNext(s),r.setNext(r),s.setNext(i);var o=n;return o.setOrig(t),o.setDest(e),o},bs.swap=function(t){var e=t.oPrev(),n=t.sym().oPrev();bs.splice(t,e),bs.splice(t.sym(),n),bs.splice(t,e.lNext()),bs.splice(t.sym(),n.lNext()),t.setOrig(e.dest()),t.setDest(n.dest())},bs.splice=function(t,e){var n=t.oNext().rot(),i=e.oNext().rot(),r=e.oNext(),s=t.oNext(),o=i.oNext(),a=n.oNext();t.setNext(r),e.setNext(s),n.setNext(o),i.setNext(a)},bs.connect=function(t,e){var n=bs.makeEdge(t.dest(),e.orig());return bs.splice(n,t.lNext()),bs.splice(n.sym(),e),n},e(Os.prototype,{insertSite:function(t){var e=this.subdiv.locate(t);if(this.subdiv.isVertexOfEdge(e,t))return e;this.subdiv.isOnEdge(e,t.getCoordinate())&&(e=e.oPrev(),this.subdiv.delete(e.oNext()));var n=this.subdiv.makeEdge(e.orig(),t);bs.splice(n,e);var i=n;do n=this.subdiv.connect(e,n.sym()),e=n.oPrev();while(e.lNext()!==i);for(;;){var r=e.oPrev();if(r.dest().rightOf(e)&&t.isInCircle(e.orig(),r.dest(),e.dest()))bs.swap(e),e=e.oPrev();else{if(e.oNext()===i)return n;e=e.oNext().lPrev()}}},insertSites:function(t){for(var e=t.iterator();e.hasNext();){var n=e.next();this.insertSite(n)}},interfaces_:function(){return[]},getClass:function(){return Os}}),e(_s.prototype,{locate:function(t){},interfaces_:function(){return[]},getClass:function(){return _s}}),e(Ms.prototype,{init:function(){this.lastEdge=this.findEdge()},locate:function(t){this.lastEdge.isLive()||this.init();var e=this.subdiv.locateFromEdge(t,this.lastEdge);return this.lastEdge=e,e},findEdge:function(){var t=this.subdiv.getEdges();return t.iterator().next()},interfaces_:function(){return[_s]},getClass:function(){return Ms}}),h(Ds,l),e(Ds.prototype,{getSegment:function(){return this.seg},interfaces_:function(){return[]},getClass:function(){return Ds}}),Ds.msgWithSpatial=function(t,e){return null!==e?t+" [ "+e+" ]":t},e(As.prototype,{visit:function(t){},interfaces_:function(){return[]},getClass:function(){return As}}),e(Fs.prototype,{getTriangleVertices:function(t){var e=new Bs;return this.visitTriangles(e,t),e.getTriangleVertices()},isFrameVertex:function(t){return!!t.equals(this.frameVertex[0])||(!!t.equals(this.frameVertex[1])||!!t.equals(this.frameVertex[2]))},isVertexOfEdge:function(t,e){return!(!e.equals(t.orig(),this.tolerance)&&!e.equals(t.dest(),this.tolerance))},connect:function(t,e){var n=bs.connect(t,e);return this.quadEdges.add(n),n},getVoronoiCellPolygon:function(t,e){var n=new I,i=t;do{var r=t.rot().orig().getCoordinate();n.add(r),t=t.oPrev()}while(t!==i);var s=new N;s.addAll(n,!1),s.closeRing(),s.size()<4&&(A.out.println(s),s.add(s.get(s.size()-1),!0));var o=s.toCoordinateArray(),a=e.createPolygon(e.createLinearRing(o),null),u=i.orig();return a.setUserData(u.getCoordinate()),a},setLocator:function(t){this.locator=t},initSubdiv:function(){var t=this.makeEdge(this.frameVertex[0],this.frameVertex[1]),e=this.makeEdge(this.frameVertex[1],this.frameVertex[2]);bs.splice(t.sym(),e);var n=this.makeEdge(this.frameVertex[2],this.frameVertex[0]);return bs.splice(e.sym(),n),bs.splice(n.sym(),t),t},isFrameBorderEdge:function(t){var e=new Array(3).fill(null);Fs.getTriangleEdges(t,e);var n=new Array(3).fill(null);Fs.getTriangleEdges(t.sym(),n);var i=t.lNext().dest();if(this.isFrameVertex(i))return!0;var r=t.sym().lNext().dest();return!!this.isFrameVertex(r)},makeEdge:function(t,e){var n=bs.makeEdge(t,e);return this.quadEdges.add(n),n},visitTriangles:function(t,e){this.visitedKey++;var n=new pe;n.push(this.startingEdge);for(var i=new J;!n.empty();){var r=n.pop();if(!i.contains(r)){var s=this.fetchTriangleToVisit(r,n,e,i);null!==s&&t.visit(s)}}},isFrameEdge:function(t){return!(!this.isFrameVertex(t.orig())&&!this.isFrameVertex(t.dest()))},isOnEdge:function(t,e){this.seg.setCoordinates(t.orig().getCoordinate(),t.dest().getCoordinate());var n=this.seg.distance(e);return n<this.edgeCoincidenceTolerance},getEnvelope:function(){return new C(this.frameEnv)},createFrame:function(t){var e=t.getWidth(),n=t.getHeight(),i=0;i=e>n?10*e:10*n,this.frameVertex[0]=new Ts((t.getMaxX()+t.getMinX())/2,t.getMaxY()+i),this.frameVertex[1]=new Ts(t.getMinX()-i,t.getMinY()-i),this.frameVertex[2]=new Ts(t.getMaxX()+i,t.getMinY()-i),this.frameEnv=new C(this.frameVertex[0].getCoordinate(),this.frameVertex[1].getCoordinate()),this.frameEnv.expandToInclude(this.frameVertex[2].getCoordinate())},getTriangleCoordinates:function(t){var e=new zs;return this.visitTriangles(e,t),e.getTriangles()},getVertices:function(t){for(var e=new J,n=this.quadEdges.iterator();n.hasNext();){var i=n.next(),r=i.orig();!t&&this.isFrameVertex(r)||e.add(r);var s=i.dest();!t&&this.isFrameVertex(s)||e.add(s)}return e},fetchTriangleToVisit:function(t,e,n,i){var r=t,s=0,o=!1;do{this.triEdges[s]=r,this.isFrameEdge(r)&&(o=!0);var a=r.sym();i.contains(a)||e.push(a),i.add(r),s++,r=r.lNext()}while(r!==t);return o&&!n?null:this.triEdges},getEdges:function(){if(0===arguments.length)return this.quadEdges;if(1===arguments.length){for(var t=arguments[0],e=this.getPrimaryEdges(!1),n=new Array(e.size()).fill(null),i=0,r=e.iterator();r.hasNext();){var s=r.next();n[i++]=t.createLineString([s.orig().getCoordinate(),s.dest().getCoordinate()])}return t.createMultiLineString(n)}},getVertexUniqueEdges:function(t){for(var e=new I,n=new J,i=this.quadEdges.iterator();i.hasNext();){var r=i.next(),s=r.orig();n.contains(s)||(n.add(s),!t&&this.isFrameVertex(s)||e.add(r));var o=r.sym(),a=o.orig();n.contains(a)||(n.add(a),!t&&this.isFrameVertex(a)||e.add(o))}return e},getTriangleEdges:function(t){var e=new qs;return this.visitTriangles(e,t),e.getTriangleEdges()},getPrimaryEdges:function(t){this.visitedKey++;var e=new I,n=new pe;n.push(this.startingEdge);for(var i=new J;!n.empty();){var r=n.pop();if(!i.contains(r)){var s=r.getPrimary();!t&&this.isFrameEdge(s)||e.add(s),n.push(r.oNext()),n.push(r.sym().oNext()),i.add(r),i.add(r.sym())}}return e},delete:function(t){bs.splice(t,t.oPrev()),bs.splice(t.sym(),t.sym().oPrev());var e=t.sym(),n=t.rot(),i=t.rot().sym();this.quadEdges.remove(t),this.quadEdges.remove(e),this.quadEdges.remove(n),this.quadEdges.remove(i),t.delete(),e.delete(),n.delete(),i.delete()},locateFromEdge:function(t,e){for(var n=0,i=this.quadEdges.size(),r=e;;){if(n++,n>i)throw new Ds(r.toLineSegment());if(t.equals(r.orig())||t.equals(r.dest()))break;if(t.rightOf(r))r=r.sym();else if(t.rightOf(r.oNext())){if(t.rightOf(r.dPrev()))break;r=r.dPrev()}else r=r.oNext()}return r},getTolerance:function(){return this.tolerance},getVoronoiCellPolygons:function(t){this.visitTriangles(new Gs,!0);for(var e=new I,n=this.getVertexUniqueEdges(!1),i=n.iterator();i.hasNext();){var r=i.next();e.add(this.getVoronoiCellPolygon(r,t))}return e},getVoronoiDiagram:function(t){var e=this.getVoronoiCellPolygons(t);return t.createGeometryCollection(ie.toGeometryArray(e))},getTriangles:function(t){for(var e=this.getTriangleCoordinates(!1),n=new Array(e.size()).fill(null),i=0,r=e.iterator();r.hasNext();){var s=r.next();n[i++]=t.createPolygon(t.createLinearRing(s),null)}return t.createGeometryCollection(n)},insertSite:function(t){var e=this.locate(t);if(t.equals(e.orig(),this.tolerance)||t.equals(e.dest(),this.tolerance))return e;var n=this.makeEdge(e.orig(),t);bs.splice(n,e);var i=n;do n=this.connect(e,n.sym()),e=n.oPrev();while(e.lNext()!==i);return i},locate:function(){if(1===arguments.length){if(arguments[0]instanceof Ts){var t=arguments[0];return this.locator.locate(t)}if(arguments[0]instanceof g){var e=arguments[0];return this.locator.locate(new Ts(e))}}else if(2===arguments.length){var n=arguments[0],i=arguments[1],r=this.locator.locate(new Ts(n));if(null===r)return null;var s=r;r.dest().getCoordinate().equals2D(n)&&(s=r.sym());var o=s;do{if(o.dest().getCoordinate().equals2D(i))return o;o=o.oNext()}while(o!==s);return null}},interfaces_:function(){return[]},getClass:function(){return Fs}}),Fs.getTriangleEdges=function(t,e){if(e[0]=t,e[1]=e[0].lNext(),e[2]=e[1].lNext(),e[2].lNext()!==e[0])throw new i("Edges do not form a triangle")},e(Gs.prototype,{visit:function(t){for(var e=t[0].orig().getCoordinate(),n=t[1].orig().getCoordinate(),i=t[2].orig().getCoordinate(),r=Si.circumcentre(e,n,i),s=new Ts(r),o=0;o<3;o++)t[o].rot().setOrig(s)},interfaces_:function(){return[As]},getClass:function(){return Gs}}),e(qs.prototype,{getTriangleEdges:function(){return this.triList},visit:function(t){this.triList.add(t.clone())},interfaces_:function(){return[As]},getClass:function(){return qs}}),e(Bs.prototype,{visit:function(t){this.triList.add([t[0].orig(),t[1].orig(),t[2].orig()])},getTriangleVertices:function(){return this.triList},interfaces_:function(){return[As]},getClass:function(){return Bs}}),e(zs.prototype,{checkTriangleSize:function(t){var e="";t.length>=2?e=se.toLineString(t[0],t[1]):t.length>=1&&(e=se.toPoint(t[0]))},visit:function(t){this.coordList.clear();for(var e=0;e<3;e++){var n=t[e].orig();this.coordList.add(n.getCoordinate())}if(this.coordList.size()>0){this.coordList.closeRing();var i=this.coordList.toCoordinateArray();if(4!==i.length)return null;this.triCoords.add(i)}},getTriangles:function(){return this.triCoords},interfaces_:function(){return[As]},getClass:function(){return zs}}),Fs.TriangleCircumcentreVisitor=Gs,Fs.TriangleEdgesListVisitor=qs,Fs.TriangleVertexListVisitor=Bs,Fs.TriangleCoordinatesVisitor=zs,Fs.EDGE_COINCIDENCE_TOL_FACTOR=1e3,e(Vs.prototype,{getLineSegment:function(){return this.ls},getEndZ:function(){var t=this.ls.getCoordinate(1);return t.z},getStartZ:function(){var t=this.ls.getCoordinate(0);return t.z},intersection:function(t){return this.ls.intersection(t.getLineSegment())},getStart:function(){return this.ls.getCoordinate(0)},getEnd:function(){return this.ls.getCoordinate(1)},getEndY:function(){var t=this.ls.getCoordinate(1);return t.y},getStartX:function(){var t=this.ls.getCoordinate(0);return t.x},equalsTopo:function(t){return this.ls.equalsTopo(t.getLineSegment())},getStartY:function(){var t=this.ls.getCoordinate(0);return t.y},setData:function(t){this.data=t},getData:function(){return this.data},getEndX:function(){var t=this.ls.getCoordinate(1);return t.x},toString:function(){return this.ls.toString()},interfaces_:function(){return[]},getClass:function(){return Vs}}),e(ks.prototype,{visit:function(t){},interfaces_:function(){return[]},getClass:function(){return ks}}),e(Ys.prototype,{isRepeated:function(){return this.count>1},getRight:function(){return this.right},getCoordinate:function(){return this.p},setLeft:function(t){this.left=t},getX:function(){return this.p.x},getData:function(){return this.data},getCount:function(){return this.count},getLeft:function(){return this.left},getY:function(){return this.p.y},increment:function(){this.count=this.count+1},setRight:function(t){this.right=t},interfaces_:function(){return[]},getClass:function(){return Ys}}),e(Us.prototype,{insert:function(){if(1===arguments.length){var t=arguments[0];return this.insert(t,null)}if(2===arguments.length){var e=arguments[0],n=arguments[1];if(null===this.root)return this.root=new Ys(e,n),this.root;if(this.tolerance>0){var i=this.findBestMatchNode(e);if(null!==i)return i.increment(),i}return this.insertExact(e,n)}},query:function(){var t=arguments,e=this;if(1===arguments.length){var n=arguments[0],i=new I;return this.query(n,i),i}if(2===arguments.length)if(arguments[0]instanceof C&&R(arguments[1],y))!function(){var n=t[0],i=t[1];e.queryNode(e.root,n,!0,{interfaces_:function(){return[ks]},visit:function(t){i.add(t)}})}();else if(arguments[0]instanceof C&&R(arguments[1],ks)){var r=arguments[0],s=arguments[1];this.queryNode(this.root,r,!0,s)}},queryNode:function(t,e,n,i){if(null===t)return null;var r=null,s=null,o=null;n?(r=e.getMinX(),s=e.getMaxX(),o=t.getX()):(r=e.getMinY(),s=e.getMaxY(),o=t.getY());var a=r<o,u=o<=s;a&&this.queryNode(t.getLeft(),e,!n,i),e.contains(t.getCoordinate())&&i.visit(t),u&&this.queryNode(t.getRight(),e,!n,i)},findBestMatchNode:function(t){var e=new Xs(t,this.tolerance);return this.query(e.queryEnvelope(),e),e.getNode()},isEmpty:function(){return null===this.root},insertExact:function(t,e){for(var n=this.root,i=this.root,r=!0,s=!0;null!==n;){if(null!==n){var o=t.distance(n.getCoordinate())<=this.tolerance;if(o)return n.increment(),n}s=r?t.x<n.getX():t.y<n.getY(),i=n,n=s?n.getLeft():n.getRight(),r=!r}this.numberOfNodes=this.numberOfNodes+1;var a=new Ys(t,e);return s?i.setLeft(a):i.setRight(a),a},interfaces_:function(){return[]},getClass:function(){return Us}}),Us.toCoordinates=function(){if(1===arguments.length){var t=arguments[0];return Us.toCoordinates(t,!1)}if(2===arguments.length){for(var e=arguments[0],n=arguments[1],i=new N,r=e.iterator();r.hasNext();)for(var s=r.next(),o=n?s.getCount():1,a=0;a<o;a++)i.add(s.getCoordinate(),!0);return i.toCoordinateArray()}},e(Xs.prototype,{visit:function(t){var e=this.p.distance(t.getCoordinate()),n=e<=this.tolerance;if(!n)return null;var i=!1;(null===this.matchNode||e<this.matchDist||null!==this.matchNode&&e===this.matchDist&&t.getCoordinate().compareTo(this.matchNode.getCoordinate())<1)&&(i=!0),i&&(this.matchNode=t,this.matchDist=e)},queryEnvelope:function(){var t=new C(this.p);return t.expandBy(this.tolerance),t},getNode:function(){return this.matchNode},interfaces_:function(){return[ks]},getClass:function(){return Xs}}),Us.BestMatchVisitor=Xs,e(Hs.prototype,{getInitialVertices:function(){return this.initialVertices},getKDT:function(){return this.kdt},enforceConstraints:function(){this.addConstraintVertices();var t=0,e=0;do e=this.enforceGabriel(this.segments),t++;while(e>0&&t<Hs.MAX_SPLIT_ITER)},insertSites:function(t){for(var e=t.iterator();e.hasNext();){var n=e.next();this.insertSite(n)}},getVertexFactory:function(){return this.vertexFactory},getPointArray:function(){for(var t=new Array(this.initialVertices.size()+this.segVertices.size()).fill(null),e=0,n=this.initialVertices.iterator();n.hasNext();){var i=n.next();t[e++]=i.getCoordinate()}for(var r=this.segVertices.iterator();r.hasNext();){var i=r.next();t[e++]=i.getCoordinate()}return t},setConstraints:function(t,e){this.segments=t,this.segVertices=e},computeConvexHull:function(){var t=new ie,e=this.getPointArray(),n=new me(e,t);this.convexHull=n.getConvexHull()},addConstraintVertices:function(){this.computeConvexHull(),this.insertSites(this.segVertices)},findNonGabrielPoint:function(t){var e=t.getStart(),n=t.getEnd(),i=new g((e.x+n.x)/2,(e.y+n.y)/2),s=e.distance(i),o=new C(i);o.expandBy(s);for(var a=this.kdt.query(o),u=null,l=r.MAX_VALUE,h=a.iterator();h.hasNext();){var c=h.next(),f=c.getCoordinate();if(!f.equals2D(e)&&!f.equals2D(n)){var d=i.distance(f);if(d<s){var p=d;(null===u||p<l)&&(u=f,l=p)}}}return u},getConstraintSegments:function(){return this.segments},setSplitPointFinder:function(t){this.splitFinder=t},getConvexHull:function(){return this.convexHull},getTolerance:function(){return this.tolerance},enforceGabriel:function(t){for(var e=new I,n=0,i=new I,r=t.iterator();r.hasNext();){var s=r.next(),o=this.findNonGabrielPoint(s);if(null!==o){this.splitPt=this.splitFinder.findSplitPoint(s,o);var a=this.createVertex(this.splitPt,s),u=(this.insertSite(a),new Vs(s.getStartX(),s.getStartY(),s.getStartZ(),a.getX(),a.getY(),a.getZ(),s.getData())),l=new Vs(a.getX(),a.getY(),a.getZ(),s.getEndX(),s.getEndY(),s.getEndZ(),s.getData());e.add(u),e.add(l),i.add(s),n+=1}}return t.removeAll(i),t.addAll(e),n},createVertex:function(){if(1===arguments.length){var t=arguments[0],e=null;return e=null!==this.vertexFactory?this.vertexFactory.createVertex(t,null):new Ps(t)}if(2===arguments.length){var n=arguments[0],i=arguments[1],e=null;return e=null!==this.vertexFactory?this.vertexFactory.createVertex(n,i):new Ps(n),e.setOnConstraint(!0),e}},getSubdivision:function(){return this.subdiv},computeBoundingBox:function(){var t=Hs.computeVertexEnvelope(this.initialVertices),e=Hs.computeVertexEnvelope(this.segVertices),n=new C(t);n.expandToInclude(e);var i=.2*n.getWidth(),r=.2*n.getHeight(),s=Math.max(i,r);this.computeAreaEnv=new C(n),this.computeAreaEnv.expandBy(s)},setVertexFactory:function(t){this.vertexFactory=t},formInitialDelaunay:function(){this.computeBoundingBox(),this.subdiv=new Fs(this.computeAreaEnv,this.tolerance),this.subdiv.setLocator(new Ms(this.subdiv)),this.incDel=new Os(this.subdiv),this.insertSites(this.initialVertices)},insertSite:function(){if(arguments[0]instanceof Ps){var t=arguments[0],e=this.kdt.insert(t.getCoordinate(),t);if(e.isRepeated()){var n=e.getData();return n.merge(t),n}return this.incDel.insertSite(t),t}if(arguments[0]instanceof g){var i=arguments[0];this.insertSite(this.createVertex(i))}},interfaces_:function(){return[]},getClass:function(){return Hs}}),Hs.computeVertexEnvelope=function(t){for(var e=new C,n=t.iterator();n.hasNext();){var i=n.next();e.expandToInclude(i.getCoordinate())}return e},Hs.MAX_SPLIT_ITER=99,e(Ws.prototype,{create:function(){if(null!==this.subdiv)return null;var t=Ws.envelope(this.siteCoords),e=Ws.toVertices(this.siteCoords);this.subdiv=new Fs(t,this.tolerance);var n=new Os(this.subdiv);n.insertSites(e)},setTolerance:function(t){this.tolerance=t},setSites:function(){if(arguments[0]instanceof B){var t=arguments[0];this.siteCoords=Ws.extractUniqueCoordinates(t)}else if(R(arguments[0],v)){var e=arguments[0];this.siteCoords=Ws.unique(H.toCoordinateArray(e))}},getEdges:function(t){return this.create(),this.subdiv.getEdges(t)},getSubdivision:function(){return this.create(),this.subdiv},getTriangles:function(t){return this.create(),this.subdiv.getTriangles(t)},interfaces_:function(){return[]},getClass:function(){return Ws}}),Ws.extractUniqueCoordinates=function(t){if(null===t)return new N;var e=t.getCoordinates();return Ws.unique(e)},Ws.envelope=function(t){for(var e=new C,n=t.iterator();n.hasNext();){var i=n.next();e.expandToInclude(i)}return e},Ws.unique=function(t){var e=H.copyDeep(t);ut.sort(e);var n=new N(e,(!1));return n},Ws.toVertices=function(t){for(var e=new I,n=t.iterator();n.hasNext();){var i=n.next();e.add(new Ts(i))}return e},e(js.prototype,{createSiteVertices:function(t){for(var e=new I,n=t.iterator();n.hasNext();){var i=n.next();this.constraintVertexMap.containsKey(i)||e.add(new Ps(i))}return e},create:function(){if(null!==this.subdiv)return null;var t=Ws.envelope(this.siteCoords),e=new I;null!==this.constraintLines&&(t.expandToInclude(this.constraintLines.getEnvelopeInternal()),this.createVertices(this.constraintLines),e=js.createConstraintSegments(this.constraintLines));var n=this.createSiteVertices(this.siteCoords),i=new Hs(n,this.tolerance);i.setConstraints(e,new I(this.constraintVertexMap.values())),i.formInitialDelaunay(),i.enforceConstraints(),this.subdiv=i.getSubdivision()},setTolerance:function(t){this.tolerance=t},setConstraints:function(t){this.constraintLines=t},setSites:function(t){this.siteCoords=Ws.extractUniqueCoordinates(t)},getEdges:function(t){return this.create(),this.subdiv.getEdges(t)},getSubdivision:function(){return this.create(),this.subdiv},getTriangles:function(t){return this.create(),this.subdiv.getTriangles(t)},createVertices:function(t){for(var e=t.getCoordinates(),n=0;n<e.length;n++){var i=new Ps(e[n]);this.constraintVertexMap.put(e[n],i)}},interfaces_:function(){return[]},getClass:function(){return js}}),js.createConstraintSegments=function(){if(1===arguments.length){for(var t=arguments[0],e=kn.getLines(t),n=new I,i=e.iterator();i.hasNext();){var r=i.next();js.createConstraintSegments(r,n)}return n}if(2===arguments.length)for(var s=arguments[0],o=arguments[1],a=s.getCoordinates(),i=1;i<a.length;i++)o.add(new Vs(a[i-1],a[i]))},e(Ks.prototype,{create:function(){if(null!==this.subdiv)return null;var t=Ws.envelope(this.siteCoords);this.diagramEnv=t;var e=Math.max(this.diagramEnv.getWidth(),this.diagramEnv.getHeight());this.diagramEnv.expandBy(e),null!==this.clipEnv&&this.diagramEnv.expandToInclude(this.clipEnv);var n=Ws.toVertices(this.siteCoords);this.subdiv=new Fs(t,this.tolerance);var i=new Os(this.subdiv);i.insertSites(n)},getDiagram:function(t){this.create();var e=this.subdiv.getVoronoiDiagram(t);return Ks.clipGeometryCollection(e,this.diagramEnv)},setTolerance:function(t){this.tolerance=t},setSites:function(){if(arguments[0]instanceof B){var t=arguments[0];this.siteCoords=Ws.extractUniqueCoordinates(t)}else if(R(arguments[0],v)){var e=arguments[0];this.siteCoords=Ws.unique(H.toCoordinateArray(e))}},setClipEnvelope:function(t){this.clipEnv=t},getSubdivision:function(){return this.create(),this.subdiv},interfaces_:function(){return[]},getClass:function(){return Ks}}),Ks.clipGeometryCollection=function(t,e){for(var n=t.getFactory().toGeometry(e),i=new I,r=0;r<t.getNumGeometries();r++){var s=t.getGeometryN(r),o=null;e.contains(s.getEnvelopeInternal())?o=s:e.intersects(s.getEnvelopeInternal())&&(o=n.intersection(s),o.setUserData(s.getUserData())),null===o||o.isEmpty()||i.add(o)}return t.getFactory().createGeometryCollection(ie.toGeometryArray(i))};var Ao=Object.freeze({Vertex:Ts}),Fo=Object.freeze({ConformingDelaunayTriangulationBuilder:js,DelaunayTriangulationBuilder:Ws,VoronoiDiagramBuilder:Ks,quadedge:Ao});e(Zs.prototype,{interfaces_:function(){return[]},getClass:function(){return Zs}}),Zs.union=function(t,e){if(t.isEmpty()||e.isEmpty()){if(t.isEmpty()&&e.isEmpty())return ii.createEmptyResult(ii.UNION,t,e,t.getFactory());if(t.isEmpty())return e.copy();if(e.isEmpty())return t.copy()}return t.checkNotGeometryCollection(t),t.checkNotGeometryCollection(e),si.overlayOp(t,e,ii.UNION)},e(B.prototype,{equalsTopo:function(t){return!!this.getEnvelopeInternal().equals(t.getEnvelopeInternal())&&rs.relate(this,t).isEquals(this.getDimension(),t.getDimension())},union:function(){if(0===arguments.length)return ls.union(this);if(1===arguments.length){var t=arguments[0];return Zs.union(this,t)}},isValid:function(){return Ur.isValid(this)},intersection:function(t){if(this.isEmpty()||t.isEmpty())return ii.createEmptyResult(ii.INTERSECTION,this,t,this.factory);if(this.isGeometryCollection()){var e=t;return hn.map(this,{interfaces_:function(){return[MapOp]},map:function(t){return t.intersection(e)}})}return this.checkNotGeometryCollection(this),this.checkNotGeometryCollection(t),si.overlayOp(this,t,ii.INTERSECTION)},covers:function(t){return rs.covers(this,t)},coveredBy:function(t){return rs.coveredBy(this,t)},touches:function(t){return rs.touches(this,t)},intersects:function(t){return rs.intersects(this,t)},within:function(t){return rs.within(this,t)},overlaps:function(t){return rs.overlaps(this,t)},disjoint:function(t){return rs.disjoint(this,t)},crosses:function(t){return rs.crosses(this,t)},buffer:function(){if(1===arguments.length){var t=arguments[0];return dr.bufferOp(this,t)}if(2===arguments.length){var e=arguments[0],n=arguments[1];return dr.bufferOp(this,e,n)}if(3===arguments.length){var i=arguments[0],r=arguments[1],s=arguments[2];return dr.bufferOp(this,i,r,s)}},convexHull:function(){return new me(this).getConvexHull()},relate:function(){for(var t=arguments.length,e=Array(t),n=0;n<t;n++)e[n]=arguments[n];return rs.relate.apply(rs,[this].concat(e))},getCentroid:function(){if(this.isEmpty())return this.factory.createPoint();var t=ge.getCentroid(this);return this.createPointFromInternalCoord(t,this)},getInteriorPoint:function(){if(this.isEmpty())return this.factory.createPoint();var t=null,e=this.getDimension();if(0===e){var n=new li(this);t=n.getInteriorPoint()}else if(1===e){var n=new ui(this);t=n.getInteriorPoint()}else{var n=new oi(this);t=n.getInteriorPoint()}return this.createPointFromInternalCoord(t,this)},symDifference:function(t){if(this.isEmpty()||t.isEmpty()){if(this.isEmpty()&&t.isEmpty())return ii.createEmptyResult(ii.SYMDIFFERENCE,this,t,this.factory);if(this.isEmpty())return t.copy();if(t.isEmpty())return this.copy()}return this.checkNotGeometryCollection(this),this.checkNotGeometryCollection(t),si.overlayOp(this,t,ii.SYMDIFFERENCE)},createPointFromInternalCoord:function(t,e){return e.getPrecisionModel().makePrecise(t),e.getFactory().createPoint(t)},toText:function(){var t=new se;return t.write(this)},toString:function(){this.toText()},contains:function(t){return rs.contains(this,t)},difference:function(t){return this.isEmpty()?ii.createEmptyResult(ii.DIFFERENCE,this,t,this.factory):t.isEmpty()?this.copy():(this.checkNotGeometryCollection(this),this.checkNotGeometryCollection(t),si.overlayOp(this,t,ii.DIFFERENCE))},isSimple:function(){var t=new Wi(this);return t.isSimple()},isWithinDistance:function(t,e){var n=this.getEnvelopeInternal().distance(t.getEnvelopeInternal());return!(n>e)&&xr.isWithinDistance(this,t,e)},distance:function(t){return xr.distance(this,t)},isEquivalentClass:function(t){return this.getClass()===t.getClass()}});var Go="1.3.0 (6e65adb)";t.version=Go,t.algorithm=co,t.densify=fo,t.dissolve=go,t.geom=lo,t.geomgraph=po,t.index=yo,t.io=No,t.noding=Co,t.operation=_o,t.precision=Mo,t.simplify=Do,t.triangulate=Fo,Object.defineProperty(t,"__esModule",{value:!0})});
 
 
-/***/ },
-/* 405 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 410 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now https://github.com/bjornharrtell/jsts/blob/master/examples/overlay.html
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(409);
 
 	/**
 	 * Finds the difference between two {@link Polygon|polygons} by clipping the second
@@ -83802,7 +84693,7 @@
 	 * @name difference
 	 * @param {Feature<Polygon>} p1 input Polygon feature
 	 * @param {Feature<Polygon>} p2 Polygon feature to difference from `p1`
-	 * @return {Feature<Polygon>} a Polygon feature showing the area of `p1` excluding the area of `p2`
+	 * @return {Feature<(Polygon|MultiPolygon)>} a Polygon or MultiPolygon feature showing the area of `p1` excluding the area of `p2`
 	 * @example
 	 * var poly1 = {
 	 *   "type": "Feature",
@@ -83888,11 +84779,1929 @@
 	};
 
 
-/***/ },
-/* 406 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 411 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
+	var turfUnion = __webpack_require__(408);
+	var turfOverlaps = __webpack_require__(412);
+	var turfbbox = __webpack_require__(385);
+	var Rbush = __webpack_require__(414);
+	var gju = __webpack_require__(416);
+	var getClosest = __webpack_require__(417);
+
+	/**
+	 * Dissolves a FeatureCollection of polygons based on a property. Note that multipart features within the collection are not supported
+	 *
+	 * @name dissolve
+	 * @param {FeatureCollection<Polygon>} featureCollection input feature collection to be dissolved
+	 * @param {string} [propertyName] property name on which to dissolve features
+	 * @returns {FeatureCollection<Polygon>} a FeatureCollection containing the dissolved polygons
+	 * @example
+	 * var features = {
+	 * "type": "FeatureCollection",
+	 * "features": [
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "yes"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+	 *     }
+	 *   },
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "yes"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[0, -1], [0, 0], [1, 0], [1, -1], [0,-1]]]
+	 *     }
+	 *   },
+	 *   {
+	 *     "type": "Feature",
+	 *     "properties": {
+	 *       "combine": "no"
+	 *     },
+	 *     "geometry": {
+	 *       "type": "Polygon",
+	 *       "coordinates": [[[1,-1],[1, 0], [2, 0], [2, -1], [1, -1]]]
+	 *     }
+	 *   }
+	 *  ]
+	 * }
+	 *
+	 * var dissolved = turf.dissolve(features, 'combine');
+	 *
+	 * //=dissolved
+	 */
+	module.exports = function (featureCollection, propertyName) {
+
+	    var originalIndexOfItemsRemoved = [];
+	    var treeItems = [];
+	    var rtree = new Rbush();
+	    for (var polyIndex = 0; polyIndex < featureCollection.features.length; polyIndex++) {
+	        var inputFeatureBbox = turfbbox(featureCollection.features[polyIndex]);
+	        var treeObj = {
+	            minX: inputFeatureBbox[0],
+	            minY: inputFeatureBbox[1],
+	            maxX: inputFeatureBbox[2],
+	            maxY: inputFeatureBbox[3],
+	            origIndexPosition: polyIndex
+	        };
+	        treeItems.push(treeObj);
+	    }
+	    rtree.load(treeItems);
+
+	    for (var i = 0; i < featureCollection.features.length; i++) {
+	        var polygon = featureCollection.features[i];
+
+	        var polyBoundingBox = turfbbox(polygon);
+	        var searchObj = {
+	            minX: polyBoundingBox[0],
+	            minY: polyBoundingBox[1],
+	            maxX: polyBoundingBox[2],
+	            maxY: polyBoundingBox[3]
+	        };
+	        var potentialMatchingFeatures = rtree.search(searchObj);
+
+	        var featureChanged = false;
+
+	        for (var searchIndex = 0; searchIndex < potentialMatchingFeatures.length; searchIndex++) {
+	            polygon = featureCollection.features[i];
+
+	            var matchFeaturePosition = potentialMatchingFeatures[searchIndex].origIndexPosition;
+
+	            if (originalIndexOfItemsRemoved.length > 0 && matchFeaturePosition !== 0) {
+	                if (matchFeaturePosition > originalIndexOfItemsRemoved[originalIndexOfItemsRemoved.length - 1]) {
+	                    matchFeaturePosition = matchFeaturePosition - (originalIndexOfItemsRemoved.length);
+	                } else {
+	                    var closestNumber = getClosest.greaterNumber(matchFeaturePosition, originalIndexOfItemsRemoved);
+	                    if (closestNumber !== 0) {
+	                        matchFeaturePosition = matchFeaturePosition - closestNumber;
+	                    }
+	                }
+	            }
+
+	            if (matchFeaturePosition === i) {
+	                continue;
+	            }
+	            var matchFeature = featureCollection.features[matchFeaturePosition];
+
+	            if (typeof propertyName !== undefined) {
+	                if (matchFeature.properties[propertyName] !== polygon.properties[propertyName]) {
+	                    continue;
+	                }
+	            }
+
+	            var overlapCheck = turfOverlaps(polygon, matchFeature);
+
+	            if (!overlapCheck) {
+	                var polyClone = JSON.stringify(polygon);
+	                var polyBeingCheckedClone = JSON.stringify(matchFeature);
+	                var linestring1 = toLinestring(JSON.parse(polyClone));
+	                var linestring2 = toLinestring(JSON.parse(polyBeingCheckedClone));
+	                overlapCheck = gju.lineStringsIntersect(linestring1.geometry, linestring2.geometry);
+	            }
+	            if (!overlapCheck) {
+	                continue;
+	            }
+
+	            featureCollection.features[i] = turfUnion(polygon, matchFeature);
+	            originalIndexOfItemsRemoved.push(potentialMatchingFeatures[searchIndex].origIndexPosition);
+	            originalIndexOfItemsRemoved.sort(function (a, b) {
+	                return a - b;
+	            });
+
+	            rtree.remove(potentialMatchingFeatures[searchIndex]);
+	            featureCollection.features.splice(matchFeaturePosition, 1);
+	            searchObj.origIndexPosition = i;
+	            rtree.remove(searchObj, function (a, b) {
+	                return a.origIndexPosition === b.origIndexPosition;
+	            });
+	            featureChanged = true;
+	        }
+	        if (featureChanged) {
+	            var newBoundingBox = turfbbox(polygon);
+	            rtree.insert({
+	                minX: newBoundingBox[0],
+	                minY: newBoundingBox[1],
+	                maxX: newBoundingBox[2],
+	                maxY: newBoundingBox[3],
+	                origIndexPosition: i
+	            });
+	            i--;
+	        }
+	    }
+	    return featureCollection;
+	};
+
+	function toLinestring(polygon) {
+	    if (polygon === null || polygon === undefined) throw new Error('No polygon was passed');
+	    polygon.geometry.type = 'LineString';
+	    var flat_arr = [].concat.apply([], polygon.geometry.coordinates);
+	    polygon.geometry.coordinates = flat_arr;
+	    return polygon;
+	}
+
+
+/***/ }),
+/* 412 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var clockwise = __webpack_require__(413);
+
+	function doLinesIntersect(line1, line2) {
+	  var p1 = line1[0],
+	    p2 = line1[1],
+	    p3 = line2[0],
+	    p4 = line2[1];
+
+	  return (clockwise([p1, p3, p4, p1]) != clockwise([p2, p3, p4, p2]))
+	    && (clockwise([p1, p2, p3, p1]) != clockwise([p1, p2, p4, p1]));
+	}
+
+	function testLines(ring1, ring2) {
+	  for (var p1_ind = 0; p1_ind < (ring1.length - 1); p1_ind++) {
+	    var p1_line = [ring1[p1_ind], ring1[p1_ind + 1]];
+	    for (var p2_ind = 0; p2_ind < (ring2.length - 1); p2_ind++) {
+	      var p2_line = [ring2[p2_ind], ring2[p2_ind + 1]];
+
+	      if (doLinesIntersect(p1_line, p2_line)) {
+	        return true;
+	      }
+	    }
+	  }
+	  return false;
+	}
+
+	function getCoordinates(polygon) {
+	  var coords = [[[]]];
+
+	  switch (polygon.geometry.type) {
+	    case 'LineString':
+	      coords = [[polygon.geometry.coordinates]];
+	      break;
+	    case 'Polygon':
+	      coords = [polygon.geometry.coordinates];
+	      break;
+	    case 'MultiPolygon':
+	      coords = polygon.geometry.coordinates;
+	      break;
+	  }
+	  return coords;
+	}
+
+	/**
+	 * Since we don't care about the overlap amount,
+	 * or it's geometry, but rather just whether overlap
+	 * occurs, polygon overlap can most simply be expressed
+	 * by testing whether any pair of edges on the two polygons
+	 * intersect. If there are any edge intersections, the
+	 * polygons overlap.
+	 *
+	 * @param  {[type]} poly1 [description]
+	 * @param  {[type]} poly2 [description]
+	 * @return {[type]}       [description]
+	 */
+	module.exports = function (poly1, poly2) {
+	  var coords1 = getCoordinates(poly1),
+	    coords2 = getCoordinates(poly2);
+
+	  // This looks completely stupid ridiculous to
+	  // have so many nested loops, but it supports
+	  // multipolygons nicely. In the case of polygons
+	  // or linestrings, the outer loops are only one
+	  // iteration.
+	  return coords1.some(function (rings1) {
+	    return coords2.some(function (rings2) {
+	      return rings1.some(function(ring1) {
+	        return rings2.some(function(ring2) {
+	          return testLines(ring1, ring2);
+	        });
+	      });
+	    });
+	  });
+	};
+
+
+/***/ }),
+/* 413 */
+/***/ (function(module, exports) {
+
+	module.exports = function(ring){
+	  var sum = 0;
+	  var i = 1;
+	  var len = ring.length;
+	  var prev,cur;
+	  while(i<len){
+	    prev = cur||ring[0];
+	    cur = ring[i];
+	    sum += ((cur[0]-prev[0])*(cur[1]+prev[1]));
+	    i++;
+	  }
+	  return sum > 0;
+	}
+
+/***/ }),
+/* 414 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = rbush;
+
+	var quickselect = __webpack_require__(415);
+
+	function rbush(maxEntries, format) {
+	    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
+
+	    // max entries in a node is 9 by default; min node fill is 40% for best performance
+	    this._maxEntries = Math.max(4, maxEntries || 9);
+	    this._minEntries = Math.max(2, Math.ceil(this._maxEntries * 0.4));
+
+	    if (format) {
+	        this._initFormat(format);
+	    }
+
+	    this.clear();
+	}
+
+	rbush.prototype = {
+
+	    all: function () {
+	        return this._all(this.data, []);
+	    },
+
+	    search: function (bbox) {
+
+	        var node = this.data,
+	            result = [],
+	            toBBox = this.toBBox;
+
+	        if (!intersects(bbox, node)) return result;
+
+	        var nodesToSearch = [],
+	            i, len, child, childBBox;
+
+	        while (node) {
+	            for (i = 0, len = node.children.length; i < len; i++) {
+
+	                child = node.children[i];
+	                childBBox = node.leaf ? toBBox(child) : child;
+
+	                if (intersects(bbox, childBBox)) {
+	                    if (node.leaf) result.push(child);
+	                    else if (contains(bbox, childBBox)) this._all(child, result);
+	                    else nodesToSearch.push(child);
+	                }
+	            }
+	            node = nodesToSearch.pop();
+	        }
+
+	        return result;
+	    },
+
+	    collides: function (bbox) {
+
+	        var node = this.data,
+	            toBBox = this.toBBox;
+
+	        if (!intersects(bbox, node)) return false;
+
+	        var nodesToSearch = [],
+	            i, len, child, childBBox;
+
+	        while (node) {
+	            for (i = 0, len = node.children.length; i < len; i++) {
+
+	                child = node.children[i];
+	                childBBox = node.leaf ? toBBox(child) : child;
+
+	                if (intersects(bbox, childBBox)) {
+	                    if (node.leaf || contains(bbox, childBBox)) return true;
+	                    nodesToSearch.push(child);
+	                }
+	            }
+	            node = nodesToSearch.pop();
+	        }
+
+	        return false;
+	    },
+
+	    load: function (data) {
+	        if (!(data && data.length)) return this;
+
+	        if (data.length < this._minEntries) {
+	            for (var i = 0, len = data.length; i < len; i++) {
+	                this.insert(data[i]);
+	            }
+	            return this;
+	        }
+
+	        // recursively build the tree with the given data from stratch using OMT algorithm
+	        var node = this._build(data.slice(), 0, data.length - 1, 0);
+
+	        if (!this.data.children.length) {
+	            // save as is if tree is empty
+	            this.data = node;
+
+	        } else if (this.data.height === node.height) {
+	            // split root if trees have the same height
+	            this._splitRoot(this.data, node);
+
+	        } else {
+	            if (this.data.height < node.height) {
+	                // swap trees if inserted one is bigger
+	                var tmpNode = this.data;
+	                this.data = node;
+	                node = tmpNode;
+	            }
+
+	            // insert the small tree into the large tree at appropriate level
+	            this._insert(node, this.data.height - node.height - 1, true);
+	        }
+
+	        return this;
+	    },
+
+	    insert: function (item) {
+	        if (item) this._insert(item, this.data.height - 1);
+	        return this;
+	    },
+
+	    clear: function () {
+	        this.data = createNode([]);
+	        return this;
+	    },
+
+	    remove: function (item, equalsFn) {
+	        if (!item) return this;
+
+	        var node = this.data,
+	            bbox = this.toBBox(item),
+	            path = [],
+	            indexes = [],
+	            i, parent, index, goingUp;
+
+	        // depth-first iterative tree traversal
+	        while (node || path.length) {
+
+	            if (!node) { // go up
+	                node = path.pop();
+	                parent = path[path.length - 1];
+	                i = indexes.pop();
+	                goingUp = true;
+	            }
+
+	            if (node.leaf) { // check current node
+	                index = findItem(item, node.children, equalsFn);
+
+	                if (index !== -1) {
+	                    // item found, remove the item and condense tree upwards
+	                    node.children.splice(index, 1);
+	                    path.push(node);
+	                    this._condense(path);
+	                    return this;
+	                }
+	            }
+
+	            if (!goingUp && !node.leaf && contains(node, bbox)) { // go down
+	                path.push(node);
+	                indexes.push(i);
+	                i = 0;
+	                parent = node;
+	                node = node.children[0];
+
+	            } else if (parent) { // go right
+	                i++;
+	                node = parent.children[i];
+	                goingUp = false;
+
+	            } else node = null; // nothing found
+	        }
+
+	        return this;
+	    },
+
+	    toBBox: function (item) { return item; },
+
+	    compareMinX: compareNodeMinX,
+	    compareMinY: compareNodeMinY,
+
+	    toJSON: function () { return this.data; },
+
+	    fromJSON: function (data) {
+	        this.data = data;
+	        return this;
+	    },
+
+	    _all: function (node, result) {
+	        var nodesToSearch = [];
+	        while (node) {
+	            if (node.leaf) result.push.apply(result, node.children);
+	            else nodesToSearch.push.apply(nodesToSearch, node.children);
+
+	            node = nodesToSearch.pop();
+	        }
+	        return result;
+	    },
+
+	    _build: function (items, left, right, height) {
+
+	        var N = right - left + 1,
+	            M = this._maxEntries,
+	            node;
+
+	        if (N <= M) {
+	            // reached leaf level; return leaf
+	            node = createNode(items.slice(left, right + 1));
+	            calcBBox(node, this.toBBox);
+	            return node;
+	        }
+
+	        if (!height) {
+	            // target height of the bulk-loaded tree
+	            height = Math.ceil(Math.log(N) / Math.log(M));
+
+	            // target number of root entries to maximize storage utilization
+	            M = Math.ceil(N / Math.pow(M, height - 1));
+	        }
+
+	        node = createNode([]);
+	        node.leaf = false;
+	        node.height = height;
+
+	        // split the items into M mostly square tiles
+
+	        var N2 = Math.ceil(N / M),
+	            N1 = N2 * Math.ceil(Math.sqrt(M)),
+	            i, j, right2, right3;
+
+	        multiSelect(items, left, right, N1, this.compareMinX);
+
+	        for (i = left; i <= right; i += N1) {
+
+	            right2 = Math.min(i + N1 - 1, right);
+
+	            multiSelect(items, i, right2, N2, this.compareMinY);
+
+	            for (j = i; j <= right2; j += N2) {
+
+	                right3 = Math.min(j + N2 - 1, right2);
+
+	                // pack each entry recursively
+	                node.children.push(this._build(items, j, right3, height - 1));
+	            }
+	        }
+
+	        calcBBox(node, this.toBBox);
+
+	        return node;
+	    },
+
+	    _chooseSubtree: function (bbox, node, level, path) {
+
+	        var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
+
+	        while (true) {
+	            path.push(node);
+
+	            if (node.leaf || path.length - 1 === level) break;
+
+	            minArea = minEnlargement = Infinity;
+
+	            for (i = 0, len = node.children.length; i < len; i++) {
+	                child = node.children[i];
+	                area = bboxArea(child);
+	                enlargement = enlargedArea(bbox, child) - area;
+
+	                // choose entry with the least area enlargement
+	                if (enlargement < minEnlargement) {
+	                    minEnlargement = enlargement;
+	                    minArea = area < minArea ? area : minArea;
+	                    targetNode = child;
+
+	                } else if (enlargement === minEnlargement) {
+	                    // otherwise choose one with the smallest area
+	                    if (area < minArea) {
+	                        minArea = area;
+	                        targetNode = child;
+	                    }
+	                }
+	            }
+
+	            node = targetNode || node.children[0];
+	        }
+
+	        return node;
+	    },
+
+	    _insert: function (item, level, isNode) {
+
+	        var toBBox = this.toBBox,
+	            bbox = isNode ? item : toBBox(item),
+	            insertPath = [];
+
+	        // find the best node for accommodating the item, saving all nodes along the path too
+	        var node = this._chooseSubtree(bbox, this.data, level, insertPath);
+
+	        // put the item into the node
+	        node.children.push(item);
+	        extend(node, bbox);
+
+	        // split on node overflow; propagate upwards if necessary
+	        while (level >= 0) {
+	            if (insertPath[level].children.length > this._maxEntries) {
+	                this._split(insertPath, level);
+	                level--;
+	            } else break;
+	        }
+
+	        // adjust bboxes along the insertion path
+	        this._adjustParentBBoxes(bbox, insertPath, level);
+	    },
+
+	    // split overflowed node into two
+	    _split: function (insertPath, level) {
+
+	        var node = insertPath[level],
+	            M = node.children.length,
+	            m = this._minEntries;
+
+	        this._chooseSplitAxis(node, m, M);
+
+	        var splitIndex = this._chooseSplitIndex(node, m, M);
+
+	        var newNode = createNode(node.children.splice(splitIndex, node.children.length - splitIndex));
+	        newNode.height = node.height;
+	        newNode.leaf = node.leaf;
+
+	        calcBBox(node, this.toBBox);
+	        calcBBox(newNode, this.toBBox);
+
+	        if (level) insertPath[level - 1].children.push(newNode);
+	        else this._splitRoot(node, newNode);
+	    },
+
+	    _splitRoot: function (node, newNode) {
+	        // split root node
+	        this.data = createNode([node, newNode]);
+	        this.data.height = node.height + 1;
+	        this.data.leaf = false;
+	        calcBBox(this.data, this.toBBox);
+	    },
+
+	    _chooseSplitIndex: function (node, m, M) {
+
+	        var i, bbox1, bbox2, overlap, area, minOverlap, minArea, index;
+
+	        minOverlap = minArea = Infinity;
+
+	        for (i = m; i <= M - m; i++) {
+	            bbox1 = distBBox(node, 0, i, this.toBBox);
+	            bbox2 = distBBox(node, i, M, this.toBBox);
+
+	            overlap = intersectionArea(bbox1, bbox2);
+	            area = bboxArea(bbox1) + bboxArea(bbox2);
+
+	            // choose distribution with minimum overlap
+	            if (overlap < minOverlap) {
+	                minOverlap = overlap;
+	                index = i;
+
+	                minArea = area < minArea ? area : minArea;
+
+	            } else if (overlap === minOverlap) {
+	                // otherwise choose distribution with minimum area
+	                if (area < minArea) {
+	                    minArea = area;
+	                    index = i;
+	                }
+	            }
+	        }
+
+	        return index;
+	    },
+
+	    // sorts node children by the best axis for split
+	    _chooseSplitAxis: function (node, m, M) {
+
+	        var compareMinX = node.leaf ? this.compareMinX : compareNodeMinX,
+	            compareMinY = node.leaf ? this.compareMinY : compareNodeMinY,
+	            xMargin = this._allDistMargin(node, m, M, compareMinX),
+	            yMargin = this._allDistMargin(node, m, M, compareMinY);
+
+	        // if total distributions margin value is minimal for x, sort by minX,
+	        // otherwise it's already sorted by minY
+	        if (xMargin < yMargin) node.children.sort(compareMinX);
+	    },
+
+	    // total margin of all possible split distributions where each node is at least m full
+	    _allDistMargin: function (node, m, M, compare) {
+
+	        node.children.sort(compare);
+
+	        var toBBox = this.toBBox,
+	            leftBBox = distBBox(node, 0, m, toBBox),
+	            rightBBox = distBBox(node, M - m, M, toBBox),
+	            margin = bboxMargin(leftBBox) + bboxMargin(rightBBox),
+	            i, child;
+
+	        for (i = m; i < M - m; i++) {
+	            child = node.children[i];
+	            extend(leftBBox, node.leaf ? toBBox(child) : child);
+	            margin += bboxMargin(leftBBox);
+	        }
+
+	        for (i = M - m - 1; i >= m; i--) {
+	            child = node.children[i];
+	            extend(rightBBox, node.leaf ? toBBox(child) : child);
+	            margin += bboxMargin(rightBBox);
+	        }
+
+	        return margin;
+	    },
+
+	    _adjustParentBBoxes: function (bbox, path, level) {
+	        // adjust bboxes along the given tree path
+	        for (var i = level; i >= 0; i--) {
+	            extend(path[i], bbox);
+	        }
+	    },
+
+	    _condense: function (path) {
+	        // go through the path, removing empty nodes and updating bboxes
+	        for (var i = path.length - 1, siblings; i >= 0; i--) {
+	            if (path[i].children.length === 0) {
+	                if (i > 0) {
+	                    siblings = path[i - 1].children;
+	                    siblings.splice(siblings.indexOf(path[i]), 1);
+
+	                } else this.clear();
+
+	            } else calcBBox(path[i], this.toBBox);
+	        }
+	    },
+
+	    _initFormat: function (format) {
+	        // data format (minX, minY, maxX, maxY accessors)
+
+	        // uses eval-type function compilation instead of just accepting a toBBox function
+	        // because the algorithms are very sensitive to sorting functions performance,
+	        // so they should be dead simple and without inner calls
+
+	        var compareArr = ['return a', ' - b', ';'];
+
+	        this.compareMinX = new Function('a', 'b', compareArr.join(format[0]));
+	        this.compareMinY = new Function('a', 'b', compareArr.join(format[1]));
+
+	        this.toBBox = new Function('a',
+	            'return {minX: a' + format[0] +
+	            ', minY: a' + format[1] +
+	            ', maxX: a' + format[2] +
+	            ', maxY: a' + format[3] + '};');
+	    }
+	};
+
+	function findItem(item, items, equalsFn) {
+	    if (!equalsFn) return items.indexOf(item);
+
+	    for (var i = 0; i < items.length; i++) {
+	        if (equalsFn(item, items[i])) return i;
+	    }
+	    return -1;
+	}
+
+	// calculate node's bbox from bboxes of its children
+	function calcBBox(node, toBBox) {
+	    distBBox(node, 0, node.children.length, toBBox, node);
+	}
+
+	// min bounding rectangle of node children from k to p-1
+	function distBBox(node, k, p, toBBox, destNode) {
+	    if (!destNode) destNode = createNode(null);
+	    destNode.minX = Infinity;
+	    destNode.minY = Infinity;
+	    destNode.maxX = -Infinity;
+	    destNode.maxY = -Infinity;
+
+	    for (var i = k, child; i < p; i++) {
+	        child = node.children[i];
+	        extend(destNode, node.leaf ? toBBox(child) : child);
+	    }
+
+	    return destNode;
+	}
+
+	function extend(a, b) {
+	    a.minX = Math.min(a.minX, b.minX);
+	    a.minY = Math.min(a.minY, b.minY);
+	    a.maxX = Math.max(a.maxX, b.maxX);
+	    a.maxY = Math.max(a.maxY, b.maxY);
+	    return a;
+	}
+
+	function compareNodeMinX(a, b) { return a.minX - b.minX; }
+	function compareNodeMinY(a, b) { return a.minY - b.minY; }
+
+	function bboxArea(a)   { return (a.maxX - a.minX) * (a.maxY - a.minY); }
+	function bboxMargin(a) { return (a.maxX - a.minX) + (a.maxY - a.minY); }
+
+	function enlargedArea(a, b) {
+	    return (Math.max(b.maxX, a.maxX) - Math.min(b.minX, a.minX)) *
+	           (Math.max(b.maxY, a.maxY) - Math.min(b.minY, a.minY));
+	}
+
+	function intersectionArea(a, b) {
+	    var minX = Math.max(a.minX, b.minX),
+	        minY = Math.max(a.minY, b.minY),
+	        maxX = Math.min(a.maxX, b.maxX),
+	        maxY = Math.min(a.maxY, b.maxY);
+
+	    return Math.max(0, maxX - minX) *
+	           Math.max(0, maxY - minY);
+	}
+
+	function contains(a, b) {
+	    return a.minX <= b.minX &&
+	           a.minY <= b.minY &&
+	           b.maxX <= a.maxX &&
+	           b.maxY <= a.maxY;
+	}
+
+	function intersects(a, b) {
+	    return b.minX <= a.maxX &&
+	           b.minY <= a.maxY &&
+	           b.maxX >= a.minX &&
+	           b.maxY >= a.minY;
+	}
+
+	function createNode(children) {
+	    return {
+	        children: children,
+	        height: 1,
+	        leaf: true,
+	        minX: Infinity,
+	        minY: Infinity,
+	        maxX: -Infinity,
+	        maxY: -Infinity
+	    };
+	}
+
+	// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
+	// combines selection algorithm with binary divide & conquer approach
+
+	function multiSelect(arr, left, right, n, compare) {
+	    var stack = [left, right],
+	        mid;
+
+	    while (stack.length) {
+	        right = stack.pop();
+	        left = stack.pop();
+
+	        if (right - left <= n) continue;
+
+	        mid = left + Math.ceil((right - left) / n / 2) * n;
+	        quickselect(arr, mid, left, right, compare);
+
+	        stack.push(left, mid, mid, right);
+	    }
+	}
+
+
+/***/ }),
+/* 415 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	module.exports = partialSort;
+
+	// Floyd-Rivest selection algorithm:
+	// Rearrange items so that all items in the [left, k] range are smaller than all items in (k, right];
+	// The k-th element will have the (k - left + 1)th smallest value in [left, right]
+
+	function partialSort(arr, k, left, right, compare) {
+	    left = left || 0;
+	    right = right || (arr.length - 1);
+	    compare = compare || defaultCompare;
+
+	    while (right > left) {
+	        if (right - left > 600) {
+	            var n = right - left + 1;
+	            var m = k - left + 1;
+	            var z = Math.log(n);
+	            var s = 0.5 * Math.exp(2 * z / 3);
+	            var sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+	            var newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+	            var newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+	            partialSort(arr, k, newLeft, newRight, compare);
+	        }
+
+	        var t = arr[k];
+	        var i = left;
+	        var j = right;
+
+	        swap(arr, left, k);
+	        if (compare(arr[right], t) > 0) swap(arr, left, right);
+
+	        while (i < j) {
+	            swap(arr, i, j);
+	            i++;
+	            j--;
+	            while (compare(arr[i], t) < 0) i++;
+	            while (compare(arr[j], t) > 0) j--;
+	        }
+
+	        if (compare(arr[left], t) === 0) swap(arr, left, j);
+	        else {
+	            j++;
+	            swap(arr, j, right);
+	        }
+
+	        if (j <= k) left = j + 1;
+	        if (k <= j) right = j - 1;
+	    }
+	}
+
+	function swap(arr, i, j) {
+	    var tmp = arr[i];
+	    arr[i] = arr[j];
+	    arr[j] = tmp;
+	}
+
+	function defaultCompare(a, b) {
+	    return a < b ? -1 : a > b ? 1 : 0;
+	}
+
+
+/***/ }),
+/* 416 */
+/***/ (function(module, exports) {
+
+	(function () {
+	  var gju = this.gju = {};
+
+	  // Export the geojson object for **CommonJS**
+	  if (typeof module !== 'undefined' && module.exports) {
+	    module.exports = gju;
+	  }
+
+	  // adapted from http://www.kevlindev.com/gui/math/intersection/Intersection.js
+	  gju.lineStringsIntersect = function (l1, l2) {
+	    var intersects = [];
+	    for (var i = 0; i <= l1.coordinates.length - 2; ++i) {
+	      for (var j = 0; j <= l2.coordinates.length - 2; ++j) {
+	        var a1 = {
+	          x: l1.coordinates[i][1],
+	          y: l1.coordinates[i][0]
+	        },
+	          a2 = {
+	            x: l1.coordinates[i + 1][1],
+	            y: l1.coordinates[i + 1][0]
+	          },
+	          b1 = {
+	            x: l2.coordinates[j][1],
+	            y: l2.coordinates[j][0]
+	          },
+	          b2 = {
+	            x: l2.coordinates[j + 1][1],
+	            y: l2.coordinates[j + 1][0]
+	          },
+	          ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
+	          ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
+	          u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+	        if (u_b != 0) {
+	          var ua = ua_t / u_b,
+	            ub = ub_t / u_b;
+	          if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+	            intersects.push({
+	              'type': 'Point',
+	              'coordinates': [a1.x + ua * (a2.x - a1.x), a1.y + ua * (a2.y - a1.y)]
+	            });
+	          }
+	        }
+	      }
+	    }
+	    if (intersects.length == 0) intersects = false;
+	    return intersects;
+	  }
+
+	  // Bounding Box
+
+	  function boundingBoxAroundPolyCoords (coords) {
+	    var xAll = [], yAll = []
+
+	    for (var i = 0; i < coords[0].length; i++) {
+	      xAll.push(coords[0][i][1])
+	      yAll.push(coords[0][i][0])
+	    }
+
+	    xAll = xAll.sort(function (a,b) { return a - b })
+	    yAll = yAll.sort(function (a,b) { return a - b })
+
+	    return [ [xAll[0], yAll[0]], [xAll[xAll.length - 1], yAll[yAll.length - 1]] ]
+	  }
+
+	  gju.pointInBoundingBox = function (point, bounds) {
+	    return !(point.coordinates[1] < bounds[0][0] || point.coordinates[1] > bounds[1][0] || point.coordinates[0] < bounds[0][1] || point.coordinates[0] > bounds[1][1]) 
+	  }
+
+	  // Point in Polygon
+	  // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#Listing the Vertices
+
+	  function pnpoly (x,y,coords) {
+	    var vert = [ [0,0] ]
+
+	    for (var i = 0; i < coords.length; i++) {
+	      for (var j = 0; j < coords[i].length; j++) {
+	        vert.push(coords[i][j])
+	      }
+		  vert.push(coords[i][0])
+	      vert.push([0,0])
+	    }
+
+	    var inside = false
+	    for (var i = 0, j = vert.length - 1; i < vert.length; j = i++) {
+	      if (((vert[i][0] > y) != (vert[j][0] > y)) && (x < (vert[j][1] - vert[i][1]) * (y - vert[i][0]) / (vert[j][0] - vert[i][0]) + vert[i][1])) inside = !inside
+	    }
+
+	    return inside
+	  }
+
+	  gju.pointInPolygon = function (p, poly) {
+	    var coords = (poly.type == "Polygon") ? [ poly.coordinates ] : poly.coordinates
+
+	    var insideBox = false
+	    for (var i = 0; i < coords.length; i++) {
+	      if (gju.pointInBoundingBox(p, boundingBoxAroundPolyCoords(coords[i]))) insideBox = true
+	    }
+	    if (!insideBox) return false
+
+	    var insidePoly = false
+	    for (var i = 0; i < coords.length; i++) {
+	      if (pnpoly(p.coordinates[1], p.coordinates[0], coords[i])) insidePoly = true
+	    }
+
+	    return insidePoly
+	  }
+
+	  // support multi (but not donut) polygons
+	  gju.pointInMultiPolygon = function (p, poly) {
+	    var coords_array = (poly.type == "MultiPolygon") ? [ poly.coordinates ] : poly.coordinates
+
+	    var insideBox = false
+	    var insidePoly = false
+	    for (var i = 0; i < coords_array.length; i++){
+	      var coords = coords_array[i];
+	      for (var j = 0; j < coords.length; j++) {
+	        if (!insideBox){
+	          if (gju.pointInBoundingBox(p, boundingBoxAroundPolyCoords(coords[j]))) {
+	            insideBox = true
+	          }
+	        }
+	      }
+	      if (!insideBox) return false
+	      for (var j = 0; j < coords.length; j++) {
+	        if (!insidePoly){
+	          if (pnpoly(p.coordinates[1], p.coordinates[0], coords[j])) {
+	            insidePoly = true
+	          }
+	        }
+	      }
+	    }
+
+	    return insidePoly
+	  }
+
+	  gju.numberToRadius = function (number) {
+	    return number * Math.PI / 180;
+	  }
+
+	  gju.numberToDegree = function (number) {
+	    return number * 180 / Math.PI;
+	  }
+
+	  // written with help from @tautologe
+	  gju.drawCircle = function (radiusInMeters, centerPoint, steps) {
+	    var center = [centerPoint.coordinates[1], centerPoint.coordinates[0]],
+	      dist = (radiusInMeters / 1000) / 6371,
+	      // convert meters to radiant
+	      radCenter = [gju.numberToRadius(center[0]), gju.numberToRadius(center[1])],
+	      steps = steps || 15,
+	      // 15 sided circle
+	      poly = [[center[0], center[1]]];
+	    for (var i = 0; i < steps; i++) {
+	      var brng = 2 * Math.PI * i / steps;
+	      var lat = Math.asin(Math.sin(radCenter[0]) * Math.cos(dist)
+	              + Math.cos(radCenter[0]) * Math.sin(dist) * Math.cos(brng));
+	      var lng = radCenter[1] + Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(radCenter[0]),
+	                                          Math.cos(dist) - Math.sin(radCenter[0]) * Math.sin(lat));
+	      poly[i] = [];
+	      poly[i][1] = gju.numberToDegree(lat);
+	      poly[i][0] = gju.numberToDegree(lng);
+	    }
+	    return {
+	      "type": "Polygon",
+	      "coordinates": [poly]
+	    };
+	  }
+
+	  // assumes rectangle starts at lower left point
+	  gju.rectangleCentroid = function (rectangle) {
+	    var bbox = rectangle.coordinates[0];
+	    var xmin = bbox[0][0],
+	      ymin = bbox[0][1],
+	      xmax = bbox[2][0],
+	      ymax = bbox[2][1];
+	    var xwidth = xmax - xmin;
+	    var ywidth = ymax - ymin;
+	    return {
+	      'type': 'Point',
+	      'coordinates': [xmin + xwidth / 2, ymin + ywidth / 2]
+	    };
+	  }
+
+	  // from http://www.movable-type.co.uk/scripts/latlong.html
+	  gju.pointDistance = function (pt1, pt2) {
+	    var lon1 = pt1.coordinates[0],
+	      lat1 = pt1.coordinates[1],
+	      lon2 = pt2.coordinates[0],
+	      lat2 = pt2.coordinates[1],
+	      dLat = gju.numberToRadius(lat2 - lat1),
+	      dLon = gju.numberToRadius(lon2 - lon1),
+	      a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(gju.numberToRadius(lat1))
+	        * Math.cos(gju.numberToRadius(lat2)) * Math.pow(Math.sin(dLon / 2), 2),
+	      c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	    return (6371 * c) * 1000; // returns meters
+	  },
+
+	  // checks if geometry lies entirely within a circle
+	  // works with Point, LineString, Polygon
+	  gju.geometryWithinRadius = function (geometry, center, radius) {
+	    if (geometry.type == 'Point') {
+	      return gju.pointDistance(geometry, center) <= radius;
+	    } else if (geometry.type == 'LineString' || geometry.type == 'Polygon') {
+	      var point = {};
+	      var coordinates;
+	      if (geometry.type == 'Polygon') {
+	        // it's enough to check the exterior ring of the Polygon
+	        coordinates = geometry.coordinates[0];
+	      } else {
+	        coordinates = geometry.coordinates;
+	      }
+	      for (var i in coordinates) {
+	        point.coordinates = coordinates[i];
+	        if (gju.pointDistance(point, center) > radius) {
+	          return false;
+	        }
+	      }
+	    }
+	    return true;
+	  }
+
+	  // adapted from http://paulbourke.net/geometry/polyarea/javascript.txt
+	  gju.area = function (polygon) {
+	    var area = 0;
+	    // TODO: polygon holes at coordinates[1]
+	    var points = polygon.coordinates[0];
+	    var j = points.length - 1;
+	    var p1, p2;
+
+	    for (var i = 0; i < points.length; j = i++) {
+	      var p1 = {
+	        x: points[i][1],
+	        y: points[i][0]
+	      };
+	      var p2 = {
+	        x: points[j][1],
+	        y: points[j][0]
+	      };
+	      area += p1.x * p2.y;
+	      area -= p1.y * p2.x;
+	    }
+
+	    area /= 2;
+	    return area;
+	  },
+
+	  // adapted from http://paulbourke.net/geometry/polyarea/javascript.txt
+	  gju.centroid = function (polygon) {
+	    var f, x = 0,
+	      y = 0;
+	    // TODO: polygon holes at coordinates[1]
+	    var points = polygon.coordinates[0];
+	    var j = points.length - 1;
+	    var p1, p2;
+
+	    for (var i = 0; i < points.length; j = i++) {
+	      var p1 = {
+	        x: points[i][1],
+	        y: points[i][0]
+	      };
+	      var p2 = {
+	        x: points[j][1],
+	        y: points[j][0]
+	      };
+	      f = p1.x * p2.y - p2.x * p1.y;
+	      x += (p1.x + p2.x) * f;
+	      y += (p1.y + p2.y) * f;
+	    }
+
+	    f = gju.area(polygon) * 6;
+	    return {
+	      'type': 'Point',
+	      'coordinates': [y / f, x / f]
+	    };
+	  },
+
+	  gju.simplify = function (source, kink) { /* source[] array of geojson points */
+	    /* kink	in metres, kinks above this depth kept  */
+	    /* kink depth is the height of the triangle abc where a-b and b-c are two consecutive line segments */
+	    kink = kink || 20;
+	    source = source.map(function (o) {
+	      return {
+	        lng: o.coordinates[0],
+	        lat: o.coordinates[1]
+	      }
+	    });
+
+	    var n_source, n_stack, n_dest, start, end, i, sig;
+	    var dev_sqr, max_dev_sqr, band_sqr;
+	    var x12, y12, d12, x13, y13, d13, x23, y23, d23;
+	    var F = (Math.PI / 180.0) * 0.5;
+	    var index = new Array(); /* aray of indexes of source points to include in the reduced line */
+	    var sig_start = new Array(); /* indices of start & end of working section */
+	    var sig_end = new Array();
+
+	    /* check for simple cases */
+
+	    if (source.length < 3) return (source); /* one or two points */
+
+	    /* more complex case. initialize stack */
+
+	    n_source = source.length;
+	    band_sqr = kink * 360.0 / (2.0 * Math.PI * 6378137.0); /* Now in degrees */
+	    band_sqr *= band_sqr;
+	    n_dest = 0;
+	    sig_start[0] = 0;
+	    sig_end[0] = n_source - 1;
+	    n_stack = 1;
+
+	    /* while the stack is not empty  ... */
+	    while (n_stack > 0) {
+
+	      /* ... pop the top-most entries off the stacks */
+
+	      start = sig_start[n_stack - 1];
+	      end = sig_end[n_stack - 1];
+	      n_stack--;
+
+	      if ((end - start) > 1) { /* any intermediate points ? */
+
+	        /* ... yes, so find most deviant intermediate point to
+	        either side of line joining start & end points */
+
+	        x12 = (source[end].lng() - source[start].lng());
+	        y12 = (source[end].lat() - source[start].lat());
+	        if (Math.abs(x12) > 180.0) x12 = 360.0 - Math.abs(x12);
+	        x12 *= Math.cos(F * (source[end].lat() + source[start].lat())); /* use avg lat to reduce lng */
+	        d12 = (x12 * x12) + (y12 * y12);
+
+	        for (i = start + 1, sig = start, max_dev_sqr = -1.0; i < end; i++) {
+
+	          x13 = source[i].lng() - source[start].lng();
+	          y13 = source[i].lat() - source[start].lat();
+	          if (Math.abs(x13) > 180.0) x13 = 360.0 - Math.abs(x13);
+	          x13 *= Math.cos(F * (source[i].lat() + source[start].lat()));
+	          d13 = (x13 * x13) + (y13 * y13);
+
+	          x23 = source[i].lng() - source[end].lng();
+	          y23 = source[i].lat() - source[end].lat();
+	          if (Math.abs(x23) > 180.0) x23 = 360.0 - Math.abs(x23);
+	          x23 *= Math.cos(F * (source[i].lat() + source[end].lat()));
+	          d23 = (x23 * x23) + (y23 * y23);
+
+	          if (d13 >= (d12 + d23)) dev_sqr = d23;
+	          else if (d23 >= (d12 + d13)) dev_sqr = d13;
+	          else dev_sqr = (x13 * y12 - y13 * x12) * (x13 * y12 - y13 * x12) / d12; // solve triangle
+	          if (dev_sqr > max_dev_sqr) {
+	            sig = i;
+	            max_dev_sqr = dev_sqr;
+	          }
+	        }
+
+	        if (max_dev_sqr < band_sqr) { /* is there a sig. intermediate point ? */
+	          /* ... no, so transfer current start point */
+	          index[n_dest] = start;
+	          n_dest++;
+	        } else { /* ... yes, so push two sub-sections on stack for further processing */
+	          n_stack++;
+	          sig_start[n_stack - 1] = sig;
+	          sig_end[n_stack - 1] = end;
+	          n_stack++;
+	          sig_start[n_stack - 1] = start;
+	          sig_end[n_stack - 1] = sig;
+	        }
+	      } else { /* ... no intermediate points, so transfer current start point */
+	        index[n_dest] = start;
+	        n_dest++;
+	      }
+	    }
+
+	    /* transfer last point */
+	    index[n_dest] = n_source - 1;
+	    n_dest++;
+
+	    /* make return array */
+	    var r = new Array();
+	    for (var i = 0; i < n_dest; i++)
+	      r.push(source[index[i]]);
+
+	    return r.map(function (o) {
+	      return {
+	        type: "Point",
+	        coordinates: [o.lng, o.lat]
+	      }
+	    });
+	  }
+
+	  // http://www.movable-type.co.uk/scripts/latlong.html#destPoint
+	  gju.destinationPoint = function (pt, brng, dist) {
+	    dist = dist/6371;  // convert dist to angular distance in radians
+	    brng = gju.numberToRadius(brng);
+
+	    var lon1 = gju.numberToRadius(pt.coordinates[0]);
+	    var lat1 = gju.numberToRadius(pt.coordinates[1]);
+
+	    var lat2 = Math.asin( Math.sin(lat1)*Math.cos(dist) +
+	                          Math.cos(lat1)*Math.sin(dist)*Math.cos(brng) );
+	    var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(dist)*Math.cos(lat1),
+	                                 Math.cos(dist)-Math.sin(lat1)*Math.sin(lat2));
+	    lon2 = (lon2+3*Math.PI) % (2*Math.PI) - Math.PI;  // normalise to -180..+180º
+
+	    return {
+	      'type': 'Point',
+	      'coordinates': [gju.numberToDegree(lon2), gju.numberToDegree(lat2)]
+	    };
+	  };
+
+	})();
+
+
+/***/ }),
+/* 417 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	* @license get-closest https://github.com/cosmosio/get-closest
+	*
+	* The MIT License (MIT)
+	*
+	* Copyright (c) 2014 Olivier Scherrer <pode.fr@gmail.com>
+	*/
+	"use strict";
+
+	var assert = __webpack_require__(418);
+
+	/**
+	 * Get the closest number in an array
+	 * @param {Number} item the base number
+	 * @param {Array} array the array to search into
+	 * @param {Function} getDiff returns the difference between the base number and
+	 *   and the currently read item in the array. The item which returned the smallest difference wins.
+	 * @private
+	 */
+	function _getClosest(item, array, getDiff) {
+	    var closest,
+	        diff;
+
+	    assert(Array.isArray(array), "Get closest expects an array as second argument");
+
+	    array.forEach(function (comparedItem, comparedItemIndex) {
+	        var thisDiff = getDiff(comparedItem, item);
+
+	        if (thisDiff >= 0 && (typeof diff == "undefined" || thisDiff < diff)) {
+	            diff = thisDiff;
+	            closest = comparedItemIndex;
+	        }
+	    });
+
+	    return closest;
+	}
+
+	module.exports = {
+
+	  /**
+	   * Get the closest number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 3 as 29 is the closest item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  number: function closestNumber(item, array) {
+	      return _getClosest(item, array, function (comparedItem, item) {
+	          return Math.abs(comparedItem - item);
+	      });
+	  },
+
+	  /**
+	   * Get the closest greater number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 2 as 50 is the closest greater item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  greaterNumber: function closestGreaterNumber(item, array) {
+	      return _getClosest(item, array, function (comparedItem, item) {
+	          return comparedItem - item;
+	      });
+	  },
+
+	  /**
+	   * Get the closest lower number in an array given a base number
+	   * Example: closest(30, [20, 0, 50, 29]) will return 0 as 20 is the closest lower item
+	   * @param {Number} item the base number
+	   * @param {Array} array the array of numbers to search into
+	   * @returns {Number} the index of the closest item in the array
+	   */
+	  lowerNumber: function closestLowerNumber(item, array) {
+	    return _getClosest(item, array, function (comparedItem, item) {
+	        return item - comparedItem;
+	    });
+	  },
+
+	  /**
+	   * Get the closest item in an array given a base item and a comparator function
+	   * Example (closest("lundi", ["mundi", "mardi"], getLevenshteinDistance)) will return 0 for "lundi"
+	   * @param {*} item the base item
+	   * @param {Array} array an array of items
+	   * @param {Function} comparator a comparatof function to compare the items
+	   *
+	   * The function looks like:
+	   *
+	   * // comparedItem comes from the array
+	   * // baseItem is the item to compare the others to
+	   * // It returns a number
+	   * function comparator(comparedItem, baseItem) {
+	   *     return comparedItem - baseItem;
+	   * }
+	   */
+	  custom: function closestCustom(item, array, comparator) {
+	    return _getClosest(item, array, comparator);
+	  }
+
+	};
+
+
+/***/ }),
+/* 418 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
+
+	// compare and isBuffer taken from https://github.com/feross/buffer/blob/680e9e5e488f22aac27599a57dc844a6315928dd/index.js
+	// original notice:
+
+	/*!
+	 * The buffer module from node.js, for the browser.
+	 *
+	 * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+	 * @license  MIT
+	 */
+	function compare(a, b) {
+	  if (a === b) {
+	    return 0;
+	  }
+
+	  var x = a.length;
+	  var y = b.length;
+
+	  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+	    if (a[i] !== b[i]) {
+	      x = a[i];
+	      y = b[i];
+	      break;
+	    }
+	  }
+
+	  if (x < y) {
+	    return -1;
+	  }
+	  if (y < x) {
+	    return 1;
+	  }
+	  return 0;
+	}
+	function isBuffer(b) {
+	  if (global.Buffer && typeof global.Buffer.isBuffer === 'function') {
+	    return global.Buffer.isBuffer(b);
+	  }
+	  return !!(b != null && b._isBuffer);
+	}
+
+	// based on node assert, original notice:
+
+	// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
+	//
+	// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
+	//
+	// Originally from narwhal.js (http://narwhaljs.org)
+	// Copyright (c) 2009 Thomas Robinson <280north.com>
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a copy
+	// of this software and associated documentation files (the 'Software'), to
+	// deal in the Software without restriction, including without limitation the
+	// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+	// sell copies of the Software, and to permit persons to whom the Software is
+	// furnished to do so, subject to the following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included in
+	// all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+	// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	var util = __webpack_require__(199);
+	var hasOwn = Object.prototype.hasOwnProperty;
+	var pSlice = Array.prototype.slice;
+	var functionsHaveNames = (function () {
+	  return function foo() {}.name === 'foo';
+	}());
+	function pToString (obj) {
+	  return Object.prototype.toString.call(obj);
+	}
+	function isView(arrbuf) {
+	  if (isBuffer(arrbuf)) {
+	    return false;
+	  }
+	  if (typeof global.ArrayBuffer !== 'function') {
+	    return false;
+	  }
+	  if (typeof ArrayBuffer.isView === 'function') {
+	    return ArrayBuffer.isView(arrbuf);
+	  }
+	  if (!arrbuf) {
+	    return false;
+	  }
+	  if (arrbuf instanceof DataView) {
+	    return true;
+	  }
+	  if (arrbuf.buffer && arrbuf.buffer instanceof ArrayBuffer) {
+	    return true;
+	  }
+	  return false;
+	}
+	// 1. The assert module provides functions that throw
+	// AssertionError's when particular conditions are not met. The
+	// assert module must conform to the following interface.
+
+	var assert = module.exports = ok;
+
+	// 2. The AssertionError is defined in assert.
+	// new assert.AssertionError({ message: message,
+	//                             actual: actual,
+	//                             expected: expected })
+
+	var regex = /\s*function\s+([^\(\s]*)\s*/;
+	// based on https://github.com/ljharb/function.prototype.name/blob/adeeeec8bfcc6068b187d7d9fb3d5bb1d3a30899/implementation.js
+	function getName(func) {
+	  if (!util.isFunction(func)) {
+	    return;
+	  }
+	  if (functionsHaveNames) {
+	    return func.name;
+	  }
+	  var str = func.toString();
+	  var match = str.match(regex);
+	  return match && match[1];
+	}
+	assert.AssertionError = function AssertionError(options) {
+	  this.name = 'AssertionError';
+	  this.actual = options.actual;
+	  this.expected = options.expected;
+	  this.operator = options.operator;
+	  if (options.message) {
+	    this.message = options.message;
+	    this.generatedMessage = false;
+	  } else {
+	    this.message = getMessage(this);
+	    this.generatedMessage = true;
+	  }
+	  var stackStartFunction = options.stackStartFunction || fail;
+	  if (Error.captureStackTrace) {
+	    Error.captureStackTrace(this, stackStartFunction);
+	  } else {
+	    // non v8 browsers so we can have a stacktrace
+	    var err = new Error();
+	    if (err.stack) {
+	      var out = err.stack;
+
+	      // try to strip useless frames
+	      var fn_name = getName(stackStartFunction);
+	      var idx = out.indexOf('\n' + fn_name);
+	      if (idx >= 0) {
+	        // once we have located the function frame
+	        // we need to strip out everything before it (and its line)
+	        var next_line = out.indexOf('\n', idx + 1);
+	        out = out.substring(next_line + 1);
+	      }
+
+	      this.stack = out;
+	    }
+	  }
+	};
+
+	// assert.AssertionError instanceof Error
+	util.inherits(assert.AssertionError, Error);
+
+	function truncate(s, n) {
+	  if (typeof s === 'string') {
+	    return s.length < n ? s : s.slice(0, n);
+	  } else {
+	    return s;
+	  }
+	}
+	function inspect(something) {
+	  if (functionsHaveNames || !util.isFunction(something)) {
+	    return util.inspect(something);
+	  }
+	  var rawname = getName(something);
+	  var name = rawname ? ': ' + rawname : '';
+	  return '[Function' +  name + ']';
+	}
+	function getMessage(self) {
+	  return truncate(inspect(self.actual), 128) + ' ' +
+	         self.operator + ' ' +
+	         truncate(inspect(self.expected), 128);
+	}
+
+	// At present only the three keys mentioned above are used and
+	// understood by the spec. Implementations or sub modules can pass
+	// other keys to the AssertionError's constructor - they will be
+	// ignored.
+
+	// 3. All of the following functions must throw an AssertionError
+	// when a corresponding condition is not met, with a message that
+	// may be undefined if not provided.  All assertion methods provide
+	// both the actual and expected values to the assertion error for
+	// display purposes.
+
+	function fail(actual, expected, message, operator, stackStartFunction) {
+	  throw new assert.AssertionError({
+	    message: message,
+	    actual: actual,
+	    expected: expected,
+	    operator: operator,
+	    stackStartFunction: stackStartFunction
+	  });
+	}
+
+	// EXTENSION! allows for well behaved errors defined elsewhere.
+	assert.fail = fail;
+
+	// 4. Pure assertion tests whether a value is truthy, as determined
+	// by !!guard.
+	// assert.ok(guard, message_opt);
+	// This statement is equivalent to assert.equal(true, !!guard,
+	// message_opt);. To test strictly for the value true, use
+	// assert.strictEqual(true, guard, message_opt);.
+
+	function ok(value, message) {
+	  if (!value) fail(value, true, message, '==', assert.ok);
+	}
+	assert.ok = ok;
+
+	// 5. The equality assertion tests shallow, coercive equality with
+	// ==.
+	// assert.equal(actual, expected, message_opt);
+
+	assert.equal = function equal(actual, expected, message) {
+	  if (actual != expected) fail(actual, expected, message, '==', assert.equal);
+	};
+
+	// 6. The non-equality assertion tests for whether two objects are not equal
+	// with != assert.notEqual(actual, expected, message_opt);
+
+	assert.notEqual = function notEqual(actual, expected, message) {
+	  if (actual == expected) {
+	    fail(actual, expected, message, '!=', assert.notEqual);
+	  }
+	};
+
+	// 7. The equivalence assertion tests a deep equality relation.
+	// assert.deepEqual(actual, expected, message_opt);
+
+	assert.deepEqual = function deepEqual(actual, expected, message) {
+	  if (!_deepEqual(actual, expected, false)) {
+	    fail(actual, expected, message, 'deepEqual', assert.deepEqual);
+	  }
+	};
+
+	assert.deepStrictEqual = function deepStrictEqual(actual, expected, message) {
+	  if (!_deepEqual(actual, expected, true)) {
+	    fail(actual, expected, message, 'deepStrictEqual', assert.deepStrictEqual);
+	  }
+	};
+
+	function _deepEqual(actual, expected, strict, memos) {
+	  // 7.1. All identical values are equivalent, as determined by ===.
+	  if (actual === expected) {
+	    return true;
+	  } else if (isBuffer(actual) && isBuffer(expected)) {
+	    return compare(actual, expected) === 0;
+
+	  // 7.2. If the expected value is a Date object, the actual value is
+	  // equivalent if it is also a Date object that refers to the same time.
+	  } else if (util.isDate(actual) && util.isDate(expected)) {
+	    return actual.getTime() === expected.getTime();
+
+	  // 7.3 If the expected value is a RegExp object, the actual value is
+	  // equivalent if it is also a RegExp object with the same source and
+	  // properties (`global`, `multiline`, `lastIndex`, `ignoreCase`).
+	  } else if (util.isRegExp(actual) && util.isRegExp(expected)) {
+	    return actual.source === expected.source &&
+	           actual.global === expected.global &&
+	           actual.multiline === expected.multiline &&
+	           actual.lastIndex === expected.lastIndex &&
+	           actual.ignoreCase === expected.ignoreCase;
+
+	  // 7.4. Other pairs that do not both pass typeof value == 'object',
+	  // equivalence is determined by ==.
+	  } else if ((actual === null || typeof actual !== 'object') &&
+	             (expected === null || typeof expected !== 'object')) {
+	    return strict ? actual === expected : actual == expected;
+
+	  // If both values are instances of typed arrays, wrap their underlying
+	  // ArrayBuffers in a Buffer each to increase performance
+	  // This optimization requires the arrays to have the same type as checked by
+	  // Object.prototype.toString (aka pToString). Never perform binary
+	  // comparisons for Float*Arrays, though, since e.g. +0 === -0 but their
+	  // bit patterns are not identical.
+	  } else if (isView(actual) && isView(expected) &&
+	             pToString(actual) === pToString(expected) &&
+	             !(actual instanceof Float32Array ||
+	               actual instanceof Float64Array)) {
+	    return compare(new Uint8Array(actual.buffer),
+	                   new Uint8Array(expected.buffer)) === 0;
+
+	  // 7.5 For all other Object pairs, including Array objects, equivalence is
+	  // determined by having the same number of owned properties (as verified
+	  // with Object.prototype.hasOwnProperty.call), the same set of keys
+	  // (although not necessarily the same order), equivalent values for every
+	  // corresponding key, and an identical 'prototype' property. Note: this
+	  // accounts for both named and indexed properties on Arrays.
+	  } else if (isBuffer(actual) !== isBuffer(expected)) {
+	    return false;
+	  } else {
+	    memos = memos || {actual: [], expected: []};
+
+	    var actualIndex = memos.actual.indexOf(actual);
+	    if (actualIndex !== -1) {
+	      if (actualIndex === memos.expected.indexOf(expected)) {
+	        return true;
+	      }
+	    }
+
+	    memos.actual.push(actual);
+	    memos.expected.push(expected);
+
+	    return objEquiv(actual, expected, strict, memos);
+	  }
+	}
+
+	function isArguments(object) {
+	  return Object.prototype.toString.call(object) == '[object Arguments]';
+	}
+
+	function objEquiv(a, b, strict, actualVisitedObjects) {
+	  if (a === null || a === undefined || b === null || b === undefined)
+	    return false;
+	  // if one is a primitive, the other must be same
+	  if (util.isPrimitive(a) || util.isPrimitive(b))
+	    return a === b;
+	  if (strict && Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+	    return false;
+	  var aIsArgs = isArguments(a);
+	  var bIsArgs = isArguments(b);
+	  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
+	    return false;
+	  if (aIsArgs) {
+	    a = pSlice.call(a);
+	    b = pSlice.call(b);
+	    return _deepEqual(a, b, strict);
+	  }
+	  var ka = objectKeys(a);
+	  var kb = objectKeys(b);
+	  var key, i;
+	  // having the same number of owned properties (keys incorporates
+	  // hasOwnProperty)
+	  if (ka.length !== kb.length)
+	    return false;
+	  //the same set of keys (although not necessarily the same order),
+	  ka.sort();
+	  kb.sort();
+	  //~~~cheap key test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    if (ka[i] !== kb[i])
+	      return false;
+	  }
+	  //equivalent values for every corresponding key, and
+	  //~~~possibly expensive deep test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    key = ka[i];
+	    if (!_deepEqual(a[key], b[key], strict, actualVisitedObjects))
+	      return false;
+	  }
+	  return true;
+	}
+
+	// 8. The non-equivalence assertion tests for any deep inequality.
+	// assert.notDeepEqual(actual, expected, message_opt);
+
+	assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
+	  if (_deepEqual(actual, expected, false)) {
+	    fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
+	  }
+	};
+
+	assert.notDeepStrictEqual = notDeepStrictEqual;
+	function notDeepStrictEqual(actual, expected, message) {
+	  if (_deepEqual(actual, expected, true)) {
+	    fail(actual, expected, message, 'notDeepStrictEqual', notDeepStrictEqual);
+	  }
+	}
+
+
+	// 9. The strict equality assertion tests strict equality, as determined by ===.
+	// assert.strictEqual(actual, expected, message_opt);
+
+	assert.strictEqual = function strictEqual(actual, expected, message) {
+	  if (actual !== expected) {
+	    fail(actual, expected, message, '===', assert.strictEqual);
+	  }
+	};
+
+	// 10. The strict non-equality assertion tests for strict inequality, as
+	// determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
+
+	assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
+	  if (actual === expected) {
+	    fail(actual, expected, message, '!==', assert.notStrictEqual);
+	  }
+	};
+
+	function expectedException(actual, expected) {
+	  if (!actual || !expected) {
+	    return false;
+	  }
+
+	  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+	    return expected.test(actual);
+	  }
+
+	  try {
+	    if (actual instanceof expected) {
+	      return true;
+	    }
+	  } catch (e) {
+	    // Ignore.  The instanceof check doesn't work for arrow functions.
+	  }
+
+	  if (Error.isPrototypeOf(expected)) {
+	    return false;
+	  }
+
+	  return expected.call({}, actual) === true;
+	}
+
+	function _tryBlock(block) {
+	  var error;
+	  try {
+	    block();
+	  } catch (e) {
+	    error = e;
+	  }
+	  return error;
+	}
+
+	function _throws(shouldThrow, block, expected, message) {
+	  var actual;
+
+	  if (typeof block !== 'function') {
+	    throw new TypeError('"block" argument must be a function');
+	  }
+
+	  if (typeof expected === 'string') {
+	    message = expected;
+	    expected = null;
+	  }
+
+	  actual = _tryBlock(block);
+
+	  message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
+	            (message ? ' ' + message : '.');
+
+	  if (shouldThrow && !actual) {
+	    fail(actual, expected, 'Missing expected exception' + message);
+	  }
+
+	  var userProvidedMessage = typeof message === 'string';
+	  var isUnwantedException = !shouldThrow && util.isError(actual);
+	  var isUnexpectedException = !shouldThrow && actual && !expected;
+
+	  if ((isUnwantedException &&
+	      userProvidedMessage &&
+	      expectedException(actual, expected)) ||
+	      isUnexpectedException) {
+	    fail(actual, expected, 'Got unwanted exception' + message);
+	  }
+
+	  if ((shouldThrow && actual && expected &&
+	      !expectedException(actual, expected)) || (!shouldThrow && actual)) {
+	    throw actual;
+	  }
+	}
+
+	// 11. Expected to throw an error:
+	// assert.throws(block, Error_opt, message_opt);
+
+	assert.throws = function(block, /*optional*/error, /*optional*/message) {
+	  _throws(true, block, error, message);
+	};
+
+	// EXTENSION! This is annoying to write outside this module.
+	assert.doesNotThrow = function(block, /*optional*/error, /*optional*/message) {
+	  _throws(false, block, error, message);
+	};
+
+	assert.ifError = function(err) { if (err) throw err; };
+
+	var objectKeys = Object.keys || function (obj) {
+	  var keys = [];
+	  for (var key in obj) {
+	    if (hasOwn.call(obj, key)) keys.push(key);
+	  }
+	  return keys;
+	};
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ }),
+/* 419 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var turfbbox = __webpack_require__(385);
+	var inside = __webpack_require__(382);
+	var rbush = __webpack_require__(414);
 
 	/**
 	 * Merges a specified property from a FeatureCollection of points into a
@@ -83906,7 +86715,8 @@
 	 * @param {FeatureCollection<Point>} points points to be aggregated
 	 * @param {string} inProperty property to be nested from
 	 * @param {string} outProperty property to be nested into
-	 * @return {FeatureCollection<Polygon>} polygons with properties listed based on `outField`
+	 * @returns {FeatureCollection<Polygon>} polygons with properties listed based on `outField`
+	 * @addToMap collected, pointFC
 	 * @example
 	 * var poly1 = turf.polygon([[[0,0],[10,0],[10,10],[0,10],[0,0]]]);
 	 * var poly2 = turf.polygon([[[10,0],[20,10],[20,20],[20,0],[10,0]]]);
@@ -83916,22 +86726,40 @@
 	 * var pt3 = turf.point([14,2], {population: 100});
 	 * var pt4 = turf.point([13,1], {population: 200});
 	 * var pt5 = turf.point([19,7], {population: 300});
-	 * var ptFC = turf.featureCollection([pt1, pt2, pt3, pt4, pt5]);
-	 * var collected = turf.collect(polyFC, ptFC, 'population', 'values');
-	 *
-	 * collected.features[0].properties.values // => [200, 600]);
+	 * var pointFC = turf.featureCollection([pt1, pt2, pt3, pt4, pt5]);
+	 * var collected = turf.collect(polyFC, pointFC, 'population', 'values');
+	 * var values = collected.features[0].properties.values
+	 * //=values => [200, 600]
+	 * //=pointFC
+	 * //=collected
 	 */
-	module.exports = function collect(polygons, points, inProperty, outProperty) {
+	module.exports = function (polygons, points, inProperty, outProperty) {
+	    var rtree = rbush(6);
+
+	    var treeItems = points.features.map(function (item) {
+	        return {
+	            minX: item.geometry.coordinates[0],
+	            minY: item.geometry.coordinates[1],
+	            maxX: item.geometry.coordinates[0],
+	            maxY: item.geometry.coordinates[1],
+	            property: item.properties[inProperty]
+	        };
+	    });
+
+	    rtree.load(treeItems);
 	    polygons.features.forEach(function (poly) {
-	        var values = points.features.filter(function (pt) {
-	            return inside(pt, poly);
-	        }).map(function (pt) {
-	            return pt.properties[inProperty];
-	        });
 
 	        if (!poly.properties) {
 	            poly.properties = {};
 	        }
+	        var bbox = turfbbox(poly);
+	        var potentialPoints = rtree.search({minX: bbox[0], minY: bbox[1], maxX: bbox[2], maxY: bbox[3]});
+	        var values = [];
+	        potentialPoints.forEach(function (pt) {
+	            if (inside({'type': 'Point', 'coordinates': [pt.minX, pt.minY]}, poly)) {
+	                values.push(pt.property);
+	            }
+	        });
 
 	        poly.properties[outProperty] = values;
 	    });
@@ -83940,11 +86768,11 @@
 	};
 
 
-/***/ },
-/* 407 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 420 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var coordEach = __webpack_require__(380).coordEach;
+	var coordEach = __webpack_require__(379).coordEach;
 
 	/**
 	 * Takes input features and flips all of their coordinates
@@ -83982,11 +86810,11 @@
 	};
 
 
-/***/ },
-/* 408 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 421 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var simplify = __webpack_require__(409);
+	var simplify = __webpack_require__(422);
 
 	// supported GeoJSON geometries, used to check whether to wrap in simpleFeature()
 	var supportedTypes = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
@@ -83999,7 +86827,7 @@
 	 * @param {number} [tolerance=1] simplification tolerance
 	 * @param {boolean} [highQuality=false] whether or not to spend more time to create
 	 * a higher-quality simplification with a different algorithm
-	 * @return {Feature<(LineString|Polygon|MultiLineString|MultiPolygon)>|FeatureCollection|GeometryCollection} a simplified feature
+	 * @returns {Feature<(LineString|Polygon|MultiLineString|MultiPolygon)>|FeatureCollection|GeometryCollection} a simplified feature
 	 * @example
 	  * var feature = {
 	 *   "type": "Feature",
@@ -84135,9 +86963,9 @@
 
 	function simplifyLine(coordinates, tolerance, highQuality) {
 	    return simplify(coordinates.map(function (coord) {
-	        return {x: coord[0], y: coord[1]};
+	        return {x: coord[0], y: coord[1], z: coord[2]};
 	    }), tolerance, highQuality).map(function (coords) {
-	        return [coords.x, coords.y];
+	        return (coords.z) ? [coords.x, coords.y, coords.z] : [coords.x, coords.y];
 	    });
 	}
 
@@ -84169,9 +86997,9 @@
 	}
 
 
-/***/ },
-/* 409 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 422 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
 	 (c) 2013, Vladimir Agafonkin
@@ -84306,12 +87134,12 @@
 	})();
 
 
-/***/ },
-/* 410 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 423 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(372).lineString;
-	var Spline = __webpack_require__(411);
+	var linestring = __webpack_require__(377).lineString;
+	var Spline = __webpack_require__(424);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a curved version
@@ -84325,6 +87153,7 @@
 	 * @param {number} [resolution=10000] time in milliseconds between points
 	 * @param {number} [sharpness=0.85] a measure of how curvy the path should be between splines
 	 * @returns {Feature<LineString>} curved line
+	 * @addToMap line, curved
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -84347,12 +87176,7 @@
 	 * var curved = turf.bezier(line);
 	 * curved.properties = { stroke: '#0f0' };
 	 *
-	 * var result = {
-	 *   "type": "FeatureCollection",
-	 *   "features": [line, curved]
-	 * };
-	 *
-	 * //=result
+	 * //=curved
 	 */
 	module.exports = function (line, resolution, sharpness) {
 	    var lineOut = linestring([]);
@@ -84378,9 +87202,9 @@
 	};
 
 
-/***/ },
-/* 411 */
-/***/ function(module, exports) {
+/***/ }),
+/* 424 */
+/***/ (function(module, exports) {
 
 	/* eslint-disable */
 
@@ -84518,11 +87342,11 @@
 	module.exports = Spline;
 
 
-/***/ },
-/* 412 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 425 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(376);
+	var inside = __webpack_require__(382);
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and performs a spatial join.
@@ -84532,18 +87356,18 @@
 	 * @param {FeatureCollection<Polygon>} polygons input polygons
 	 * @param {string} field property in `polygons` to add to joined {<Point>} features
 	 * @param {string} outField property in `points` in which to store joined property from `polygons`
-	 * @return {FeatureCollection<Point>} points with `containingPolyId` property containing values from `polyId`
+	 * @returns {FeatureCollection<Point>} points with `containingPolyId` property containing values from `polyId`
 	 * @example
-	 * var pt1 = point([-77, 44]);
-	 * var pt2 = point([-77, 38]);
-	 * var poly1 = polygon([[
+	 * var pt1 = turf.point([-77, 44]);
+	 * var pt2 = turf.point([-77, 38]);
+	 * var poly1 = turf.polygon([[
 	 *   [-81, 41],
 	 *   [-81, 47],
 	 *   [-72, 47],
 	 *   [-72, 41],
 	 *   [-81, 41]
 	 * ]], {pop: 3000});
-	 * var poly2 = polygon([[
+	 * var poly2 = turf.polygon([[
 	 *   [-81, 35],
 	 *   [-81, 41],
 	 *   [-72, 41],
@@ -84551,8 +87375,8 @@
 	 *   [-81, 35]
 	 * ]], {pop: 1000});
 	 *
-	 * var points = featureCollection([pt1, pt2]);
-	 * var polygons = featureCollection([poly1, poly2]);
+	 * var points = turf.featureCollection([pt1, pt2]);
+	 * var polygons = turf.featureCollection([poly1, poly2]);
 	 *
 	 * var tagged = turf.tag(points, polygons,
 	 *                       'pop', 'population');
@@ -84580,12 +87404,12 @@
 	};
 
 
-/***/ },
-/* 413 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 426 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/11935175/sampling-a-random-subset-from-an-array
-	var featureCollection = __webpack_require__(372).featureCollection;
+	var featureCollection = __webpack_require__(377).featureCollection;
 
 	/**
 	 * Takes a {@link FeatureCollection} and returns a FeatureCollection with given number of {@link Feature|features} at random.
@@ -84593,7 +87417,7 @@
 	 * @name sample
 	 * @param {FeatureCollection} featurecollection set of input features
 	 * @param {number} num number of features to select
-	 * @return {FeatureCollection} a FeatureCollection with `n` features
+	 * @returns {FeatureCollection} a FeatureCollection with `n` features
 	 * @example
 	 * var points = turf.random('points', 1000);
 	 *
@@ -84620,12 +87444,12 @@
 	}
 
 
-/***/ },
-/* 414 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 427 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(379);
-	var bboxPolygon = __webpack_require__(415);
+	var bbox = __webpack_require__(385);
+	var bboxPolygon = __webpack_require__(428);
 
 	/**
 	 * Takes any number of features and returns a rectangular {@link Polygon} that encompasses all vertices.
@@ -84684,11 +87508,11 @@
 	};
 
 
-/***/ },
-/* 415 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 428 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(372).polygon;
+	var polygon = __webpack_require__(377).polygon;
 
 	/**
 	 * Takes a bbox and returns an equivalent {@link Polygon|polygon}.
@@ -84696,6 +87520,7 @@
 	 * @name bboxPolygon
 	 * @param {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
 	 * @return {Feature<Polygon>} a Polygon representation of the bounding box
+	 * @addToMap poly
 	 * @example
 	 * var bbox = [0, 0, 10, 10];
 	 *
@@ -84720,12 +87545,12 @@
 	};
 
 
-/***/ },
-/* 416 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 429 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var destination = __webpack_require__(417);
-	var helpers = __webpack_require__(372);
+	var destination = __webpack_require__(430);
+	var helpers = __webpack_require__(377);
 	var polygon = helpers.polygon;
 
 	/**
@@ -84738,7 +87563,7 @@
 	 * @param {string} [units=kilometers] miles, kilometers, degrees, or radians
 	 * @returns {Feature<Polygon>} circle polygon
 	 * @example
-	 * var center = point([-75.343, 39.984]);
+	 * var center = turf.point([-75.343, 39.984]);
 	 * var radius = 5;
 	 * var steps = 10;
 	 * var units = 'kilometers';
@@ -84761,14 +87586,14 @@
 	};
 
 
-/***/ },
-/* 417 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 430 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
-	var getCoord = __webpack_require__(373).getCoord;
-	var helpers = __webpack_require__(372);
+	var getCoord = __webpack_require__(378).getCoord;
+	var helpers = __webpack_require__(377);
 	var point = helpers.point;
 	var distanceToRadians = helpers.distanceToRadians;
 
@@ -84826,13 +87651,13 @@
 	};
 
 
-/***/ },
-/* 418 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 431 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
-	var distance = __webpack_require__(378);
+	var bearing = __webpack_require__(432);
+	var destination = __webpack_require__(430);
+	var distance = __webpack_require__(384);
 
 	/**
 	 * Takes two {@link Point|points} and returns a point midway between them.
@@ -84841,7 +87666,7 @@
 	 * @name midpoint
 	 * @param {Feature<Point>} from first point
 	 * @param {Feature<Point>} to second point
-	 * @return {Feature<Point>} a point midway between `pt1` and `pt2`
+	 * @returns {Feature<Point>} a point midway between `pt1` and `pt2`
 	 * @example
 	 * var pt1 = {
 	 *   "type": "Feature",
@@ -84880,11 +87705,11 @@
 	};
 
 
-/***/ },
-/* 419 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 432 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(373).getCoord;
+	var getCoord = __webpack_require__(378).getCoord;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -84894,7 +87719,9 @@
 	 * @name bearing
 	 * @param {Feature<Point>} start starting Point
 	 * @param {Feature<Point>} end ending Point
+	 * @param {boolean} [final=false] calculates the final bearing if true
 	 * @returns {number} bearing in decimal degrees
+	 * @addToMap point1, point2
 	 * @example
 	 * var point1 = {
 	 *   "type": "Feature",
@@ -84917,18 +87744,13 @@
 	 *   }
 	 * };
 	 *
-	 * var points = {
-	 *   "type": "FeatureCollection",
-	 *   "features": [point1, point2]
-	 * };
-	 *
-	 * //=points
-	 *
 	 * var bearing = turf.bearing(point1, point2);
-	 *
+	 * point1.properties.bearing = bearing
 	 * //=bearing
 	 */
-	module.exports = function (start, end) {
+	function bearing(start, end, final) {
+	    if (final === true) return calculateFinalBearing(start, end);
+
 	    var degrees2radians = Math.PI / 180;
 	    var radians2degrees = 180 / Math.PI;
 	    var coordinates1 = getCoord(start);
@@ -84942,24 +87764,40 @@
 	    var b = Math.cos(lat1) * Math.sin(lat2) -
 	        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
 
-	    var bearing = radians2degrees * Math.atan2(a, b);
+	    var bear = radians2degrees * Math.atan2(a, b);
 
-	    return bearing;
-	};
+	    return bear;
+	}
+
+	/**
+	 * Calculates Final Bearing
+	 * @private
+	 * @param {Feature<Point>} start starting Point
+	 * @param {Feature<Point>} end ending Point
+	 * @returns {number} bearing
+	 */
+	function calculateFinalBearing(start, end) {
+	    // Swap start & end
+	    var bear = bearing(end, start);
+	    bear = (bear + 180) % 360;
+	    return bear;
+	}
+
+	module.exports = bearing;
 
 
-/***/ },
-/* 420 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 433 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/839899/how-do-i-calculate-a-point-on-a-circles-circumference
 	// radians = degrees * (pi/180)
 	// https://github.com/bjornharrtell/jsts/blob/master/examples/buffer.html
 
-	var helpers = __webpack_require__(372);
+	var helpers = __webpack_require__(377);
 	var featureCollection = helpers.featureCollection;
-	var jsts = __webpack_require__(404);
-	var normalize = __webpack_require__(421);
+	var jsts = __webpack_require__(409);
+	var normalize = __webpack_require__(434);
 
 	/**
 	 * Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.
@@ -84969,7 +87807,7 @@
 	 * @param {number} radius distance to draw the buffer
 	 * @param {string} units any of the options supported by turf units
 	 * @return {FeatureCollection<Polygon>|FeatureCollection<MultiPolygon>|Polygon|MultiPolygon} buffered features
-	 *
+	 * @addToMap pt, buffered
 	 * @example
 	 * var pt = {
 	 *   "type": "Feature",
@@ -84982,9 +87820,8 @@
 	 * var unit = 'miles';
 	 *
 	 * var buffered = turf.buffer(pt, 500, unit);
-	 * var result = turf.featurecollection([buffered, pt]);
 	 *
-	 * //=result
+	 * //=buffered
 	 */
 
 	module.exports = function (feature, radius, units) {
@@ -85014,9 +87851,9 @@
 	}
 
 
-/***/ },
-/* 421 */
-/***/ function(module, exports) {
+/***/ }),
+/* 434 */
+/***/ (function(module, exports) {
 
 	module.exports = normalize;
 
@@ -85063,12 +87900,12 @@
 	}
 
 
-/***/ },
-/* 422 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 435 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(379),
-	    point = __webpack_require__(372).point;
+	var bbox = __webpack_require__(385),
+	    point = __webpack_require__(377).point;
 
 	/**
 	 * Takes a {@link Feature} or {@link FeatureCollection} and returns the absolute center point of all features.
@@ -85076,6 +87913,7 @@
 	 * @name center
 	 * @param {(Feature|FeatureCollection)} layer input features
 	 * @return {Feature<Point>} a Point feature at the absolute center point of all input features
+	 * @addToMap features, centerPt
 	 * @example
 	 * var features = {
 	 *   "type": "FeatureCollection",
@@ -85189,15 +88027,15 @@
 	};
 
 
-/***/ },
-/* 423 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 436 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    centroid = __webpack_require__(424),
-	    convex = __webpack_require__(384),
-	    explode = __webpack_require__(425),
-	    point = __webpack_require__(372).point;
+	var each = __webpack_require__(379).coordEach,
+	    centroid = __webpack_require__(437),
+	    convex = __webpack_require__(389),
+	    explode = __webpack_require__(438),
+	    point = __webpack_require__(377).point;
 
 	/**
 	 * Takes a [feature](http://geojson.org/geojson-spec.html#feature-objects)
@@ -85379,12 +88217,12 @@
 	module.exports = centerOfMass;
 
 
-/***/ },
-/* 424 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 437 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(372).point;
+	var each = __webpack_require__(379).coordEach;
+	var point = __webpack_require__(377).point;
 
 	/**
 	 * Takes one or more features and calculates the centroid using
@@ -85394,7 +88232,7 @@
 	 *
 	 * @name centroid
 	 * @param {(Feature|FeatureCollection)} features input features
-	 * @return {Feature<Point>} the centroid of the input features
+	 * @returns {Feature<Point>} the centroid of the input features
 	 * @example
 	 * var poly = {
 	 *   "type": "Feature",
@@ -85431,13 +88269,14 @@
 	};
 
 
-/***/ },
-/* 425 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 438 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(372).featureCollection;
-	var each = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(372).point;
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var featureEach = __webpack_require__(379).featureEach;
+	var coordEach = __webpack_require__(379).coordEach;
+	var point = __webpack_require__(377).point;
 
 	/**
 	 * Takes a feature or set of features and returns all positions as
@@ -85445,7 +88284,7 @@
 	 *
 	 * @name explode
 	 * @param {(Feature|FeatureCollection)} geojson input features
-	 * @return {FeatureCollection<point>} points representing the exploded input features
+	 * @returns {FeatureCollection<point>} points representing the exploded input features
 	 * @throws {Error} if it encounters an unknown geometry type
 	 * @example
 	 * var poly = {
@@ -85473,18 +88312,26 @@
 	 */
 	module.exports = function (geojson) {
 	    var points = [];
-	    each(geojson, function (coord) {
-	        points.push(point(coord));
-	    });
+	    if (geojson.type === 'FeatureCollection') {
+	        featureEach(geojson, function (feature) {
+	            coordEach(feature, function (coord) {
+	                points.push(point(coord, feature.properties));
+	            });
+	        });
+	    } else {
+	        coordEach(geojson, function (coord) {
+	            points.push(point(coord, geojson.properties));
+	        });
+	    }
 	    return featureCollection(points);
 	};
 
 
-/***/ },
-/* 426 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 439 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var meta = __webpack_require__(380);
+	var meta = __webpack_require__(379);
 
 	/**
 	 * Combines a {@link FeatureCollection} of {@link Point},
@@ -85575,12 +88422,12 @@
 	};
 
 
-/***/ },
-/* 427 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 440 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(372).polygon;
-	var earcut = __webpack_require__(428);
+	var polygon = __webpack_require__(377).polygon;
+	var earcut = __webpack_require__(441);
 
 
 	/**
@@ -85656,9 +88503,9 @@
 	}
 
 
-/***/ },
-/* 428 */
-/***/ function(module, exports) {
+/***/ }),
+/* 441 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -86306,12 +89153,12 @@
 	};
 
 
-/***/ },
-/* 429 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 442 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now http://bjornharrtell.github.io/jsts/
-	var jsts = __webpack_require__(404);
+	var jsts = __webpack_require__(409);
 
 	/**
 	 * Takes two {@link Polygon|polygons} and finds their intersection. If they share a border, returns the border; if they don't intersect, returns undefined.
@@ -86319,9 +89166,9 @@
 	 * @name intersect
 	 * @param {Feature<Polygon>} poly1 the first polygon
 	 * @param {Feature<Polygon>} poly2 the second polygon
-	 * @return {(Feature|undefined)} returns a feature representing the point(s) they share (in case of a {@link Point}  or {@link MultiPoint}), the borders they share (in case of a {@link LineString} or a {@link MultiLineString}), the area they share (in case of {@link Polygon} or {@link MultiPolygon}). If they do not share any point, returns `undefined`.
+	 * @returns {(Feature|undefined)} returns a feature representing the point(s) they share (in case of a {@link Point}  or {@link MultiPoint}), the borders they share (in case of a {@link LineString} or a {@link MultiLineString}), the area they share (in case of {@link Polygon} or {@link MultiPolygon}). If they do not share any point, returns `undefined`.
 	 * @example
-	 * var poly1 = polygon([[
+	 * var poly1 = turf.polygon([[
 	 *   [-122.801742, 45.48565],
 	 *   [-122.801742, 45.60491],
 	 *   [-122.584762, 45.60491],
@@ -86329,7 +89176,7 @@
 	 *   [-122.801742, 45.48565]
 	 * ]]);
 	 *
-	 * var poly2 = polygon([[
+	 * var poly2 = turf.polygon([[
 	 *   [-122.520217, 45.535693],
 	 *   [-122.64038, 45.553967],
 	 *   [-122.720031, 45.526554],
@@ -86344,7 +89191,7 @@
 	 *
 	 * //=intersection
 	 */
-	module.exports = function intersect(poly1, poly2) {
+	module.exports = function (poly1, poly2) {
 	    var geom1, geom2;
 	    if (poly1.type === 'Feature') geom1 = poly1.geometry;
 	    else geom1 = poly1;
@@ -86370,11 +89217,11 @@
 	};
 
 
-/***/ },
-/* 430 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 443 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
+	var distance = __webpack_require__(384);
 
 	/**
 	 * Takes a reference {@link Point|point} and a FeatureCollection of Features
@@ -86385,7 +89232,7 @@
 	 * @name nearest
 	 * @param {Feature<Point>} targetPoint the reference point
 	 * @param {FeatureCollection<Point>} points against input point set
-	 * @return {Feature<Point>} the closest point in the set to the reference point
+	 * @returns {Feature<Point>} the closest point in the set to the reference point
 	 * @example
 	 * var point = {
 	 *   "type": "Feature",
@@ -86449,11 +89296,11 @@
 	};
 
 
-/***/ },
-/* 431 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 444 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var random = __webpack_require__(432);
+	var random = __webpack_require__(445);
 
 	/**
 	 * Generates random {@link GeoJSON} data, including {@link Point|Points} and {@link Polygon|Polygons}, for testing
@@ -86471,7 +89318,7 @@
 	 * @param {Number} [options.max_radial_length=10] the total number of decimal
 	 * degrees longitude or latitude that a polygon can extent outwards to
 	 * from its center.
-	 * @return {FeatureCollection} generated random features
+	 * @returns {FeatureCollection} generated random features
 	 * @example
 	 * var points = turf.random('points', 100, {
 	 *   bbox: [-70, 40, -60, 60]
@@ -86506,9 +89353,9 @@
 	};
 
 
-/***/ },
-/* 432 */
-/***/ function(module, exports) {
+/***/ }),
+/* 445 */
+/***/ (function(module, exports) {
 
 	module.exports = function() {
 	    throw new Error('call .point() or .polygon() instead');
@@ -86615,15 +89462,17 @@
 	}
 
 
-/***/ },
-/* 433 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 446 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var point = __webpack_require__(377).point;
 
 	/**
-	 * Takes a {@link Polygon|polygon} and returns {@link Point|points} at all self-intersections.
+	 * Takes a {@link LineString|linestring}, {@link MultiLineString|multi-linestring}, {@link MultiPolygon|multi-polygon}, or {@link Polygon|polygon} and returns {@link Point|points} at all self-intersections.
 	 *
 	 * @name kinks
-	 * @param {Feature<Polygon>|Polygon} polygon input polygon
+	 * @param {Feature<LineString|MultiLineString|MultiPolygon|Polygon>} featureIn input feature
 	 * @returns {FeatureCollection<Point>} self-intersections
 	 * @example
 	 * var poly = {
@@ -86643,7 +89492,7 @@
 	 *
 	 * var kinks = turf.kinks(poly);
 	 *
-	 * var resultFeatures = kinks.intersections.features.concat(poly);
+	 * var resultFeatures = kinks.features.concat(poly);
 	 * var result = {
 	 *   "type": "FeatureCollection",
 	 *   "features": resultFeatures
@@ -86651,31 +89500,41 @@
 	 *
 	 * //=result
 	 */
-
-	var point = __webpack_require__(372).point;
-
-	module.exports = function (polyIn) {
-	    var poly;
+	module.exports = function (featureIn) {
+	    var coordinates;
+	    var feature;
 	    var results = {
 	        type: 'FeatureCollection',
 	        features: []
 	    };
-	    if (polyIn.type === 'Feature') {
-	        poly = polyIn.geometry;
+	    if (featureIn.type === 'Feature') {
+	        feature = featureIn.geometry;
 	    } else {
-	        poly = polyIn;
+	        feature = featureIn;
 	    }
-	    poly.coordinates.forEach(function (ring1) {
-	        poly.coordinates.forEach(function (ring2) {
-	            for (var i = 0; i < ring1.length - 1; i++) {
-	                for (var k = 0; k < ring2.length - 1; k++) {
-	                    // don't check adjacent sides of a given ring, since of course they intersect in a vertex.
-	                    if (ring1 === ring2 && (Math.abs(i - k) === 1 || Math.abs(i - k) === ring1.length - 2)) {
+	    if (feature.type === 'LineString') {
+	        coordinates = [feature.coordinates];
+	    } else if (feature.type === 'MultiLineString') {
+	        coordinates = feature.coordinates;
+	    } else if (feature.type === 'MultiPolygon') {
+	        coordinates = [].concat.apply([], feature.coordinates);
+	    } else if (feature.type === 'Polygon') {
+	        coordinates = feature.coordinates;
+	    } else {
+	        throw new Error('Input must be a LineString, MultiLineString, ' +
+	            'Polygon, or MultiPolygon Feature or Geometry');
+	    }
+	    coordinates.forEach(function (segment1) {
+	        coordinates.forEach(function (segment2) {
+	            for (var i = 0; i < segment1.length - 1; i++) {
+	                for (var k = 0; k < segment2.length - 1; k++) {
+	                    // don't check adjacent sides of a given segment, since of course they intersect in a vertex.
+	                    if (segment1 === segment2 && (Math.abs(i - k) === 1 || Math.abs(i - k) === segment1.length - 2)) {
 	                        continue;
 	                    }
 
-	                    var intersection = lineIntersects(ring1[i][0], ring1[i][1], ring1[i + 1][0], ring1[i + 1][1],
-	                        ring2[k][0], ring2[k][1], ring2[k + 1][0], ring2[k + 1][1]);
+	                    var intersection = lineIntersects(segment1[i][0], segment1[i][1], segment1[i + 1][0], segment1[i + 1][1],
+	                        segment2[k][0], segment2[k][1], segment2[k + 1][0], segment2[k + 1][1]);
 	                    if (intersection) {
 	                        results.features.push(point([intersection[0], intersection[1]]));
 	                    }
@@ -86733,15 +89592,15 @@
 	}
 
 
-/***/ },
-/* 434 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 447 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(372).featureCollection;
-	var centroid = __webpack_require__(422);
-	var distance = __webpack_require__(378);
-	var inside = __webpack_require__(376);
-	var explode = __webpack_require__(425);
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var centroid = __webpack_require__(435);
+	var distance = __webpack_require__(384);
+	var inside = __webpack_require__(382);
+	var explode = __webpack_require__(438);
 
 	/**
 	 * Takes a feature and returns a {@link Point} guaranteed to be on the surface of the feature.
@@ -86887,78 +89746,56 @@
 	module.exports = pointOnSurface;
 
 
-/***/ },
-/* 435 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 448 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var geometryArea = __webpack_require__(436).geometry;
+	var area = __webpack_require__(449).geometry;
+	var geomReduce = __webpack_require__(379).geomReduce;
 
 	/**
-	 * Takes one or more features and returns their area
-	 * in square meters.
+	 * Takes one or more features and returns their area in square meters.
 	 *
-	 * @param {(Feature|FeatureCollection)} input input features
-	 * @return {number} area in square meters
+	 * @name area
+	 * @param {FeatureCollection|Feature<any>} geojson input GeoJSON feature(s)
+	 * @returns {number} area in square meters
+	 * @addToMap polygon
 	 * @example
-	 * var polygons = {
-	 *   "type": "FeatureCollection",
-	 *   "features": [
-	 *     {
-	 *       "type": "Feature",
-	 *       "properties": {},
-	 *       "geometry": {
-	 *         "type": "Polygon",
-	 *         "coordinates": [[
-	 *           [-67.031021, 10.458102],
-	 *           [-67.031021, 10.53372],
-	 *           [-66.929397, 10.53372],
-	 *           [-66.929397, 10.458102],
-	 *           [-67.031021, 10.458102]
-	 *         ]]
-	 *       }
-	 *     }, {
-	 *       "type": "Feature",
-	 *       "properties": {},
-	 *       "geometry": {
-	 *         "type": "Polygon",
-	 *         "coordinates": [[
-	 *           [-66.919784, 10.397325],
-	 *           [-66.919784, 10.513467],
-	 *           [-66.805114, 10.513467],
-	 *           [-66.805114, 10.397325],
-	 *           [-66.919784, 10.397325]
-	 *         ]]
-	 *       }
-	 *     }
-	 *   ]
-	 * };
-	 *
-	 * var area = turf.area(polygons);
-	 *
-	 * //=area
+	 * var polygon = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Polygon",
+	 *     "coordinates": [
+	 *       [
+	 *         [125, -15],
+	 *         [113, -22],
+	 *         [117, -37],
+	 *         [130, -33],
+	 *         [148, -39],
+	 *         [154, -27],
+	 *         [144, -15],
+	 *         [125, -15]
+	 *       ]
+	 *     ]
+	 *   }
+	 * }
+	 * var area = turf.area(polygon);
+	 * //=area => square meters
+	 * //=polygon
 	 */
-	function area(input) {
-	    if (input.type === 'FeatureCollection') {
-	        for (var i = 0, sum = 0; i < input.features.length; i++) {
-	            if (input.features[i].geometry) {
-	                sum += geometryArea(input.features[i].geometry);
-	            }
-	        }
-	        return sum;
-	    } else if (input.type === 'Feature') {
-	        return geometryArea(input.geometry);
-	    } else {
-	        return geometryArea(input);
-	    }
-	}
-	module.exports = area;
+	module.exports = function (geojson) {
+	    return geomReduce(geojson, function (value, geometry) {
+	        return value + area(geometry);
+	    }, 0);
+	};
 
 
-/***/ },
-/* 436 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 449 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var wgs84 = __webpack_require__(437);
+	var wgs84 = __webpack_require__(450);
 
 	module.exports.geometry = geometry;
 	module.exports.ring = ringArea;
@@ -87048,23 +89885,23 @@
 	    return _ * Math.PI / 180;
 	}
 
-/***/ },
-/* 437 */
-/***/ function(module, exports) {
+/***/ }),
+/* 450 */
+/***/ (function(module, exports) {
 
 	module.exports.RADIUS = 6378137;
 	module.exports.FLATTENING = 1/298.257223563;
 	module.exports.POLAR_RADIUS = 6356752.3142;
 
 
-/***/ },
-/* 438 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 451 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var measureDistance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
+	var measureDistance = __webpack_require__(384);
+	var point = __webpack_require__(377).point;
+	var bearing = __webpack_require__(432);
+	var destination = __webpack_require__(430);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a {@link Point|point} at a specified distance along the line.
@@ -87073,7 +89910,8 @@
 	 * @param {Feature<LineString>} line input line
 	 * @param {number} distance distance along the line
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {Feature<Point>} Point `distance` `units` along the line
+	 * @returns {Feature<Point>} Point `distance` `units` along the line
+	 * @addToMap along, line
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -87092,13 +89930,7 @@
 	 * };
 	 *
 	 * var along = turf.along(line, 1, 'miles');
-	 *
-	 * var result = {
-	 *   "type": "FeatureCollection",
-	 *   "features": [line, along]
-	 * };
-	 *
-	 * //=result
+	 * //=along
 	 */
 	module.exports = function (line, distance, units) {
 	    var coords;
@@ -87125,20 +89957,25 @@
 	};
 
 
-/***/ },
-/* 439 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 452 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
+	var distance = __webpack_require__(384);
+	var featureEach = __webpack_require__(379).featureEach;
+	var coordReduce = __webpack_require__(379).coordReduce;
+	var geomEach = __webpack_require__(379).geomEach;
+	var flatten = __webpack_require__(453);
+	var lineString = __webpack_require__(377).lineString;
+	var point = __webpack_require__(377).point;
 
 	/**
 	 * Takes a {@link LineString} or {@link Polygon} and measures its length in the specified units.
 	 *
 	 * @name lineDistance
-	 * @param {Feature<(LineString|Polygon)>|FeatureCollection<(LineString|Polygon)>} line line to measure
+	 * @param {Feature<(LineString|Polygon)>|FeatureCollection<(LineString|Polygon)>} geojson feature to measure
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {number} length of the input line
+	 * @returns {number} length feature
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -87162,62 +89999,241 @@
 	 *
 	 * //=length
 	 */
-	module.exports = function lineDistance(line, units) {
-	    if (line.type === 'FeatureCollection') {
-	        return line.features.reduce(function (memo, feature) {
-	            return memo + lineDistance(feature, units);
-	        }, 0);
-	    }
+	module.exports = function lineDistance(geojson, units) {
+	    // Input Validation
+	    if (!geojson) throw new Error('geojson is required');
+	    geomEach(geojson, function (geometry) {
+	        if (geometry.type === 'Point') throw new Error('geojson cannot be a Point');
+	        if (geometry.type === 'MultiPoint') throw new Error('geojson cannot be a MultiPoint');
+	    });
 
-	    var geometry = line.type === 'Feature' ? line.geometry : line;
-	    var d, i;
-
-	    if (geometry.type === 'LineString') {
-	        return length(geometry.coordinates, units);
-	    } else if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
-	        d = 0;
-	        for (i = 0; i < geometry.coordinates.length; i++) {
-	            d += length(geometry.coordinates[i], units);
-	        }
-	        return d;
-	    } else if (geometry.type === 'MultiPolygon') {
-	        d = 0;
-	        for (i = 0; i < geometry.coordinates.length; i++) {
-	            for (var j = 0; j < geometry.coordinates[i].length; j++) {
-	                d += length(geometry.coordinates[i][j], units);
-	            }
-	        }
-	        return d;
-	    } else {
-	        throw new Error('input must be a LineString, MultiLineString, ' +
-	            'Polygon, or MultiPolygon Feature or Geometry (or a FeatureCollection ' +
-	            'containing only those types)');
-	    }
-
+	    // Calculate distance from 2-vertex line segements
+	    return segmentReduce(geojson, function (previousValue, segment) {
+	        var coords = segment.geometry.coordinates;
+	        var start = point(coords[0]);
+	        var end = point(coords[1]);
+	        return previousValue + distance(start, end, units);
+	    }, 0);
 	};
 
-	function length(coords, units) {
-	    var travelled = 0;
-	    var prevCoords = point(coords[0]);
-	    var curCoords = point(coords[0]);
-	    var temp;
-	    for (var i = 1; i < coords.length; i++) {
-	        curCoords.geometry.coordinates = coords[i];
-	        travelled += distance(prevCoords, curCoords, units);
-	        temp = prevCoords;
-	        prevCoords = curCoords;
-	        curCoords = temp;
-	    }
-	    return travelled;
+	/**
+	 * Iterate over 2-vertex line segment in any GeoJSON object, similar to Array.forEach()
+	 *
+	 * @private
+	 * @param {FeatureCollection|Feature<any>} geojson any GeoJSON
+	 * @param {Function} callback a method that takes (currentSegment, currentIndex)
+	 * @returns {void}
+	 * @example
+	 * var polygon = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Polygon",
+	 *     "coordinates": [[[-50, 5], [-40, -10], [-50, -10], [-40, 5], [-50, 5]]]
+	 *   }
+	 * }
+	 * turf.segmentEach(polygon, function (segment) {
+	 *   //= segment
+	 * });
+	 */
+	function segmentEach(geojson, callback) {
+	    var count = 0;
+	    featureEach(geojson, function (multiFeature) {
+	        featureEach(flatten(multiFeature), function (feature) {
+	            coordReduce(feature, function (previousCoords, currentCoords) {
+	                var line = lineString([previousCoords, currentCoords], feature.properties);
+	                callback(line, count);
+	                count++;
+	                return currentCoords;
+	            });
+	        });
+	    });
+	}
+
+	/**
+	 * Reduce 2-vertex line segment in any GeoJSON object, similar to Array.reduce()
+	 *
+	 * @private
+	 * @param {FeatureCollection|Feature<any>} geojson any GeoJSON
+	 * @param {Function} callback a method that takes (previousValue, currentSegment, currentIndex)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @returns {void}
+	 */
+	function segmentReduce(geojson, callback, initialValue) {
+	    var previousValue = initialValue;
+	    segmentEach(geojson, function (currentSegment, currentIndex) {
+	        if (currentIndex === 0 && initialValue === undefined) {
+	            previousValue = currentSegment;
+	        } else {
+	            previousValue = callback(previousValue, currentSegment, currentIndex);
+	        }
+	    });
+	    return previousValue;
 	}
 
 
-/***/ },
-/* 440 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 453 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(372).lineString;
-	var pointOnLine = __webpack_require__(441);
+	var featureEach = __webpack_require__(379).featureEach;
+	var geomEach = __webpack_require__(379).geomEach;
+	var getCoords = __webpack_require__(378).getCoords;
+	var helpers = __webpack_require__(377);
+	var point = helpers.point;
+	var lineString = helpers.lineString;
+	var polygon = helpers.polygon;
+	var featureCollection = helpers.featureCollection;
+
+	/**
+	 * Flattens any {@link GeoJSON} to a {@link FeatureCollection} inspired by [geojson-flatten](https://github.com/tmcw/geojson-flatten).
+	 *
+	 * @name flatten
+	 * @param {Feature} geojson any valid {@link GeoJSON} with multi-geometry {@link Feature}s
+	 * @returns {FeatureCollection} a flattened {@link FeatureCollection}
+	 * @example
+	 * var geometry = {
+	 *   "type": "MultiPolygon",
+	 *   "coordinates": [
+	 *     [[[102.0, 2.0], [103.0, 2.0], [103.0, 3.0], [102.0, 3.0], [102.0, 2.0]]],
+	 *      [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]],
+	 *      [[100.2, 0.2], [100.8, 0.2], [100.8, 0.8], [100.2, 0.8], [100.2, 0.2]]]
+	 *    ]
+	 *  };
+	 *
+	 * var flattened = turf.flatten(geometry);
+	 *
+	 * //=flattened
+	 */
+	function flatten(geojson) {
+	    var type = (geojson.geometry) ? geojson.geometry.type : geojson.type;
+	    switch (type) {
+	    case 'MultiPoint':
+	        return flattenMultiPoint(geojson);
+	    case 'MultiPolygon':
+	        return flattenMultiPolygon(geojson);
+	    case 'MultiLineString':
+	        return flattenMultiLineString(geojson);
+	    case 'FeatureCollection':
+	        return flattenFeatureCollection(geojson);
+	    case 'GeometryCollection':
+	        return flattenGeometryCollection(geojson);
+	    case 'Point':
+	    case 'LineString':
+	    case 'Polygon':
+	        return featureCollection([geojson]);
+	    }
+	}
+	module.exports = flatten;
+
+	/**
+	 * Flatten MultiPoint
+	 *
+	 * @private
+	 * @param {Feature<MultiPoint>} geojson GeoJSON Feature
+	 * @returns {FeatureCollection<Point>} Feature Collection
+	 */
+	function flattenMultiPoint(geojson) {
+	    var points = [];
+	    getCoords(geojson).forEach(function (coords) {
+	        points.push(point(coords, geojson.properties));
+	    });
+	    return featureCollection(points);
+	}
+
+	/**
+	 * Flatten MultiLineString
+	 *
+	 * @private
+	 * @param {Feature<MultiLineString>} geojson GeoJSON Feature
+	 * @returns {FeatureCollection<LineString>} Feature Collection
+	 */
+	function flattenMultiLineString(geojson) {
+	    var lines = [];
+	    getCoords(geojson).forEach(function (coords) {
+	        lines.push(lineString(coords, geojson.properties));
+	    });
+	    return featureCollection(lines);
+	}
+
+	/**
+	 * Flatten MultiPolygon
+	 *
+	 * @private
+	 * @param {Feature<MultiPolygon>} geojson GeoJSON Feature
+	 * @returns {FeatureCollection<Polygon>} Feature Collection
+	 */
+	function flattenMultiPolygon(geojson) {
+	    var polygons = [];
+	    getCoords(geojson).forEach(function (coords) {
+	        polygons.push(polygon(coords, geojson.properties));
+	    });
+	    return featureCollection(polygons);
+	}
+
+	/**
+	 * Flatten FeatureCollection
+	 *
+	 * @private
+	 * @param {FeatureCollection<any>} geojson GeoJSON Feature
+	 * @returns {FeatureCollection<any>} Feature Collection
+	 */
+	function flattenFeatureCollection(geojson) {
+	    var features = [];
+	    featureEach(geojson, function (multiFeature) {
+	        switch (multiFeature.geometry.type) {
+	        case 'MultiPoint':
+	        case 'MultiLineString':
+	        case 'MultiPolygon':
+	            featureEach(flatten(multiFeature), function (feature) {
+	                features.push(feature);
+	            });
+	            break;
+	        default:
+	            features.push(multiFeature);
+	        }
+	    });
+	    return featureCollection(features);
+	}
+
+	/**
+	 * Flatten GeometryCollection
+	 *
+	 * @private
+	 * @param {GeometryCollection<any>} geojson GeoJSON Geometry Collection
+	 * @param {*} [properties] translate properties to Feature
+	 * @returns {FeatureCollection<any>} Feature Collection
+	 */
+	function flattenGeometryCollection(geojson) {
+	    var features = [];
+	    geomEach(geojson, function (geometry) {
+	        switch (geometry.type) {
+	        case 'MultiPoint':
+	        case 'MultiLineString':
+	        case 'MultiPolygon':
+	            featureEach(flatten(geometry), function (feature) {
+	                features.push(feature);
+	            });
+	            break;
+	        default:
+	            var feature = {
+	                type: 'Feature',
+	                properties: {},
+	                geometry: geometry
+	            };
+	            features.push(feature);
+	        }
+	    });
+	    return featureCollection(features);
+	}
+
+
+/***/ }),
+/* 454 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var linestring = __webpack_require__(377).lineString;
+	var pointOnLine = __webpack_require__(455);
 
 	/**
 	 * Takes a {@link LineString|line}, a start {@link Point}, and a stop point
@@ -87298,14 +90314,14 @@
 	};
 
 
-/***/ },
-/* 441 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 455 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var point = __webpack_require__(372).point;
-	var bearing = __webpack_require__(419);
-	var destination = __webpack_require__(417);
+	var distance = __webpack_require__(384);
+	var point = __webpack_require__(377).point;
+	var bearing = __webpack_require__(432);
+	var destination = __webpack_require__(430);
 
 	/**
 	 * Takes a {@link Point} and a {@link LineString} and calculates the closest Point on the LineString.
@@ -87314,7 +90330,7 @@
 	 * @param {Feature<LineString>} line line to snap to
 	 * @param {Feature<Point>} pt point to snap from
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {Feature<Point>} closest point on the `line` to `point`
+	 * @return {Feature<Point>} closest point on the `line` to `point`. The properties object will contain three values: `index`: closest point was found on nth line part, `dist`: distance between pt and the closest point, `location`: distance along the line between start and the closest point.
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -87364,6 +90380,7 @@
 	    var closestPt = point([Infinity, Infinity], {
 	        dist: Infinity
 	    });
+	    var length = 0.0;
 	    for (var i = 0; i < coords.length - 1; i++) {
 	        var start = point(coords[i]);
 	        var stop = point(coords[i + 1]);
@@ -87371,6 +90388,8 @@
 	        start.properties.dist = distance(pt, start, units);
 	        //stop
 	        stop.properties.dist = distance(pt, stop, units);
+	        // sectionLength
+	        var sectionLength = distance(start, stop, units);
 	        //perpendicular
 	        var heightDistance = Math.max(start.properties.dist, stop.properties.dist);
 	        var direction = bearing(start, stop);
@@ -87390,20 +90409,25 @@
 	        if (intersect) {
 	            intersectPt = point(intersect);
 	            intersectPt.properties.dist = distance(pt, intersectPt, units);
+	            intersectPt.properties.location = length + distance(start, closestPt, units);
 	        }
 
 	        if (start.properties.dist < closestPt.properties.dist) {
 	            closestPt = start;
 	            closestPt.properties.index = i;
+	            closestPt.properties.location = length;
 	        }
 	        if (stop.properties.dist < closestPt.properties.dist) {
 	            closestPt = stop;
-	            closestPt.properties.index = i;
+	            closestPt.properties.index = i + 1;
+	            closestPt.properties.location = length + sectionLength;
 	        }
 	        if (intersectPt && intersectPt.properties.dist < closestPt.properties.dist) {
 	            closestPt = intersectPt;
 	            closestPt.properties.index = i;
 	        }
+	        // update length
+	        length += sectionLength;
 	    }
 
 	    return closestPt;
@@ -87455,15 +90479,14 @@
 	}
 
 
-/***/ },
-/* 442 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 456 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(419);
-	var distance = __webpack_require__(378);
-	var destination = __webpack_require__(417);
-	var lineString = __webpack_require__(372).lineString;
-
+	var bearing = __webpack_require__(432);
+	var distance = __webpack_require__(384);
+	var destination = __webpack_require__(430);
+	var lineString = __webpack_require__(377).lineString;
 
 	/**
 	 * Takes a {@link LineString|line}, a specified distance along the line to a start {@link Point},
@@ -87477,7 +90500,7 @@
 	 * @param {number} startDist distance along the line to starting point
 	 * @param {number} stopDist distance along the line to ending point
 	 * @param {string} [units=kilometers] can be degrees, radians, miles, or kilometers
-	 * @return {Feature<LineString>} sliced line
+	 * @returns {Feature<LineString>} sliced line
 	 * @example
 	 * var line = {
 	 *   "type": "Feature",
@@ -87502,13 +90525,13 @@
 	 *
 	 * var units = 'miles';
 	 *
-	 * var sliced = turf.lineSliceAlong(start, stop, line, units);
+	 * var sliced = turf.lineSliceAlong(line, start, stop, units);
 	 *
 	 * //=line
 	 *
 	 * //=sliced
 	 */
-	module.exports = function lineSliceAlong(line, startDist, stopDist, units) {
+	module.exports = function (line, startDist, stopDist, units) {
 	    var coords;
 	    var slice = [];
 	    if (line.type === 'Feature') coords = line.geometry.coordinates;
@@ -87546,49 +90569,79 @@
 	            slice.push(coords[i]);
 	        }
 
+	        if (i === coords.length - 1) {
+	            return lineString(slice);
+	        }
+
 	        travelled += distance(coords[i], coords[i + 1], units);
 	    }
 	    return lineString(coords[coords.length - 1]);
 	};
 
 
-/***/ },
-/* 443 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 457 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var point = __webpack_require__(372).point;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var point = __webpack_require__(377).point;
+	var polygon = __webpack_require__(377).polygon;
+	var distance = __webpack_require__(384);
+	var turfBBox = __webpack_require__(385);
 
 	/**
-	 * Takes a bounding box and a cell depth and returns a set of square {@link Polygon|polygons} in a grid.
+	 * Creates a square grid from a bounding box, {@link Feature} or {@link FeatureCollection}.
 	 *
 	 * @name squareGrid
-	 * @param {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
+	 * @param {Array<number>|FeatureCollection|Feature<any>} bbox extent in [minX, minY, maxX, maxY] order
 	 * @param {number} cellSize width of each cell
 	 * @param {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
-	 * @return {FeatureCollection<Polygon>} grid a grid of polygons
+	 * @param {boolean} [completelyWithin=false] adjust width & height cellSize to fit exactly within bbox
+	 * @returns {FeatureCollection<Polygon>} grid a grid of polygons
 	 * @example
-	 * var bbox = [-96,31,-84,40];
-	 * var cellSize = 10;
+	 * var bbox = [-95, 30 ,-85, 40];
+	 * var cellSize = 50;
 	 * var units = 'miles';
 	 *
 	 * var squareGrid = turf.squareGrid(bbox, cellSize, units);
-	 *
 	 * //=squareGrid
 	 */
-	module.exports = function squareGrid(bbox, cellSize, units) {
-	    var fc = featurecollection([]);
-	    var xFraction = cellSize / (distance(point([bbox[0], bbox[1]]), point([bbox[2], bbox[1]]), units));
-	    var cellWidth = xFraction * (bbox[2] - bbox[0]);
-	    var yFraction = cellSize / (distance(point([bbox[0], bbox[1]]), point([bbox[0], bbox[3]]), units));
-	    var cellHeight = yFraction * (bbox[3] - bbox[1]);
+	module.exports = function squareGrid(bbox, cellSize, units, completelyWithin) {
+	    var results = [];
 
-	    var currentX = bbox[0];
-	    while (currentX <= bbox[2]) {
-	        var currentY = bbox[1];
-	        while (currentY <= bbox[3]) {
+	    // validation
+	    if (!bbox) throw new Error('bbox is required');
+	    if (!Array.isArray(bbox)) bbox = turfBBox(bbox); // Convert GeoJSON to bbox
+	    if (bbox.length !== 4) throw new Error('bbox must contain 4 numbers');
+
+	    var west = bbox[0];
+	    var south = bbox[1];
+	    var east = bbox[2];
+	    var north = bbox[3];
+
+	    // distance
+	    var xDistance = distance(point([west, south]), point([east, south]), units);
+	    var yDistance = distance(point([west, south]), point([west, north]), units);
+
+	    // rows & columns
+	    var columns = Math.ceil(xDistance / cellSize);
+	    var rows = Math.ceil(yDistance / cellSize);
+
+	    // columns | width | x
+	    var xFraction = cellSize / xDistance;
+	    var cellWidth = xFraction * (east - west);
+	    if (completelyWithin === true) cellWidth = cellWidth * ((xDistance / cellSize) / columns);
+
+	    // rows | height | y
+	    var yFraction = cellSize / yDistance;
+	    var cellHeight = yFraction * (north - south);
+	    if (completelyWithin === true) cellHeight = cellHeight * ((yDistance / cellSize) / rows);
+
+	    // iterate over columns & rows
+	    var currentX = west;
+	    for (var column = 0; column < columns; column++) {
+	        var currentY = south;
+	        for (var row = 0; row < rows; row++) {
 	            var cellPoly = polygon([[
 	                [currentX, currentY],
 	                [currentX, currentY + cellHeight],
@@ -87596,24 +90649,23 @@
 	                [currentX + cellWidth, currentY],
 	                [currentX, currentY]
 	            ]]);
-	            fc.features.push(cellPoly);
+	            results.push(cellPoly);
 
 	            currentY += cellHeight;
 	        }
 	        currentX += cellWidth;
 	    }
-
-	    return fc;
+	    return featureCollection(results);
 	};
 
 
-/***/ },
-/* 444 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 458 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var featurecollection = __webpack_require__(372).featureCollection;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
+	var featurecollection = __webpack_require__(377).featureCollection;
+	var polygon = __webpack_require__(377).polygon;
+	var distance = __webpack_require__(384);
 
 	/**
 	 * Takes a bounding box and a cell depth and returns a set of triangular {@link Polygon|polygons} in a grid.
@@ -87622,13 +90674,13 @@
 	 * @param {Array<number>} bbox extent in [minX, minY, maxX, maxY] order
 	 * @param {number} cellSize dimension of each cell
 	 * @param {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
-	 * @return {FeatureCollection<Polygon>} grid of polygons
+	 * @returns {FeatureCollection<Polygon>} grid of polygons
 	 * @example
 	 * var bbox = [-96,31,-84,40]
 	 * var cellSize = 10;
 	 * var units = 'miles';
 	 *
-	 * var triangleGrid = turf.triangleGrid(extent, cellSize, units);
+	 * var triangleGrid = turf.triangleGrid(bbox, cellSize, units);
 	 *
 	 * //=triangleGrid
 	 */
@@ -87705,14 +90757,14 @@
 
 
 
-/***/ },
-/* 445 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 459 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(372).point;
-	var polygon = __webpack_require__(372).polygon;
-	var distance = __webpack_require__(378);
-	var featurecollection = __webpack_require__(372).featureCollection;
+	var point = __webpack_require__(377).point;
+	var polygon = __webpack_require__(377).polygon;
+	var distance = __webpack_require__(384);
+	var featurecollection = __webpack_require__(377).featureCollection;
 
 	//Precompute cosines and sines of angles used in hexagon creation
 	// for performance gain
@@ -87734,7 +90786,7 @@
 	 * @param {number} cellSize dimension of cell in specified units
 	 * @param {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
 	 * @param {boolean} [triangles=false] whether to return as triangles instead of hexagons
-	 * @return {FeatureCollection<Polygon>} a hexagonal grid
+	 * @returns {FeatureCollection<Polygon>} a hexagonal grid
 	 * @example
 	 * var bbox = [-96,31,-84,40];
 	 * var cellSize = 50;
@@ -87841,14 +90893,14 @@
 	}
 
 
-/***/ },
-/* 446 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 460 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(378);
-	var squareGrid = __webpack_require__(443);
-	var centroid = __webpack_require__(424);
-	var bbox = __webpack_require__(379);
+	var distance = __webpack_require__(384);
+	var squareGrid = __webpack_require__(457);
+	var centroid = __webpack_require__(437);
+	var bbox = __webpack_require__(385);
 
 	/**
 	 *
@@ -87857,12 +90909,13 @@
 	 * It finds application when in need of creating a continuous surface (i.e. rainfall, temperature, chemical dispersion surface...)
 	 * from a set of spatially scattered points.
 	 *
-	 * @param  {FeatureCollection<Point>} controlPoints Sampled points with known value
-	 * @param  {string} valueField    GeoJSON field containing the known value to interpolate on
-	 * @param  {number} b             Exponent regulating the distance-decay weighting
-	 * @param  {number} cellWidth     The distance across each cell
-	 * @param  {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
-	 * @return {FeatureCollection<Polygon>} grid A grid of polygons with a property field "IDW"
+	 * @name idw
+	 * @param {FeatureCollection<Point>} controlPoints Sampled points with known value
+	 * @param {string} valueField GeoJSON field containing the known value to interpolate on
+	 * @param {number} b Exponent regulating the distance-decay weighting
+	 * @param {number} cellWidth The distance across each cell
+	 * @param {string} [units=kilometers] used in calculating cellSize, can be degrees, radians, miles, or kilometers
+	 * @returns {FeatureCollection<Polygon>} grid A grid of polygons with a property field "IDW"
 	 */
 	module.exports = function (controlPoints, valueField, b, cellWidth, units) {
 	    // check if field containing data exists..
@@ -87898,9 +90951,2338 @@
 	};
 
 
-/***/ },
-/* 447 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 461 */
+/***/ (function(module, exports) {
+
+	/**
+	 * Takes a GeoJSON Feature or FeatureCollection and truncates the precision of the geometry.
+	 *
+	 * @name truncate
+	 * @param {(Feature|FeatureCollection)} layer any GeoJSON Feature or FeatureCollection
+	 * @param {number} [precision=6] coordinate decimal precision
+	 * @param {number} [coordinates=2] maximum number of coordinates (primarly used to remove z coordinates)
+	 * @returns {(Feature|FeatureCollection)} layer with truncated geometry
+	 * @example
+	 * var point = {
+	 *     "type": "Feature",
+	 *     "geometry": {
+	 *         "type": "Point",
+	 *         "coordinates": [
+	 *             70.46923055566859,
+	 *             58.11088890802906,
+	 *             1508
+	 *         ]
+	 *     },
+	 *     "properties": {}
+	 * };
+	 * var pointTrunc = turf.truncate(point);
+	 * //= pointTrunc
+	 */
+	module.exports = function (layer, precision, coordinates) {
+	    precision = precision || 6;
+	    coordinates = coordinates || 2;
+
+	    if (layer === undefined) { throw new Error('layer is required'); }
+
+	    switch (layer.type) {
+	    case 'FeatureCollection': {
+	        layer.features = layer.features.map(function (feature) {
+	            return truncate(feature, precision, coordinates);
+	        });
+	        return layer;
+	    }
+	    case 'Feature':
+	        return truncate(layer, precision, coordinates);
+	    default:
+	        throw new Error('invalid type');
+	    }
+	};
+
+	function truncate(feature, precision, coordinates) {
+	    if (coordinates !== undefined) { feature.geometry.coordinates = deepSlice(feature.geometry.coordinates, 0, coordinates); }
+	    feature.geometry.coordinates = toFix(feature.geometry.coordinates, precision);
+	    return feature;
+	}
+
+	function toFix(array, precision) {
+	    return array.map(function (value) {
+	        if (typeof value === 'object') { return toFix(value, precision); }
+	        return Number(value.toFixed(precision));
+	    });
+	}
+
+	/**
+	 * Recursive Array.prototype.slice()
+	 * https://github.com/DenisCarriere/deep-slice
+	 *
+	 * @private
+	 * @param {Array} items Array input
+	 * @param {number} start The beginning of the specified portion of the array.
+	 * @param {number} end The end of the specified portion of the array.
+	 * @returns {Array} Returns a section of an array.
+	 * @example
+	 * deepSlice([[10, 20, 30], [40, 50, 60]], 0, 2)
+	 * //=[[10, 20], [40, 50]]
+	 */
+	function deepSlice(items, start, end) {
+	    if (typeof items[0] !== 'object') {
+	        return items.slice(start, end);
+	    }
+	    return items.map(function (item) {
+	        return deepSlice(item, start, end);
+	    });
+	}
+
+
+/***/ }),
+/* 462 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var helpers = __webpack_require__(377);
+	var meta = __webpack_require__(379);
+	var lineSegment = __webpack_require__(463);
+	var getCoords = __webpack_require__(378).getCoords;
+	var rbush = __webpack_require__(464);
+	var point = helpers.point;
+	var featureCollection = helpers.featureCollection;
+	var featureEach = meta.featureEach;
+
+	/**
+	 * Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).
+	 *
+	 * @name lineIntersect
+	 * @param {FeatureCollection|Feature<LineString|MultiLineString|Polygon|MultiPolygon>} line1 any LineString or Polygon
+	 * @param {FeatureCollection|Feature<LineString|MultiLineString|Polygon|MultiPolygon>} line2 any LineString or Polygon
+	 * @returns {FeatureCollection<Point>} point(s) that intersect both
+	 * @example
+	 * var line1 = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "LineString",
+	 *     "coordinates": [[126, -11], [129, -21]]
+	 *   }
+	 * };
+	 * var line2 = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "LineString",
+	 *     "coordinates": [[123, -18], [131, -14]]
+	 *   }
+	 * };
+	 * var points = turf.lineIntersect(line1, line2);
+	 * //= points
+	 */
+	module.exports = function (line1, line2) {
+	    var results = [];
+	    // Handles simple 2-vertex segments
+	    if (line1.geometry.type === 'LineString' &&
+	        line2.geometry.type === 'LineString' &&
+	        line1.geometry.coordinates.length === 2 &&
+	        line2.geometry.coordinates.length === 2) {
+	        var intersect = intersects(line1, line2);
+	        if (intersect) results.push(intersect);
+	        return featureCollection(results);
+	    }
+	    // Handles complex GeoJSON Geometries
+	    var tree = rbush();
+	    tree.load(lineSegment(line2));
+	    featureEach(lineSegment(line1), function (segment) {
+	        featureEach(tree.search(segment), function (match) {
+	            var intersect = intersects(segment, match);
+	            if (intersect) results.push(intersect);
+	        });
+	    });
+	    return featureCollection(results);
+	};
+
+	/**
+	 * Find a point that intersects LineStrings with two coordinates each
+	 *
+	 * @private
+	 * @param {Feature<LineString>} line1 GeoJSON LineString (Must only contain 2 coordinates)
+	 * @param {Feature<LineString>} line2 GeoJSON LineString (Must only contain 2 coordinates)
+	 * @returns {Feature<Point>} intersecting GeoJSON Point
+	 */
+	function intersects(line1, line2) {
+	    var coords1 = getCoords(line1);
+	    var coords2 = getCoords(line2);
+	    if (coords1.length !== 2) {
+	        throw new Error('<intersects> line1 must only contain 2 coordinates');
+	    }
+	    if (coords2.length !== 2) {
+	        throw new Error('<intersects> line2 must only contain 2 coordinates');
+	    }
+	    var x1 = coords1[0][0];
+	    var y1 = coords1[0][1];
+	    var x2 = coords1[1][0];
+	    var y2 = coords1[1][1];
+	    var x3 = coords2[0][0];
+	    var y3 = coords2[0][1];
+	    var x4 = coords2[1][0];
+	    var y4 = coords2[1][1];
+	    var denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+	    var numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
+	    var numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
+
+	    if (denom === 0) {
+	        if (numeA === 0 && numeB === 0) {
+	            return null;
+	        }
+	        return null;
+	    }
+
+	    var uA = numeA / denom;
+	    var uB = numeB / denom;
+
+	    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+	        var x = x1 + (uA * (x2 - x1));
+	        var y = y1 + (uA * (y2 - y1));
+	        return point([x, y]);
+	    }
+	    return null;
+	}
+
+
+/***/ }),
+/* 463 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var flatten = __webpack_require__(453);
+	var featureEach = __webpack_require__(379).featureEach;
+	var lineString = __webpack_require__(377).lineString;
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var getCoords = __webpack_require__(378).getCoords;
+
+	/**
+	 * Creates a {@link FeatureCollection} of 2-vertex {@link LineString} segments from a {@link LineString}, {@link MultiLineString}, {@link MultiPolygon} or {@link Polygon}.
+	 *
+	 * @name lineSegment
+	 * @param {FeatureCollection|Feature<LineString|MultiLineString|MultiPolygon|Polygon>} geojson GeoJSON Polygon or LineString
+	 * @returns {FeatureCollection<LineString>} 2-vertex line segments
+	 * @example
+	 * var polygon = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Polygon",
+	 *     "coordinates": [[[-50, 5], [-40, -10], [-50, -10], [-40, 5], [-50, 5]]]
+	 *   }
+	 * }
+	 * var segments = turf.lineSegment(polygon);
+	 * //=segments
+	 */
+	module.exports = function (geojson) {
+	    var results = [];
+	    var index = 0;
+	    featureEach(geojson, function (multiFeature) {
+	        featureEach(flatten(multiFeature), function (feature) {
+	            var coords = [];
+	            var type = (feature.geometry) ? feature.geometry.type : feature.type;
+	            switch (type) {
+	            case 'Polygon':
+	                coords = getCoords(feature);
+	                break;
+	            case 'LineString':
+	                coords = [getCoords(feature)];
+	            }
+	            coords.forEach(function (coord) {
+	                var segments = createSegments(coord, feature.properties);
+	                segments.forEach(function (segment) {
+	                    segment.id = index;
+	                    results.push(segment);
+	                    index++;
+	                });
+	            });
+	        });
+	    });
+	    return featureCollection(results);
+	};
+
+	/**
+	 * Create Segments from LineString coordinates
+	 *
+	 * @private
+	 * @param {LineString} coords LineString coordinates
+	 * @param {*} properties GeoJSON properties
+	 * @returns {Array<Feature<LineString>>} line segments
+	 */
+	function createSegments(coords, properties) {
+	    var segments = [];
+	    coords.reduce(function (previousCoords, currentCoords) {
+	        var segment = lineString([previousCoords, currentCoords], properties);
+	        segment.bbox = bbox(previousCoords, currentCoords);
+	        segments.push(segment);
+	        return currentCoords;
+	    });
+	    return segments;
+	}
+
+	/**
+	 * Create BBox between two coordinates (faster than @turf/bbox)
+	 *
+	 * @private
+	 * @param {[number, number]} coords1 Point coordinate
+	 * @param {[number, number]} coords2 Point coordinate
+	 * @returns {BBox} [west, south, east, north]
+	 */
+	function bbox(coords1, coords2) {
+	    var x1 = coords1[0];
+	    var y1 = coords1[1];
+	    var x2 = coords2[0];
+	    var y2 = coords2[1];
+	    var west = (x1 < x2) ? x1 : x2;
+	    var south = (y1 < y2) ? y1 : y2;
+	    var east = (x1 > x2) ? x1 : x2;
+	    var north = (y1 > y2) ? y1 : y2;
+	    return [west, south, east, north];
+	}
+
+
+/***/ }),
+/* 464 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var turfBBox = __webpack_require__(385);
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var featureEach = __webpack_require__(379).featureEach;
+	var rbush = __webpack_require__(414);
+
+	/**
+	 * GeoJSON implementation of [RBush](https://github.com/mourner/rbush#rbush) spatial index.
+	 *
+	 * @name rbush
+	 * @param {number} [maxEntries=9] defines the maximum number of entries in a tree node. 9 (used by default) is a
+	 * reasonable choice for most applications. Higher value means faster insertion and slower search, and vice versa.
+	 * @returns {RBush} GeoJSON RBush
+	 * @example
+	 * var rbush = require('geojson-rbush')
+	 * var tree = rbush()
+	 */
+	module.exports = function (maxEntries) {
+	    var tree = rbush(maxEntries);
+	    /**
+	     * [insert](https://github.com/mourner/rbush#data-format)
+	     *
+	     * @param {Feature<any>} feature insert single GeoJSON Feature
+	     * @returns {RBush} GeoJSON RBush
+	     * @example
+	     * var polygon = {
+	     *   "type": "Feature",
+	     *   "properties": {},
+	     *   "geometry": {
+	     *     "type": "Polygon",
+	     *     "coordinates": [[[-78, 41], [-67, 41], [-67, 48], [-78, 48], [-78, 41]]]
+	     *   }
+	     * }
+	     * tree.insert(polygon)
+	     */
+	    tree.insert = function (feature) {
+	        feature.bbox = feature.bbox ? feature.bbox : turfBBox(feature);
+	        return rbush.prototype.insert.call(this, feature);
+	    };
+
+	    /**
+	     * [load](https://github.com/mourner/rbush#bulk-inserting-data)
+	     *
+	     * @param {FeatureCollection<any>} features load entire GeoJSON FeatureCollection
+	     * @returns {RBush} GeoJSON RBush
+	     * @example
+	     * var polygons = {
+	     *   "type": "FeatureCollection",
+	     *   "features": [
+	     *     {
+	     *       "type": "Feature",
+	     *       "properties": {},
+	     *       "geometry": {
+	     *         "type": "Polygon",
+	     *         "coordinates": [[[-78, 41], [-67, 41], [-67, 48], [-78, 48], [-78, 41]]]
+	     *       }
+	     *     },
+	     *     {
+	     *       "type": "Feature",
+	     *       "properties": {},
+	     *       "geometry": {
+	     *         "type": "Polygon",
+	     *         "coordinates": [[[-93, 32], [-83, 32], [-83, 39], [-93, 39], [-93, 32]]]
+	     *       }
+	     *     }
+	     *   ]
+	     * }
+	     * tree.load(polygons)
+	     */
+	    tree.load = function (features) {
+	        var load = [];
+	        featureEach(features, function (feature) {
+	            feature.bbox = feature.bbox ? feature.bbox : turfBBox(feature);
+	            load.push(feature);
+	        });
+	        return rbush.prototype.load.call(this, load);
+	    };
+
+	    /**
+	     * [remove](https://github.com/mourner/rbush#removing-data)
+	     *
+	     * @param {Feature<any>} feature remove single GeoJSON Feature
+	     * @returns {RBush} GeoJSON RBush
+	     * @example
+	     * var polygon = {
+	     *   "type": "Feature",
+	     *   "properties": {},
+	     *   "geometry": {
+	     *     "type": "Polygon",
+	     *     "coordinates": [[[-78, 41], [-67, 41], [-67, 48], [-78, 48], [-78, 41]]]
+	     *   }
+	     * }
+	     * tree.remove(polygon)
+	     */
+	    tree.remove = function (feature) {
+	        return rbush.prototype.remove.call(this, feature);
+	    };
+
+	    /**
+	     * [clear](https://github.com/mourner/rbush#removing-data)
+	     *
+	     * @returns {RBush} GeoJSON Rbush
+	     * @example
+	     * tree.clear()
+	     */
+	    tree.clear = function () {
+	        return rbush.prototype.clear.call(this);
+	    };
+
+	    /**
+	     * [search](https://github.com/mourner/rbush#search)
+	     *
+	     * @param {FeatureCollection|Feature<any>} geojson search with GeoJSON
+	     * @returns {FeatureCollection<any>} all features that intersects with the given GeoJSON.
+	     * @example
+	     * var polygon = {
+	     *   "type": "Feature",
+	     *   "properties": {},
+	     *   "geometry": {
+	     *     "type": "Polygon",
+	     *     "coordinates": [[[-78, 41], [-67, 41], [-67, 48], [-78, 48], [-78, 41]]]
+	     *   }
+	     * }
+	     * tree.search(polygon)
+	     */
+	    tree.search = function (geojson) {
+	        var search = rbush.prototype.search.call(this, this.toBBox(geojson));
+	        return featureCollection(search);
+	    };
+
+	    /**
+	     * [collides](https://github.com/mourner/rbush#collisions)
+	     *
+	     * @param {FeatureCollection|Feature<any>} geojson collides with GeoJSON
+	     * @returns {boolean} true if there are any items intersecting the given GeoJSON, otherwise false.
+	     * @example
+	     * var polygon = {
+	     *   "type": "Feature",
+	     *   "properties": {},
+	     *   "geometry": {
+	     *     "type": "Polygon",
+	     *     "coordinates": [[[-78, 41], [-67, 41], [-67, 48], [-78, 48], [-78, 41]]]
+	     *   }
+	     * }
+	     * tree.collides(polygon)
+	     */
+	    tree.collides = function (geojson) {
+	        return rbush.prototype.collides.call(this, this.toBBox(geojson));
+	    };
+
+	    /**
+	     * [all](https://github.com/mourner/rbush#search)
+	     *
+	     * @returns {FeatureCollection<any>} all the features in RBush
+	     * @example
+	     * tree.all()
+	     * //=FeatureCollection
+	     */
+	    tree.all = function () {
+	        var all = rbush.prototype.all.call(this);
+	        return featureCollection(all);
+	    };
+
+	    /**
+	     * [toJSON](https://github.com/mourner/rbush#export-and-import)
+	     *
+	     * @returns {any} export data as JSON object
+	     * @example
+	     * var exported = tree.toJSON()
+	     * //=JSON object
+	     */
+	    tree.toJSON = function () {
+	        return rbush.prototype.toJSON.call(this);
+	    };
+
+	    /**
+	     * [fromJSON](https://github.com/mourner/rbush#export-and-import)
+	     *
+	     * @param {any} json import previously exported data
+	     * @returns {RBush} GeoJSON RBush
+	     * @example
+	     * var exported = {
+	     *   "children": [
+	     *     {
+	     *       "type": "Feature",
+	     *       "geometry": {
+	     *         "type": "Point",
+	     *         "coordinates": [110, 50]
+	     *       },
+	     *       "properties": {},
+	     *       "bbox": [110, 50, 110, 50]
+	     *     }
+	     *   ],
+	     *   "height": 1,
+	     *   "leaf": true,
+	     *   "minX": 110,
+	     *   "minY": 50,
+	     *   "maxX": 110,
+	     *   "maxY": 50
+	     * }
+	     * tree.fromJSON(exported)
+	     */
+	    tree.fromJSON = function (json) {
+	        return rbush.prototype.fromJSON.call(this, json);
+	    };
+
+	    /**
+	     * Converts GeoJSON to {minX, minY, maxX, maxY} schema
+	     *
+	     * @private
+	     * @param {FeatureCollectio|Feature<any>} geojson feature(s) to retrieve BBox from
+	     * @returns {Object} converted to {minX, minY, maxX, maxY}
+	     */
+	    tree.toBBox = function (geojson) {
+	        var bbox = geojson.bbox ? geojson.bbox : turfBBox(geojson);
+	        return {
+	            minX: bbox[0],
+	            minY: bbox[1],
+	            maxX: bbox[2],
+	            maxY: bbox[3]
+	        };
+	    };
+	    return tree;
+	};
+
+
+/***/ }),
+/* 465 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var featureEach = __webpack_require__(379).featureEach;
+	var rbush = __webpack_require__(414);
+	var turfBBox = __webpack_require__(385);
+	var helpers = __webpack_require__(377);
+	var union = __webpack_require__(408);
+
+	/**
+	 * Takes any type of {@link Polygon|polygon} and an optional mask and returns a {@link Polygon|polygon} exterior ring with holes.
+	 *
+	 * @name mask
+	 * @param {FeatureCollection|Feature<Polygon|MultiPolygon>} polygon GeoJSON Polygon used as interior rings or holes.
+	 * @param {Feature<Polygon>} [mask] GeoJSON Polygon used as the exterior ring (if undefined, the world extent is used)
+	 * @returns {Feature<Polygon>} Masked Polygon (exterior ring with holes).
+	 * @addToMap masked
+	 * @example
+	 * var polygon = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Polygon",
+	 *     "coordinates": [[[112, -21], [116, -36], [146, -39], [153, -24], [133, -10], [112, -21]]]
+	 *   }
+	 * }
+	 * var mask = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Polygon",
+	 *     "coordinates": [[[90, -55], [170, -55], [170, 10], [90, 10], [90, -55]]]
+	 *   }
+	 * }
+	 * var masked = turf.mask(polygon, mask);
+	 * //=masked
+	 */
+	module.exports = function (polygon, mask) {
+	    // Define mask
+	    var maskPolygon = createMask(mask);
+
+	    // Define polygon
+	    var separated = separatePolygons(polygon);
+	    var polygonOuters = separated[0];
+	    var polygonInners = separated[1];
+
+	    // Union Outers & Inners
+	    polygonOuters = unionPolygons(polygonOuters);
+	    polygonInners = unionPolygons(polygonInners);
+
+	    // Create masked area
+	    var masked = buildMask(maskPolygon, polygonOuters, polygonInners);
+	    return masked;
+	};
+
+	/**
+	 * Build Mask
+	 *
+	 * @private
+	 * @param {Feature<Polygon>} maskPolygon Mask Outer
+	 * @param {FeatureCollection<Polygon>} polygonOuters Polygon Outers
+	 * @param {FeatureCollection<Polygon>} polygonInners Polygon Inners
+	 * @returns {Feature<Polygon>} Feature Polygon
+	 */
+	function buildMask(maskPolygon, polygonOuters, polygonInners) {
+	    var coordinates = [];
+	    coordinates.push(maskPolygon.geometry.coordinates[0]);
+
+	    featureEach(polygonOuters, function (feature) {
+	        coordinates.push(feature.geometry.coordinates[0]);
+	    });
+
+	    featureEach(polygonInners, function (feature) {
+	        coordinates.push(feature.geometry.coordinates[0]);
+	    });
+	    return helpers.polygon(coordinates);
+	}
+
+	/**
+	 * Separate Polygons to inners & outers
+	 *
+	 * @private
+	 * @param {FeatureCollection|Feature<Polygon|MultiPolygon>} polygon GeoJSON Feature
+	 * @returns {Array<FeatureCollection<Polygon>, FeatureCollection<Polygon>>} Outer & Inner lines
+	 */
+	function separatePolygons(polygon) {
+	    var outers = [];
+	    var inners = [];
+	    featureEach(polygon, function (multiFeature) {
+	        if (multiFeature.geometry.type === 'MultiPolygon') {
+	            multiFeature = flattenMultiPolygon(multiFeature);
+	        }
+	        featureEach(multiFeature, function (feature) {
+	            var coordinates = feature.geometry.coordinates;
+	            var featureOuter = coordinates[0];
+	            var featureInner = coordinates.slice(1);
+	            outers.push(helpers.polygon([featureOuter]));
+	            featureInner.forEach(function (inner) {
+	                inners.push(helpers.polygon([inner]));
+	            });
+	        });
+	    });
+	    return [helpers.featureCollection(outers), helpers.featureCollection(inners)];
+	}
+
+	/**
+	 * Flatten MultiPolygon
+	 *
+	 * @private
+	 * @param {Feature<MultiPolygon>} multiPolygon GeoJSON Feature
+	 * @returns {FeatureCollection<Polygon>} Feature Collection
+	 */
+	function flattenMultiPolygon(multiPolygon) {
+	    var polygons = [];
+	    multiPolygon.geometry.coordinates.forEach(function (coordinates) {
+	        polygons.push(helpers.polygon(coordinates));
+	    });
+	    return helpers.featureCollection(polygons);
+	}
+
+	/**
+	 * Create Mask Coordinates
+	 *
+	 * @private
+	 * @param {Feature<Polygon>} [mask] default to world if undefined
+	 * @returns {Feature<Polygon>} mask coordinate
+	 */
+	function createMask(mask) {
+	    var world = [[[180, 90], [-180, 90], [-180, -90], [180, -90], [180, 90]]];
+	    var coordinates = mask && mask.geometry.coordinates || world;
+	    return helpers.polygon(coordinates);
+	}
+
+	/**
+	 * Union Polygons
+	 *
+	 * @private
+	 * @param {FeatureCollection<Polygon>} polygons collection of polygons
+	 * @returns {FeatureCollection<Polygon>} polygons only apply union if they collide
+	 */
+	function unionPolygons(polygons) {
+	    if (polygons.features.length <= 1) return polygons;
+
+	    var tree = createIndex(polygons);
+	    var results = [];
+	    var removed = {};
+
+	    featureEach(polygons, function (currentFeature, currentIndex) {
+	        // Exclude any removed features
+	        if (removed[currentIndex]) return true;
+
+	        // Don't search for itself
+	        tree.remove({index: currentIndex}, filterByIndex);
+	        removed[currentIndex] = true;
+
+	        // Keep applying the union operation until no more overlapping features
+	        while (true) {
+	            var bbox = turfBBox(currentFeature);
+	            var search = tree.search({
+	                minX: bbox[0],
+	                minY: bbox[1],
+	                maxX: bbox[2],
+	                maxY: bbox[3]
+	            });
+	            if (search.length > 0) {
+	                var polys = search.map(function (item) {
+	                    removed[item.index] = true;
+	                    tree.remove({index: item.index}, filterByIndex);
+	                    return item.geojson;
+	                });
+	                polys.push(currentFeature);
+	                currentFeature = union.apply(this, polys);
+	            }
+	            // Done
+	            if (search.length === 0) break;
+	        }
+	        results.push(currentFeature);
+	    });
+
+	    return helpers.featureCollection(results);
+	}
+
+	/**
+	 * Filter by Index - RBush helper function
+	 *
+	 * @private
+	 * @param {Object} a remove item
+	 * @param {Object} b search item
+	 * @returns {boolean} true if matches
+	 */
+	function filterByIndex(a, b) {
+	    return a.index === b.index;
+	}
+
+	/**
+	 * Create RBush Tree Index
+	 *
+	 * @private
+	 * @param {FeatureCollection<any>} features GeoJSON FeatureCollection
+	 * @returns {RBush} RBush Tree
+	 */
+	function createIndex(features) {
+	    var tree = rbush();
+	    var load = [];
+	    featureEach(features, function (feature, index) {
+	        var bbox = turfBBox(feature);
+	        load.push({
+	            minX: bbox[0],
+	            minY: bbox[1],
+	            maxX: bbox[2],
+	            maxY: bbox[3],
+	            geojson: feature,
+	            index: index
+	        });
+	    });
+	    tree.load(load);
+	    return tree;
+	}
+
+
+/***/ }),
+/* 466 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var lineSliceAlong = __webpack_require__(456);
+	var lineDistance = __webpack_require__(452);
+	var featureCollection = __webpack_require__(377).featureCollection;
+	var featureEach = __webpack_require__(379).featureEach;
+	var flatten = __webpack_require__(453);
+
+	/**
+	 * Divides a {@link LineString} into chunks of a specified length.
+	 * If the line is shorter than the segment length then the original line is returned.
+	 *
+	 * @name lineChunk
+	 * @param {FeatureCollection|Feature<LineString|MultiLineString>} featureIn the lines to split
+	 * @param {number} segmentLength how long to make each segment
+	 * @param {string}[units='kilometers'] units can be degrees, radians, miles, or kilometers
+	 * @param {boolean}[reverse=false] reverses coordinates to start the first chunked segment at the end
+	 * @returns {FeatureCollection<LineString>} collection of line segments
+	 * @example
+	 * var line = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "LineString",
+	 *     "coordinates": [
+	 *       [-95, 40],
+	 *       [-93, 45],
+	 *       [-85, 50]
+	 *     ]
+	 *   }
+	 * };
+	 * var result = turf.lineChunk(line, 15, 'miles');
+	 * //=result
+	 */
+	module.exports = function (featureIn, segmentLength, units, reverse) {
+	    var outFeatures = [];
+	    var debug = arguments['4']; // Hidden @param {boolean} Enable debug mode
+
+	    // Handles FeatureCollection
+	    featureEach(featureIn, function (multiFeature) {
+
+	        // Handles MultiLineString
+	        if (multiFeature.geometry.type === 'MultiLineString') {
+	            multiFeature = flatten(multiFeature);
+	        }
+
+	        // All features are simple LineString
+	        featureEach(multiFeature, function (feature) {
+	            if (reverse) {
+	                feature.geometry.coordinates = feature.geometry.coordinates.reverse();
+	            }
+	            var lineSegments = sliceLineSegments(feature, segmentLength, units);
+	            lineSegments.forEach(function (segment, index) {
+	                if (debug === true) {
+	                    var r = (index % 2 === 0) ? 'F' : '0';
+	                    var g = (index % 2 === 0) ? '0' : '0';
+	                    var b = (index % 2 === 0) ? '0' : 'F';
+	                    segment.properties['stroke'] = '#' + r + g + b;
+	                    segment.properties['stroke-width'] = 6;
+	                }
+	                outFeatures.push(segment);
+	            });
+	        });
+	    });
+	    return featureCollection(outFeatures);
+	};
+
+	/**
+	 * Slice Line Segments
+	 *
+	 * @private
+	 * @param {Feature<LineString>} line GeoJSON LineString
+	 * @param {number} segmentLength how long to make each segment
+	 * @param {string}[units='kilometers'] units can be degrees, radians, miles, or kilometers
+	 * @returns {Array<Feature<LineString>>} sliced lines
+	 */
+	function sliceLineSegments(line, segmentLength, units) {
+	    var lineSegments = [];
+	    var lineLength = lineDistance(line, units);
+
+	    // If the line is shorter than the segment length then the orginal line is returned.
+	    if (lineLength <= segmentLength) {
+	        return [line];
+	    }
+
+	    var numberOfSegments = Math.floor(lineLength / segmentLength) + 1;
+
+	    for (var i = 0; i < numberOfSegments; i++) {
+	        var outline = lineSliceAlong(line, segmentLength * i, segmentLength * (i + 1), units);
+	        lineSegments.push(outline);
+	    }
+	    return lineSegments;
+	}
+
+
+/***/ }),
+/* 467 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var simplepolygon = __webpack_require__(468);
+	var flatten = __webpack_require__(453);
+	var featureEach = __webpack_require__(379).featureEach;
+	var featureCollection = __webpack_require__(377).featureCollection;
+
+	/**
+	 * Takes a kinked polygon and returns a feature collection of polygons that have no kinks.
+	 * Uses [simplepolygon](https://github.com/mclaeysb/simplepolygon) internally.
+	 *
+	 * @name unkinkPolygon
+	 * @param {FeatureCollection|Feature<Polygon|MultiPolygon>} geojson GeoJSON Polygon or MultiPolygon
+	 * @returns {FeatureCollection<Polygon>} Unkinked polygons
+	 * @example
+	 * var poly = {
+	 *    'type': 'Feature',
+	 *      'geometry': {
+	 *         'type': 'Polygon',
+	 *        'coordinates': [[[0, 0], [2, 0], [0, 2], [2, 2], [0, 0]]]
+	 *       }
+	 * };
+	 *
+	 * var result = turf.unkinkPolygon(poly);
+	 *
+	 * //=result
+	 */
+	module.exports = function (geojson) {
+	    var results = featureCollection([]);
+
+	    // Handles FeatureCollection & Feature
+	    featureEach(geojson, function (feature) {
+
+	        // Handle MultiPolygons as Feature or FeatureCollection
+	        if (feature.geometry.type === 'MultiPolygon') { feature = flatten(feature); }
+
+	        // Store simple polygons in results
+	        featureEach(feature, function (polygon) {
+	            var simple = simplepolygon(polygon);
+
+	            featureEach(simple, function (poly) {
+	                poly.properties = (polygon.properties) ? polygon.properties : {};
+	                results.features.push(poly);
+	            });
+	        });
+	    });
+	    return results;
+	};
+
+
+/***/ }),
+/* 468 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var isects = __webpack_require__(469);
+	var helpers = __webpack_require__(377);
+	var within = __webpack_require__(406);
+	var area = __webpack_require__(448);
+	var rbush = __webpack_require__(414);
+	var debug = __webpack_require__(470)('simplepolygon');
+	var debugAll = __webpack_require__(470)('simplepolygon:all');
+
+	/**
+	* Takes a complex (i.e. self-intersecting) geojson polygon, and breaks it down into its composite simple, non-self-intersecting one-ring polygons.
+	*
+	* @module simplepolygon
+	* @param {Feature} feature Input polygon. This polygon may be unconform the {@link https://en.wikipedia.org/wiki/Simple_Features|Simple Features standard} in the sense that it's inner and outer rings may cross-intersect or self-intersect, that the outer ring must not contain the optional inner rings and that the winding number must not be positive for the outer and negative for the inner rings.
+	* @return {FeatureCollection} Feature collection containing the simple, non-self-intersecting one-ring polygon features that the complex polygon is composed of. These simple polygons have properties such as their parent polygon, winding number and net winding number.
+	*
+	* @example
+	* var poly = {
+	*   "type": "Feature",
+	*   "geometry": {
+	*     "type": "Polygon",
+	*     "coordinates": [[[0,0],[2,0],[0,2],[2,2],[0,0]]]
+	*   }
+	* };
+	*
+	* var result = simplepolygon(poly);
+	*
+	* // =result
+	* // which will be a featureCollection of two polygons, one with coordinates [[[0,0],[2,0],[1,1],[0,0]]], parent -1, winding 1 and net winding 1, and one with coordinates [[[1,1],[0,2],[2,2],[1,1]]], parent -1, winding -1 and net winding -1
+	*/
+
+	module.exports = function(feature) {
+	  // Check input
+	  if (feature.type != "Feature") throw new Error("The input must a geojson object of type Feature");
+	  if ((feature.geometry === undefined) || (feature.geometry == null)) throw new Error("The input must a geojson object with a non-empty geometry");
+	  if (feature.geometry.type != "Polygon") throw new Error("The input must be a geojson Polygon");
+
+	  // Process input
+	  var numRings = feature.geometry.coordinates.length;
+	  var vertices = [];
+	  for (var i = 0; i < numRings; i++) {
+	    var ring = feature.geometry.coordinates[i];
+	    if (!equalArrays(ring[0],ring[ring.length-1])) {
+	      ring.push(ring[0]) // Close input ring if it is not
+	    }
+	    vertices.push.apply(vertices,ring.slice(0,ring.length-1));
+	  }
+	  if (!isUnique(vertices)) throw new Error("The input polygon may not have duplicate vertices (except for the first and last vertex of each ring)");
+	  var numvertices = vertices.length; // number of input ring vertices, with the last closing vertices not counted
+	  debug("Processing input");
+
+	  // Compute self-intersections
+	  var selfIsectsData = isects(feature, function filterFn(isect, ring0, edge0, start0, end0, frac0, ring1, edge1, start1, end1, frac1, unique){
+	    return [isect, ring0, edge0, start0, end0, frac0, ring1, edge1, start1, end1, frac1, unique];
+	  });
+	  var numSelfIsect = selfIsectsData.length;
+	  debug("Computing self-intersections");
+
+	  // If no self-intersections are found, the input rings are the output rings. Hence, we must only compute their winding numbers, net winding numbers and (since ohers rings could lie outside the first ring) parents.
+	  if (numSelfIsect == 0) {
+	    var outputFeatureArray = [];
+	    for(var i = 0; i < numRings; i++) {
+	      outputFeatureArray.push(helpers.polygon([feature.geometry.coordinates[i]],{parent: -1, winding: windingOfRing(feature.geometry.coordinates[i])}));
+	    }
+	    var output = helpers.featureCollection(outputFeatureArray)
+	    determineParents();
+	    setNetWinding();
+	    debugAll("No self-intersections found. Input rings are output rings. Computed winding numbers, net winding numbers and parents");
+	    debug("Finishing without self-intersections");
+	    return output;
+	  }
+
+	  // If self-intersections are found, we will compute the output rings with the help of two intermediate variables
+	  // First, we build the pseudo vertex list and intersection list
+	  // The Pseudo vertex list is an array with for each ring an array with for each edge an array containing the pseudo-vertices (as made by their constructor) that have this ring and edge as ringAndEdgeIn, sorted for each edge by their fractional distance on this edge. It's length hence equals numRings.
+	  var pseudoVtxListByRingAndEdge = [];
+	  // The intersection list is an array containing intersections (as made by their constructor). First all numvertices ring-vertex-intersections, then all self-intersections (intra- and inter-ring). The order of the latter is not important but is permanent once given.
+	  var isectList = [];
+	  // Adding ring-pseudo-vertices to pseudoVtxListByRingAndEdge and ring-vertex-intersections to isectList
+	  for (var i = 0; i < numRings; i++) {
+	    pseudoVtxListByRingAndEdge.push([]);
+	    for (var j = 0; j < feature.geometry.coordinates[i].length-1; j++) {
+	      // Each edge will feature one ring-pseudo-vertex in its array, on the last position. i.e. edge j features the ring-pseudo-vertex of the ring vertex j+1, which has ringAndEdgeIn = [i,j], on the last position.
+	      pseudoVtxListByRingAndEdge[i].push([new PseudoVtx(feature.geometry.coordinates[i][(j+1).modulo(feature.geometry.coordinates[i].length-1)], 1, [i, j], [i, (j+1).modulo(feature.geometry.coordinates[i].length-1)], undefined)]);
+	      // The first numvertices elements in isectList correspond to the ring-vertex-intersections
+	      isectList.push(new Isect(feature.geometry.coordinates[i][j], [i, (j-1).modulo(feature.geometry.coordinates[i].length-1)], [i, j], undefined, undefined, false, true));
+	    }
+	  }
+	  // Adding intersection-pseudo-vertices to pseudoVtxListByRingAndEdge and self-intersections to isectList
+	  for (var i = 0; i < numSelfIsect; i++) {
+	    // Adding intersection-pseudo-vertices made using selfIsectsData to pseudoVtxListByRingAndEdge's array corresponding to the incomming ring and edge
+	    pseudoVtxListByRingAndEdge[selfIsectsData[i][1]][selfIsectsData[i][2]].push(new PseudoVtx(selfIsectsData[i][0], selfIsectsData[i][5], [selfIsectsData[i][1], selfIsectsData[i][2]], [selfIsectsData[i][6], selfIsectsData[i][7]], undefined));
+	    // selfIsectsData contains double mentions of each intersection, but we only want to add them once to isectList
+	    if (selfIsectsData[i][11]) isectList.push(new Isect(selfIsectsData[i][0], [selfIsectsData[i][1], selfIsectsData[i][2]], [selfIsectsData[i][6], selfIsectsData[i][7]], undefined, undefined, true, true));
+	  }
+	  var numIsect = isectList.length;
+	  // Sort edge arrays of pseudoVtxListByRingAndEdge by the fractional distance 'param'
+	  for (var i = 0; i < pseudoVtxListByRingAndEdge.length; i++) {
+	    for (var j = 0; j < pseudoVtxListByRingAndEdge[i].length; j++) {
+	      pseudoVtxListByRingAndEdge[i][j].sort(function(a, b){ return (a.param < b.param) ? -1 : 1 ; } );
+	    }
+	  }
+	  debug("Setting up pseudoVtxListByRingAndEdge and isectList");
+
+	  // Make a spatial index of intersections, in preperation for the following two steps
+	  allIsectsAsIsectRbushTreeItem = [];
+	  for (var i = 0; i < numIsect; i++) {
+	    allIsectsAsIsectRbushTreeItem.push({minX: isectList[i].coord[0], minY: isectList[i].coord[1], maxX: isectList[i].coord[0], maxY: isectList[i].coord[1], index: i}); // could pass isect: isectList[i], but not necessary
+	  }
+	  var isectRbushTree = rbush();
+	  isectRbushTree.load(allIsectsAsIsectRbushTreeItem);
+
+	  // Now we will teach each intersection in isectList which is the next intersection along both it's [ring, edge]'s, in two steps.
+	  // First, we find the next intersection for each pseudo-vertex in pseudoVtxListByRingAndEdge:
+	  // For each pseudovertex in pseudoVtxListByRingAndEdge (3 loops) look at the next pseudovertex on that edge and find the corresponding intersection by comparing coordinates
+	  for (var i = 0; i < pseudoVtxListByRingAndEdge.length; i++){
+	    for (var j = 0; j < pseudoVtxListByRingAndEdge[i].length; j++){
+	      for (var k = 0; k < pseudoVtxListByRingAndEdge[i][j].length; k++){
+	        var coordToFind;
+	        if (k == pseudoVtxListByRingAndEdge[i][j].length-1) { // If it's the last pseudoVertex on that edge, then the next pseudoVertex is the first one on the next edge of that ring.
+	          coordToFind = pseudoVtxListByRingAndEdge[i][(j+1).modulo(feature.geometry.coordinates[i].length-1)][0].coord;
+	        } else {
+	          coordToFind = pseudoVtxListByRingAndEdge[i][j][k+1].coord;
+	        }
+	        var IsectRbushTreeItemFound = isectRbushTree.search({minX: coordToFind[0], minY: coordToFind[1], maxX: coordToFind[0], maxY: coordToFind[1]})[0]; // We can take [0] of the result, because there is only one isect correponding to a pseudo-vertex
+	        pseudoVtxListByRingAndEdge[i][j][k].nxtIsectAlongEdgeIn = IsectRbushTreeItemFound.index;
+	      }
+	    }
+	  }
+	  debug("Computing nextIsect for pseudoVtxListByRingAndEdge");
+
+	  // Second, we port this knowledge of the next intersection over to the intersections in isectList, by finding the intersection corresponding to each pseudo-vertex and copying the pseudo-vertex' knownledge of the next-intersection over to the intersection
+	  for (var i = 0; i < pseudoVtxListByRingAndEdge.length; i++){
+	    for (var j = 0; j < pseudoVtxListByRingAndEdge[i].length; j++){
+	      for (var k = 0; k < pseudoVtxListByRingAndEdge[i][j].length; k++){
+	        var coordToFind = pseudoVtxListByRingAndEdge[i][j][k].coord;
+	        var IsectRbushTreeItemFound = isectRbushTree.search({minX: coordToFind[0], minY: coordToFind[1], maxX: coordToFind[0], maxY: coordToFind[1]})[0]; // We can take [0] of the result, because there is only one isect correponding to a pseudo-vertex
+	        var l = IsectRbushTreeItemFound.index;
+	        if (l < numvertices) { // Special treatment at ring-vertices: we correct the misnaming that happened in the previous block, since ringAndEdgeOut = ringAndEdge2 for ring vertices.
+	            isectList[l].nxtIsectAlongRingAndEdge2 = pseudoVtxListByRingAndEdge[i][j][k].nxtIsectAlongEdgeIn;
+	        } else { // Port the knowledge of the next intersection from the pseudo-vertices to the intersections, depending on how the edges are labeled in the pseudo-vertex and intersection.
+	          if (equalArrays(isectList[l].ringAndEdge1, pseudoVtxListByRingAndEdge[i][j][k].ringAndEdgeIn)) {
+	            isectList[l].nxtIsectAlongRingAndEdge1 = pseudoVtxListByRingAndEdge[i][j][k].nxtIsectAlongEdgeIn;
+	          } else {
+	            isectList[l].nxtIsectAlongRingAndEdge2 = pseudoVtxListByRingAndEdge[i][j][k].nxtIsectAlongEdgeIn;
+	          }
+	        }
+	      }
+	    }
+	  }
+	  // This explains why, eventhough when we will walk away from an intersection, we will walk way from the corresponding pseudo-vertex along edgeOut, pseudo-vertices have the property 'nxtIsectAlongEdgeIn' in stead of some propery 'nxtPseudoVtxAlongEdgeOut'. This is because this property (which is easy to find out) is used in the above for nxtIsectAlongRingAndEdge1 and nxtIsectAlongRingAndEdge2!
+	  debug("Porting nextIsect to isectList");
+
+	  // Before we start walking over the intersections to build the output rings, we prepare a queue that stores information on intersections we still have to deal with, and put at least one intersection in it.
+	  // This queue will contain information on intersections where we can start walking from once the current walk is finished, and its parent output ring (the smallest output ring it lies within, -1 if no parent or parent unknown yet) and its winding number (which we can already determine).
+	  var queue = []
+	  // For each output ring, add the ring-vertex-intersection with the smalles x-value (i.e. the left-most) as a start intersection. By choosing such an extremal intersections, we are sure to start at an intersection that is a convex vertex of its output ring. By adding them all to the queue, we are sure that no rings will be forgotten. If due to ring-intersections such an intersection will be encountered while walking, it will be removed from the queue.
+	  var i = 0;
+	  for (var j = 0; j < numRings; j++) {
+	    var leftIsect = i;
+	    for (var k = 0; k < feature.geometry.coordinates[j].length-1; k++) {
+	      if (isectList[i].coord[0] < isectList[leftIsect].coord[0]) {
+	        leftIsect = i;
+	      }
+	      i++;
+	    }
+	    // Compute winding at this left-most ring-vertex-intersection. We thus this by using our knowledge that this extremal vertex must be a convex vertex.
+	    // We first find the intersection before and after it, and then use them to determine the winding number of the corresponding output ring, since we know that an extremal vertex of a simple, non-self-intersecting ring is always convex, so the only reason it would not be is because the winding number we use to compute it is wrong
+	    var isectAfterLeftIsect = isectList[leftIsect].nxtIsectAlongRingAndEdge2;
+	    for (var k = 0; k < isectList.length; k++) {
+	      if ((isectList[k].nxtIsectAlongRingAndEdge1 == leftIsect) || (isectList[k].nxtIsectAlongRingAndEdge2 == leftIsect)) {
+	        var isectBeforeLeftIsect = k;
+	        break
+	      }
+	    }
+	    var windingAtIsect = isConvex([isectList[isectBeforeLeftIsect].coord,isectList[leftIsect].coord,isectList[isectAfterLeftIsect].coord],true) ? 1 : -1;
+
+	    queue.push({isect: leftIsect, parent: -1, winding: windingAtIsect})
+	  }
+	  // Sort the queue by the same criterion used to find the leftIsect: the left-most leftIsect must be last in the queue, such that it will be popped first, such that we will work from out to in regarding input rings. This assumtion is used when predicting the winding number and parent of a new queue member.
+	  queue.sort(function(a, b){ return (isectList[a.isect].coord > isectList[b.isect].coord) ? -1 : 1 });
+	  debugAll("Initial state of the queue: " + JSON.stringify(queue));
+	  debug("Setting up queue");
+
+	  // Initialise output
+	  var outputFeatureArray = [];
+
+	  // While the queue is not empty, take the last object (i.e. its intersection) out and start making an output ring by walking in the direction that has not been walked away over yet.
+	  while (queue.length>0) {
+	    // Get the last object out of the queue
+	    var popped = queue.pop();
+	    var startIsect = popped.isect;
+	    var currentOutputRingParent = popped.parent;
+	    var currentOutputRingWinding = popped.winding;
+	    // Make new output ring and add vertex from starting intersection
+	    var currentOutputRing = outputFeatureArray.length;
+	    var currentOutputRingCoords = [isectList[startIsect].coord];
+	    debugAll("# Starting output ring number " + outputFeatureArray.length + " with winding " + currentOutputRingWinding + " from intersection " + startIsect);
+	    if (startIsect < numvertices) debugAll("This is a ring-vertex-intersections, which means this output ring does not touch existing output rings");
+	    // Set up the variables used while walking over intersections: 'currentIsect', 'nxtIsect' and 'walkingRingAndEdge'
+	    var currentIsect = startIsect;
+	    if (isectList[startIsect].ringAndEdge1Walkable) {
+	      var walkingRingAndEdge = isectList[startIsect].ringAndEdge1;
+	      var nxtIsect = isectList[startIsect].nxtIsectAlongRingAndEdge1;
+	    } else {
+	      var walkingRingAndEdge = isectList[startIsect].ringAndEdge2;
+	      var nxtIsect = isectList[startIsect].nxtIsectAlongRingAndEdge2;
+	    }
+	    // While we have not arrived back at the same intersection, keep walking
+	    while (!equalArrays(isectList[startIsect].coord,isectList[nxtIsect].coord)){
+	      debugAll("Walking from intersection " + currentIsect + " to " + nxtIsect + " over ring " + walkingRingAndEdge[0] + " and edge " + walkingRingAndEdge[1]);
+	      currentOutputRingCoords.push(isectList[nxtIsect].coord);
+	      debugAll("Adding intersection " + nxtIsect + " to current output ring");
+	      // If the next intersection is queued, we can remove it, because we will go there now.
+	      var nxtIsectInQueue = undefined;
+	      for(var i = 0; i < queue.length; i++) { if (queue[i].isect == nxtIsect) {nxtIsectInQueue = i; break; } }
+	      if (nxtIsectInQueue != undefined) {
+	        debugAll("Removing intersection " + nxtIsect + " from queue");
+	        queue.splice(nxtIsectInQueue,1);
+	      }
+	      // Arriving at this new intersection, we know which will be our next walking ring and edge (if we came from 1 we will walk away from 2 and vice versa),
+	      // So we can set it as our new walking ring and intersection and remember that we (will) have walked over it
+	      // If we have never walked away from this new intersection along the other ring and edge then we will soon do, add the intersection (and the parent wand winding number) to the queue
+	      // (We can predict the winding number and parent as follows: if the edge is convex, the other output ring started from there will have the alternate winding and lie outside of the current one, and thus have the same parent ring as the current ring. Otherwise, it will have the same winding number and lie inside of the current ring. We are, however, only sure of this of an output ring started from there does not enclose the current ring. This is why the initial queue's intersections must be sorted such that outer ones come out first.)
+	      // We then update the other two walking variables.
+	      if (equalArrays(walkingRingAndEdge,isectList[nxtIsect].ringAndEdge1)) {
+	        walkingRingAndEdge = isectList[nxtIsect].ringAndEdge2;
+	        isectList[nxtIsect].ringAndEdge2Walkable = false;
+	        if (isectList[nxtIsect].ringAndEdge1Walkable) {
+	          debugAll("Adding intersection " + nxtIsect + " to queue");
+	          var pushing = {isect: nxtIsect};
+	          if (isConvex([isectList[currentIsect].coord, isectList[nxtIsect].coord, isectList[isectList[nxtIsect].nxtIsectAlongRingAndEdge2].coord],currentOutputRingWinding == 1)) {
+	            pushing.parent = currentOutputRingParent;
+	            pushing.winding = -currentOutputRingWinding;
+	          } else {
+	            pushing.parent = currentOutputRing;
+	            pushing.winding = currentOutputRingWinding;
+	          }
+	          queue.push(pushing);
+	        }
+	        currentIsect = nxtIsect;
+	        nxtIsect = isectList[nxtIsect].nxtIsectAlongRingAndEdge2;
+	      } else {
+	        walkingRingAndEdge = isectList[nxtIsect].ringAndEdge1;
+	        isectList[nxtIsect].ringAndEdge1Walkable = false;
+	        if (isectList[nxtIsect].ringAndEdge2Walkable) {
+	          debugAll("Adding intersection " + nxtIsect + " to queue");
+	          var pushing = {isect: nxtIsect};
+	          if (isConvex([isectList[currentIsect].coord, isectList[nxtIsect].coord, isectList[isectList[nxtIsect].nxtIsectAlongRingAndEdge1].coord],currentOutputRingWinding == 1)) {
+	            pushing.parent = currentOutputRingParent;
+	            pushing.winding = -currentOutputRingWinding;
+	          } else {
+	            pushing.parent = currentOutputRing;
+	            pushing.winding = currentOutputRingWinding;
+	          }
+	          queue.push(pushing);
+	        }
+	        currentIsect = nxtIsect;
+	        nxtIsect = isectList[nxtIsect].nxtIsectAlongRingAndEdge1;
+	      }
+	      debugAll("Current state of the queue: " + JSON.stringify(queue));
+	    }
+	    debugAll("Walking from intersection " + currentIsect + " to " + nxtIsect + " over ring " + walkingRingAndEdge[0] + " and edge " + walkingRingAndEdge[1] + " and closing ring");
+	    // Close output ring
+	    currentOutputRingCoords.push(isectList[nxtIsect].coord);
+	    // Push output ring to output
+	    outputFeatureArray.push(helpers.polygon([currentOutputRingCoords],{index: currentOutputRing, parent: currentOutputRingParent, winding: currentOutputRingWinding, netWinding: undefined}));
+	  }
+
+	  var output = helpers.featureCollection(outputFeatureArray);
+	  debug("Walking");
+
+	  determineParents();
+	  debug("Determining parents");
+
+	  setNetWinding();
+	  debug("Setting winding number");
+
+	  // These functions are also used if no intersections are found
+	  function determineParents() {
+	    var featuresWithoutParent = [];
+	    for (var i = 0; i < output.features.length; i++) {
+	      debugAll("Output ring " + i + " has parent " + output.features[i].properties.parent);
+	      if (output.features[i].properties.parent == -1) featuresWithoutParent.push(i);
+	    }
+	    debugAll("The following output ring(s) have no parent: " + featuresWithoutParent);
+	    if (featuresWithoutParent.length > 1) {
+	      for (var i = 0; i < featuresWithoutParent.length; i++) {
+	        var parent = -1;
+	        var parentArea = Infinity;
+	        for (var j = 0; j < output.features.length; j++) {
+	          if (featuresWithoutParent[i] == j) continue
+	          if (within(helpers.featureCollection([helpers.point(output.features[featuresWithoutParent[i]].geometry.coordinates[0][0])]),helpers.featureCollection([output.features[j]])).features.length == 1) {
+	            if (area(output.features[j]) < parentArea) {
+	              parent = j;
+	              debugAll("Ring "+featuresWithoutParent[i]+" lies within output ring "+j);
+	            }
+	          }
+	        }
+	        output.features[featuresWithoutParent[i]].properties.parent = parent;
+	        debugAll("Ring "+featuresWithoutParent[i]+" is assigned parent "+parent);
+	      }
+	    }
+	  }
+
+	  function setNetWinding() {
+	    for (var i = 0; i < output.features.length; i++) {
+	      if (output.features[i].properties.parent == -1) {
+	        var netWinding = output.features[i].properties.winding
+	        output.features[i].properties.netWinding = netWinding;
+	        setNetWindingOfChildren(i,netWinding)
+	      }
+	    }
+	  }
+
+	  function setNetWindingOfChildren(parent,ParentNetWinding){
+	    for (var i = 0; i < output.features.length; i++) {
+	      if (output.features[i].properties.parent == parent){
+	        var netWinding = ParentNetWinding + output.features[i].properties.winding
+	        output.features[i].properties.netWinding = netWinding;
+	        setNetWindingOfChildren(i,netWinding)
+	      }
+	    }
+	  }
+
+	  debugAll("# Total of " + output.features.length + " rings");
+
+	  return output;
+	}
+
+
+
+	// Constructor for (ring- or intersection-) pseudo-vertices.
+	var PseudoVtx = function (coord, param, ringAndEdgeIn, ringAndEdgeOut, nxtIsectAlongEdgeIn) {
+	  this.coord = coord; // [x,y] of this pseudo-vertex
+	  this.param = param; // fractional distance of this intersection on incomming edge
+	  this.ringAndEdgeIn = ringAndEdgeIn; // [ring index, edge index] of incomming edge
+	  this.ringAndEdgeOut = ringAndEdgeOut; // [ring index, edge index] of outgoing edge
+	  this.nxtIsectAlongEdgeIn = nxtIsectAlongEdgeIn; // The next intersection when following the incomming edge (so not when following ringAndEdgeOut!)
+	}
+
+	// Constructor for an intersection. There are two intersection-pseudo-vertices per self-intersection and one ring-pseudo-vertex per ring-vertex-intersection. Their labels 1 and 2 are not assigned a particular meaning but are permanent once given.
+	var Isect = function (coord, ringAndEdge1, ringAndEdge2, nxtIsectAlongRingAndEdge1, nxtIsectAlongRingAndEdge2, ringAndEdge1Walkable, ringAndEdge2Walkable) {
+	  this.coord = coord; // [x,y] of this intersection
+	  this.ringAndEdge1 = ringAndEdge1; // first edge of this intersection
+	  this.ringAndEdge2 = ringAndEdge2; // second edge of this intersection
+	  this.nxtIsectAlongRingAndEdge1 = nxtIsectAlongRingAndEdge1; // the next intersection when following ringAndEdge1
+	  this.nxtIsectAlongRingAndEdge2 = nxtIsectAlongRingAndEdge2; // the next intersection when following ringAndEdge2
+	  this.ringAndEdge1Walkable = ringAndEdge1Walkable; // May we (still) walk away from this intersection over ringAndEdge1?
+	  this.ringAndEdge2Walkable = ringAndEdge2Walkable; // May we (still) walk away from this intersection over ringAndEdge2?
+	}
+
+	// Function to determine if three consecutive points of a simple, non-self-intersecting ring make up a convex vertex, assuming the ring is right- or lefthanded
+	function isConvex(pts, righthanded){
+	  // 'pts' is an [x,y] pair
+	  // 'righthanded' is a boolean
+	  if (typeof(righthanded) === 'undefined') righthanded = true;
+	  if (pts.length != 3) throw new Error("This function requires an array of three points [x,y]");
+	  var d = (pts[1][0] - pts[0][0]) * (pts[2][1] - pts[0][1]) - (pts[1][1] - pts[0][1]) * (pts[2][0] - pts[0][0]);
+	  return (d >= 0) == righthanded;
+	}
+
+	// Function to compute winding of simple, non-self-intersecting ring
+	function windingOfRing(ring){
+	  // 'ring' is an array of [x,y] pairs with the last equal to the first
+	  // Compute the winding number based on the vertex with the smallest x-value, it precessor and successor. An extremal vertex of a simple, non-self-intersecting ring is always convex, so the only reason it is not is because the winding number we use to compute it is wrong
+	  var leftVtx = 0;
+	  for (var i = 0; i < ring.length-1; i++) { if (ring[i][0] < ring[leftVtx][0]) leftVtx = i; }
+	  if (isConvex([ring[(leftVtx-1).modulo(ring.length-1)],ring[leftVtx],ring[(leftVtx+1).modulo(ring.length-1)]],true)) {
+	    var winding = 1;
+	  } else {
+	    var winding = -1;
+	  }
+	  return winding
+	}
+
+	// Function to compare Arrays of numbers. From http://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+	function equalArrays(array1, array2) {
+	  // if the other array is a falsy value, return
+	  if (!array1 || !array2)
+	      return false;
+
+	  // compare lengths - can save a lot of time
+	  if (array1.length != array2.length)
+	      return false;
+
+	  for (var i = 0, l=array1.length; i < l; i++) {
+	      // Check if we have nested arrays
+	      if (array1[i] instanceof Array && array2[i] instanceof Array) {
+	          // recurse into the nested arrays
+	          if (!equalArrays(array1[i],array2[i]))
+	              return false;
+	      }
+	      else if (array1[i] != array2[i]) {
+	          // Warning - two different object instances will never be equal: {x:20} != {x:20}
+	          return false;
+	      }
+	  }
+	  return true;
+	}
+
+	// Fix Javascript modulo for negative number. From http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
+	Number.prototype.modulo = function(n) {
+	  return ((this % n) + n) % n;
+	}
+
+	// Function to get array with only unique elements. From http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+	function getUnique(array) {
+	 var u = {}, a = [];
+	 for(var i = 0, l = array.length; i < l; ++i){
+	    if(u.hasOwnProperty(array[i])) {
+	       continue;
+	    }
+	    a.push(array[i]);
+	    u[array[i]] = 1;
+	 }
+	 return a;
+	}
+
+	// Function to check if array is unique (i.e. all unique elements, i.e. no duplicate elements)
+	function isUnique(array) {
+	 var u = {}, a = [];
+	 var isUnique = 1;
+	 for(var i = 0, l = array.length; i < l; ++i){
+	    if(u.hasOwnProperty(array[i])) {
+	      isUnique = 0;
+	      break;
+	    }
+	    u[array[i]] = 1;
+	 }
+	 return isUnique;
+	}
+
+
+/***/ }),
+/* 469 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	// Find self-intersections in geojson polygon (possibly with interior rings)
+	var rbush = __webpack_require__(414);
+
+	module.exports = function(feature, filterFn, useSpatialIndex) {
+	  if (feature.geometry.type != "Polygon") throw new Error("The input feature must be a Polygon");
+	  if (!useSpatialIndex) useSpatialIndex = 1;
+
+	  var coord = feature.geometry.coordinates;
+
+	  var output = [];
+	  var seen = {};
+
+	  if (useSpatialIndex) {
+	    var allEdgesAsRbushTreeItems = [];
+	    for (var ring0 = 0; ring0 < coord.length; ring0++) {
+	      for (var edge0 = 0; edge0 < coord[ring0].length-1; edge0++) {
+	        allEdgesAsRbushTreeItems.push(rbushTreeItem(ring0, edge0))
+	      }
+	    }
+	    var tree = rbush();
+	    tree.load(allEdgesAsRbushTreeItems);
+	  }
+
+	  for (var ring0 = 0; ring0 < coord.length; ring0++) {
+	    for (var edge0 = 0; edge0 < coord[ring0].length-1; edge0++) {
+	      if (useSpatialIndex) {
+	        var bboxOverlaps = tree.search(rbushTreeItem(ring0, edge0));
+	        bboxOverlaps.forEach(function(bboxIsect) {
+	          var ring1 = bboxIsect.ring;
+	          var edge1 = bboxIsect.edge;
+	          ifIsectAddToOutput(ring0, edge0, ring1, edge1);
+	        });
+	      }
+	      else {
+	        for (var ring1 = 0; ring1 < coord.length; ring1++) {
+	          for (var edge1 = 0 ; edge1 < coord[ring1].length-1; edge1++) {
+	            // TODO: speedup possible if only interested in unique: start last two loops at ring0 and edge0+1
+	            ifIsectAddToOutput(ring0, edge0, ring1, edge1);
+	          }
+	        }
+	      }
+	    }
+	  }
+
+	  if (!filterFn) output = {type: "Feature", geometry: {type: "MultiPoint", coordinates: output}};
+	  return output;
+
+	  // Function to check if two edges intersect and add the intersection to the output
+	  function ifIsectAddToOutput(ring0, edge0, ring1, edge1) {
+	    var start0 = coord[ring0][edge0];
+	    var end0 = coord[ring0][edge0+1];
+	    var start1 = coord[ring1][edge1];
+	    var end1 = coord[ring1][edge1+1];
+
+	    var isect = intersect(start0, end0, start1, end1);
+
+	    if (isect == null) return; // discard parallels and coincidence
+	    var frac0 = (isect[0]-start0[0])/(end0[0]-start0[0]);
+	    var frac1 = (isect[0]-start1[0])/(end1[0]-start1[0]);
+	    if (frac0 >= 1 || frac0 <= 0 || frac1 >= 1 || frac1 <= 0) return; // require segment intersection
+
+	    var key = isect;
+	    var unique = !seen[key];
+	    if (unique) {
+	      seen[key] = true;
+	    }
+
+	    if (filterFn) {
+	      output.push(filterFn(isect, ring0, edge0, start0, end0, frac0, ring1, edge1, start1, end1, frac1, unique));
+	    } else {
+	      output.push(isect);
+	    }
+	  }
+
+	  // Function to return a rbush tree item given an ring and edge number
+	  function rbushTreeItem(ring, edge) {
+
+	    var start = coord[ring][edge];
+	    var end = coord[ring][edge+1];
+
+	    if (start[0] < end[0]) {
+	      var minX = start[0], maxX = end[0];
+	    } else {
+	      var minX = end[0], maxX = start[0];
+	    };
+	    if (start[1] < end[1]) {
+	      var minY = start[1], maxY = end[1];
+	    } else {
+	      var minY = end[1], maxY = start[1];
+	    }
+	    return {minX: minX, minY: minY, maxX: maxX, maxY: maxY, ring: ring, edge: edge};
+	  }
+
+	}
+
+	// Function to compute where two lines (not segments) intersect. From https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+	function intersect(start0, end0, start1, end1) {
+	  if (equalArrays(start0,start1) || equalArrays(start0,end1) || equalArrays(end0,start1) || equalArrays(end1,start1)) return null;
+	  var x0 = start0[0],
+	      y0 = start0[1],
+	      x1 = end0[0],
+	      y1 = end0[1],
+	      x2 = start1[0],
+	      y2 = start1[1],
+	      x3 = end1[0],
+	      y3 = end1[1];
+	  var denom = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3);
+	  if (denom == 0) return null;
+	  var x4 = ((x0 * y1 - y0 * x1) * (x2 - x3) - (x0 - x1) * (x2 * y3 - y2 * x3)) / denom;
+	  var y4 = ((x0 * y1 - y0 * x1) * (y2 - y3) - (y0 - y1) * (x2 * y3 - y2 * x3)) / denom;
+	  return [x4, y4];
+	}
+
+	// Function to compare Arrays of numbers. From http://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+	function equalArrays(array1, array2) {
+	    // if the other array is a falsy value, return
+	    if (!array1 || !array2)
+	        return false;
+
+	    // compare lengths - can save a lot of time
+	    if (array1.length != array2.length)
+	        return false;
+
+	    for (var i = 0, l=array1.length; i < l; i++) {
+	        // Check if we have nested arrays
+	        if (array1[i] instanceof Array && array2[i] instanceof Array) {
+	            // recurse into the nested arrays
+	            if (!equalArrays(array1[i],array2[i]))
+	                return false;
+	        }
+	        else if (array1[i] != array2[i]) {
+	            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+
+
+/***/ }),
+/* 470 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * This is the web browser implementation of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = __webpack_require__(471);
+	exports.log = log;
+	exports.formatArgs = formatArgs;
+	exports.save = save;
+	exports.load = load;
+	exports.useColors = useColors;
+	exports.storage = 'undefined' != typeof chrome
+	               && 'undefined' != typeof chrome.storage
+	                  ? chrome.storage.local
+	                  : localstorage();
+
+	/**
+	 * Colors.
+	 */
+
+	exports.colors = [
+	  'lightseagreen',
+	  'forestgreen',
+	  'goldenrod',
+	  'dodgerblue',
+	  'darkorchid',
+	  'crimson'
+	];
+
+	/**
+	 * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+	 * and the Firebug extension (any Firefox version) are known
+	 * to support "%c" CSS customizations.
+	 *
+	 * TODO: add a `localStorage` variable to explicitly enable/disable colors
+	 */
+
+	function useColors() {
+	  // NB: In an Electron preload script, document will be defined but not fully
+	  // initialized. Since we know we're in Chrome, we'll just detect this case
+	  // explicitly
+	  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+	    return true;
+	  }
+
+	  // is webkit? http://stackoverflow.com/a/16459606/376773
+	  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+	  return (typeof document !== 'undefined' && document && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
+	    // is firebug? http://stackoverflow.com/a/398120/376773
+	    (typeof window !== 'undefined' && window && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
+	    // is firefox >= v31?
+	    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+	    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+	    // double check webkit in userAgent just in case we are in a worker
+	    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+	}
+
+	/**
+	 * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+	 */
+
+	exports.formatters.j = function(v) {
+	  try {
+	    return JSON.stringify(v);
+	  } catch (err) {
+	    return '[UnexpectedJSONParseError]: ' + err.message;
+	  }
+	};
+
+
+	/**
+	 * Colorize log arguments if enabled.
+	 *
+	 * @api public
+	 */
+
+	function formatArgs(args) {
+	  var useColors = this.useColors;
+
+	  args[0] = (useColors ? '%c' : '')
+	    + this.namespace
+	    + (useColors ? ' %c' : ' ')
+	    + args[0]
+	    + (useColors ? '%c ' : ' ')
+	    + '+' + exports.humanize(this.diff);
+
+	  if (!useColors) return;
+
+	  var c = 'color: ' + this.color;
+	  args.splice(1, 0, c, 'color: inherit')
+
+	  // the final "%c" is somewhat tricky, because there could be other
+	  // arguments passed either before or after the %c, so we need to
+	  // figure out the correct index to insert the CSS into
+	  var index = 0;
+	  var lastC = 0;
+	  args[0].replace(/%[a-zA-Z%]/g, function(match) {
+	    if ('%%' === match) return;
+	    index++;
+	    if ('%c' === match) {
+	      // we only are interested in the *last* %c
+	      // (the user may have provided their own)
+	      lastC = index;
+	    }
+	  });
+
+	  args.splice(lastC, 0, c);
+	}
+
+	/**
+	 * Invokes `console.log()` when available.
+	 * No-op when `console.log` is not a "function".
+	 *
+	 * @api public
+	 */
+
+	function log() {
+	  // this hackery is required for IE8/9, where
+	  // the `console.log` function doesn't have 'apply'
+	  return 'object' === typeof console
+	    && console.log
+	    && Function.prototype.apply.call(console.log, console, arguments);
+	}
+
+	/**
+	 * Save `namespaces`.
+	 *
+	 * @param {String} namespaces
+	 * @api private
+	 */
+
+	function save(namespaces) {
+	  try {
+	    if (null == namespaces) {
+	      exports.storage.removeItem('debug');
+	    } else {
+	      exports.storage.debug = namespaces;
+	    }
+	  } catch(e) {}
+	}
+
+	/**
+	 * Load `namespaces`.
+	 *
+	 * @return {String} returns the previously persisted debug modes
+	 * @api private
+	 */
+
+	function load() {
+	  var r;
+	  try {
+	    r = exports.storage.debug;
+	  } catch(e) {}
+
+	  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+	  if (!r && typeof process !== 'undefined' && 'env' in process) {
+	    r = process.env.DEBUG;
+	  }
+
+	  return r;
+	}
+
+	/**
+	 * Enable namespaces listed in `localStorage.debug` initially.
+	 */
+
+	exports.enable(load());
+
+	/**
+	 * Localstorage attempts to return the localstorage.
+	 *
+	 * This is necessary because safari throws
+	 * when a user disables cookies/localstorage
+	 * and you attempt to access it.
+	 *
+	 * @return {LocalStorage}
+	 * @api private
+	 */
+
+	function localstorage() {
+	  try {
+	    return window.localStorage;
+	  } catch (e) {}
+	}
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ }),
+/* 471 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	
+	/**
+	 * This is the common logic for both the Node.js and web browser
+	 * implementations of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
+	exports.coerce = coerce;
+	exports.disable = disable;
+	exports.enable = enable;
+	exports.enabled = enabled;
+	exports.humanize = __webpack_require__(472);
+
+	/**
+	 * The currently active debug mode names, and names to skip.
+	 */
+
+	exports.names = [];
+	exports.skips = [];
+
+	/**
+	 * Map of special "%n" handling functions, for the debug "format" argument.
+	 *
+	 * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+	 */
+
+	exports.formatters = {};
+
+	/**
+	 * Previous log timestamp.
+	 */
+
+	var prevTime;
+
+	/**
+	 * Select a color.
+	 * @param {String} namespace
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function selectColor(namespace) {
+	  var hash = 0, i;
+
+	  for (i in namespace) {
+	    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+	    hash |= 0; // Convert to 32bit integer
+	  }
+
+	  return exports.colors[Math.abs(hash) % exports.colors.length];
+	}
+
+	/**
+	 * Create a debugger with the given `namespace`.
+	 *
+	 * @param {String} namespace
+	 * @return {Function}
+	 * @api public
+	 */
+
+	function createDebug(namespace) {
+
+	  function debug() {
+	    // disabled?
+	    if (!debug.enabled) return;
+
+	    var self = debug;
+
+	    // set `diff` timestamp
+	    var curr = +new Date();
+	    var ms = curr - (prevTime || curr);
+	    self.diff = ms;
+	    self.prev = prevTime;
+	    self.curr = curr;
+	    prevTime = curr;
+
+	    // turn the `arguments` into a proper Array
+	    var args = new Array(arguments.length);
+	    for (var i = 0; i < args.length; i++) {
+	      args[i] = arguments[i];
+	    }
+
+	    args[0] = exports.coerce(args[0]);
+
+	    if ('string' !== typeof args[0]) {
+	      // anything else let's inspect with %O
+	      args.unshift('%O');
+	    }
+
+	    // apply any `formatters` transformations
+	    var index = 0;
+	    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
+	      // if we encounter an escaped % then don't increase the array index
+	      if (match === '%%') return match;
+	      index++;
+	      var formatter = exports.formatters[format];
+	      if ('function' === typeof formatter) {
+	        var val = args[index];
+	        match = formatter.call(self, val);
+
+	        // now we need to remove `args[index]` since it's inlined in the `format`
+	        args.splice(index, 1);
+	        index--;
+	      }
+	      return match;
+	    });
+
+	    // apply env-specific formatting (colors, etc.)
+	    exports.formatArgs.call(self, args);
+
+	    var logFn = debug.log || exports.log || console.log.bind(console);
+	    logFn.apply(self, args);
+	  }
+
+	  debug.namespace = namespace;
+	  debug.enabled = exports.enabled(namespace);
+	  debug.useColors = exports.useColors();
+	  debug.color = selectColor(namespace);
+
+	  // env-specific initialization logic for debug instances
+	  if ('function' === typeof exports.init) {
+	    exports.init(debug);
+	  }
+
+	  return debug;
+	}
+
+	/**
+	 * Enables a debug mode by namespaces. This can include modes
+	 * separated by a colon and wildcards.
+	 *
+	 * @param {String} namespaces
+	 * @api public
+	 */
+
+	function enable(namespaces) {
+	  exports.save(namespaces);
+
+	  exports.names = [];
+	  exports.skips = [];
+
+	  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+	  var len = split.length;
+
+	  for (var i = 0; i < len; i++) {
+	    if (!split[i]) continue; // ignore empty strings
+	    namespaces = split[i].replace(/\*/g, '.*?');
+	    if (namespaces[0] === '-') {
+	      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+	    } else {
+	      exports.names.push(new RegExp('^' + namespaces + '$'));
+	    }
+	  }
+	}
+
+	/**
+	 * Disable debug output.
+	 *
+	 * @api public
+	 */
+
+	function disable() {
+	  exports.enable('');
+	}
+
+	/**
+	 * Returns true if the given mode name is enabled, false otherwise.
+	 *
+	 * @param {String} name
+	 * @return {Boolean}
+	 * @api public
+	 */
+
+	function enabled(name) {
+	  var i, len;
+	  for (i = 0, len = exports.skips.length; i < len; i++) {
+	    if (exports.skips[i].test(name)) {
+	      return false;
+	    }
+	  }
+	  for (i = 0, len = exports.names.length; i < len; i++) {
+	    if (exports.names[i].test(name)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+
+	/**
+	 * Coerce `val`.
+	 *
+	 * @param {Mixed} val
+	 * @return {Mixed}
+	 * @api private
+	 */
+
+	function coerce(val) {
+	  if (val instanceof Error) return val.stack || val.message;
+	  return val;
+	}
+
+
+/***/ }),
+/* 472 */
+/***/ (function(module, exports) {
+
+	/**
+	 * Helpers.
+	 */
+
+	var s = 1000
+	var m = s * 60
+	var h = m * 60
+	var d = h * 24
+	var y = d * 365.25
+
+	/**
+	 * Parse or format the given `val`.
+	 *
+	 * Options:
+	 *
+	 *  - `long` verbose formatting [false]
+	 *
+	 * @param {String|Number} val
+	 * @param {Object} [options]
+	 * @throws {Error} throw an error if val is not a non-empty string or a number
+	 * @return {String|Number}
+	 * @api public
+	 */
+
+	module.exports = function (val, options) {
+	  options = options || {}
+	  var type = typeof val
+	  if (type === 'string' && val.length > 0) {
+	    return parse(val)
+	  } else if (type === 'number' && isNaN(val) === false) {
+	    return options.long ?
+				fmtLong(val) :
+				fmtShort(val)
+	  }
+	  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val))
+	}
+
+	/**
+	 * Parse the given `str` and return milliseconds.
+	 *
+	 * @param {String} str
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function parse(str) {
+	  str = String(str)
+	  if (str.length > 10000) {
+	    return
+	  }
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str)
+	  if (!match) {
+	    return
+	  }
+	  var n = parseFloat(match[1])
+	  var type = (match[2] || 'ms').toLowerCase()
+	  switch (type) {
+	    case 'years':
+	    case 'year':
+	    case 'yrs':
+	    case 'yr':
+	    case 'y':
+	      return n * y
+	    case 'days':
+	    case 'day':
+	    case 'd':
+	      return n * d
+	    case 'hours':
+	    case 'hour':
+	    case 'hrs':
+	    case 'hr':
+	    case 'h':
+	      return n * h
+	    case 'minutes':
+	    case 'minute':
+	    case 'mins':
+	    case 'min':
+	    case 'm':
+	      return n * m
+	    case 'seconds':
+	    case 'second':
+	    case 'secs':
+	    case 'sec':
+	    case 's':
+	      return n * s
+	    case 'milliseconds':
+	    case 'millisecond':
+	    case 'msecs':
+	    case 'msec':
+	    case 'ms':
+	      return n
+	    default:
+	      return undefined
+	  }
+	}
+
+	/**
+	 * Short format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function fmtShort(ms) {
+	  if (ms >= d) {
+	    return Math.round(ms / d) + 'd'
+	  }
+	  if (ms >= h) {
+	    return Math.round(ms / h) + 'h'
+	  }
+	  if (ms >= m) {
+	    return Math.round(ms / m) + 'm'
+	  }
+	  if (ms >= s) {
+	    return Math.round(ms / s) + 's'
+	  }
+	  return ms + 'ms'
+	}
+
+	/**
+	 * Long format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function fmtLong(ms) {
+	  return plural(ms, d, 'day') ||
+	    plural(ms, h, 'hour') ||
+	    plural(ms, m, 'minute') ||
+	    plural(ms, s, 'second') ||
+	    ms + ' ms'
+	}
+
+	/**
+	 * Pluralization helper.
+	 */
+
+	function plural(ms, n, name) {
+	  if (ms < n) {
+	    return
+	  }
+	  if (ms < n * 1.5) {
+	    return Math.floor(ms / n) + ' ' + name
+	  }
+	  return Math.ceil(ms / n) + ' ' + name + 's'
+	}
+
+
+/***/ }),
+/* 473 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var arc = __webpack_require__(474);
+	var getCoord = __webpack_require__(378).getCoord;
+
+	/**
+	 * Calculate great circles routes as {@link LineString}
+	 *
+	 * @name greatCircle
+	 * @param {Feature<Point>} start source point feature
+	 * @param {Feature<Point>} end destination point feature
+	 * @param {*} [properties={}] line feature properties
+	 * @param {number} [npoints=100] number of points
+	 * @param {number} [offset=10] offset controls the likelyhood that lines will
+	 * be split which cross the dateline. The higher the number the more likely.
+	 * @returns {Feature<LineString>} great circle line feature
+	 * @addToMap line
+	 * @example
+	 * var start = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Point",
+	 *     "coordinates": [-122, 48]
+	 *   }
+	 * }
+	 * var end = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Point",
+	 *     "coordinates": [-77, 39]
+	 *   }
+	 * }
+	 * var line = turf.greatCircle(start, end, {'name': 'Seattle to DC'});
+	 * //=line
+	 */
+	module.exports = function (start, end, properties, npoints, offset) {
+	    start = getCoord(start);
+	    end = getCoord(end);
+	    properties = properties || {};
+	    npoints = npoints || 100;
+	    offset = offset || 10;
+
+	    var generator = new arc.GreatCircle({x: start[0], y: start[1]}, {x: end[0], y: end[1]}, properties);
+	    /* eslint-disable */
+	    var line = generator.Arc(npoints, {offset: offset});
+	    /* eslint-enable */
+
+	    return line.json();
+	};
+
+
+/***/ }),
+/* 474 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	var D2R = Math.PI / 180;
+	var R2D = 180 / Math.PI;
+
+	var Coord = function (lon, lat) {
+	    this.lon = lon;
+	    this.lat = lat;
+	    this.x = D2R * lon;
+	    this.y = D2R * lat;
+	};
+
+	Coord.prototype.view = function () {
+	    return String(this.lon).slice(0, 4) + ',' + String(this.lat).slice(0, 4);
+	};
+
+	Coord.prototype.antipode = function () {
+	    var anti_lat = -1 * this.lat;
+	    var anti_lon = (this.lon < 0) ? 180 + this.lon : (180 - this.lon) * -1;
+	    return new Coord(anti_lon, anti_lat);
+	};
+
+	var LineString = function () {
+	    this.coords = [];
+	    this.length = 0;
+	};
+
+	LineString.prototype.move_to = function (coord) {
+	    this.length++;
+	    this.coords.push(coord);
+	};
+
+	var Arc = function (properties) {
+	    this.properties = properties || {};
+	    this.geometries = [];
+	};
+
+	Arc.prototype.json = function () {
+	    if (this.geometries.length <= 0) {
+	        return {'geometry': {'type': 'LineString', 'coordinates': null},
+	                'type': 'Feature', 'properties': this.properties
+	               };
+	    } else if (this.geometries.length === 1) {
+	        return {'geometry': {'type': 'LineString', 'coordinates': this.geometries[0].coords},
+	                'type': 'Feature', 'properties': this.properties
+	               };
+	    } else {
+	        var multiline = [];
+	        for (var i = 0; i < this.geometries.length; i++) {
+	            multiline.push(this.geometries[i].coords);
+	        }
+	        return {'geometry': {'type': 'MultiLineString', 'coordinates': multiline},
+	                'type': 'Feature', 'properties': this.properties
+	               };
+	    }
+	};
+
+	// TODO - output proper multilinestring
+	Arc.prototype.wkt = function () {
+	    var wkt_string = '';
+	    var wkt = 'LINESTRING(';
+	    var collect = function (c) { wkt += c[0] + ' ' + c[1] + ','; };
+	    for (var i = 0; i < this.geometries.length; i++) {
+	        if (this.geometries[i].coords.length === 0) {
+	            return 'LINESTRING(empty)';
+	        } else {
+	            var coords = this.geometries[i].coords;
+	            coords.forEach(collect);
+	            wkt_string += wkt.substring(0, wkt.length - 1) + ')';
+	        }
+	    }
+	    return wkt_string;
+	};
+
+	/*
+	 * http://en.wikipedia.org/wiki/Great-circle_distance
+	 *
+	 */
+	var GreatCircle = function (start, end, properties) {
+	    if (!start || start.x === undefined || start.y === undefined) {
+	        throw new Error('GreatCircle constructor expects two args: start and end objects with x and y properties');
+	    }
+	    if (!end || end.x === undefined || end.y === undefined) {
+	        throw new Error('GreatCircle constructor expects two args: start and end objects with x and y properties');
+	    }
+	    this.start = new Coord(start.x, start.y);
+	    this.end = new Coord(end.x, end.y);
+	    this.properties = properties || {};
+
+	    var w = this.start.x - this.end.x;
+	    var h = this.start.y - this.end.y;
+	    var z = Math.pow(Math.sin(h / 2.0), 2) +
+	                Math.cos(this.start.y) *
+	                   Math.cos(this.end.y) *
+	                     Math.pow(Math.sin(w / 2.0), 2);
+	    this.g = 2.0 * Math.asin(Math.sqrt(z));
+
+	    if (this.g === Math.PI) {
+	        throw new Error('it appears ' + start.view() + ' and ' + end.view() + ' are \'antipodal\', e.g diametrically opposite, thus there is no single route but rather infinite');
+	    } else if (isNaN(this.g)) {
+	        throw new Error('could not calculate great circle between ' + start + ' and ' + end);
+	    }
+	};
+
+	/*
+	 * http://williams.best.vwh.net/avform.htm#Intermediate
+	 */
+	GreatCircle.prototype.interpolate = function (f) {
+	    var A = Math.sin((1 - f) * this.g) / Math.sin(this.g);
+	    var B = Math.sin(f * this.g) / Math.sin(this.g);
+	    var x = A * Math.cos(this.start.y) * Math.cos(this.start.x) + B * Math.cos(this.end.y) * Math.cos(this.end.x);
+	    var y = A * Math.cos(this.start.y) * Math.sin(this.start.x) + B * Math.cos(this.end.y) * Math.sin(this.end.x);
+	    var z = A * Math.sin(this.start.y) + B * Math.sin(this.end.y);
+	    var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+	    var lon = R2D * Math.atan2(y, x);
+	    return [lon, lat];
+	};
+
+
+
+	/*
+	 * Generate points along the great circle
+	 */
+	GreatCircle.prototype.Arc = function (npoints, options) {
+	    var first_pass = [];
+	    if (!npoints || npoints <= 2) {
+	        first_pass.push([this.start.lon, this.start.lat]);
+	        first_pass.push([this.end.lon, this.end.lat]);
+	    } else {
+	        var delta = 1.0 / (npoints - 1);
+	        for (var i = 0; i < npoints; ++i) {
+	            var step = delta * i;
+	            var pair = this.interpolate(step);
+	            first_pass.push(pair);
+	        }
+	    }
+	    /* partial port of dateline handling from:
+	      gdal/ogr/ogrgeometryfactory.cpp
+
+	      TODO - does not handle all wrapping scenarios yet
+	    */
+	    var bHasBigDiff = false;
+	    var dfMaxSmallDiffLong = 0;
+	    // from http://www.gdal.org/ogr2ogr.html
+	    // -datelineoffset:
+	    // (starting with GDAL 1.10) offset from dateline in degrees (default long. = +/- 10deg, geometries within 170deg to -170deg will be splited)
+	    var dfDateLineOffset = options && options.offset ? options.offset : 10;
+	    var dfLeftBorderX = 180 - dfDateLineOffset;
+	    var dfRightBorderX = -180 + dfDateLineOffset;
+	    var dfDiffSpace = 360 - dfDateLineOffset;
+
+	    // https://github.com/OSGeo/gdal/blob/7bfb9c452a59aac958bff0c8386b891edf8154ca/gdal/ogr/ogrgeometryfactory.cpp#L2342
+	    for (var j = 1; j < first_pass.length; ++j) {
+	        var dfPrevX = first_pass[j - 1][0];
+	        var dfX = first_pass[j][0];
+	        var dfDiffLong = Math.abs(dfX - dfPrevX);
+	        if (dfDiffLong > dfDiffSpace &&
+	            ((dfX > dfLeftBorderX && dfPrevX < dfRightBorderX) || (dfPrevX > dfLeftBorderX && dfX < dfRightBorderX))) {
+	            bHasBigDiff = true;
+	        } else if (dfDiffLong > dfMaxSmallDiffLong) {
+	            dfMaxSmallDiffLong = dfDiffLong;
+	        }
+	    }
+
+	    var poMulti = [];
+	    if (bHasBigDiff && dfMaxSmallDiffLong < dfDateLineOffset) {
+	        var poNewLS = [];
+	        poMulti.push(poNewLS);
+	        for (var k = 0; k < first_pass.length; ++k) {
+	            var dfX0 = parseFloat(first_pass[k][0]);
+	            if (k > 0 &&  Math.abs(dfX0 - first_pass[k - 1][0]) > dfDiffSpace) {
+	                var dfX1 = parseFloat(first_pass[k - 1][0]);
+	                var dfY1 = parseFloat(first_pass[k - 1][1]);
+	                var dfX2 = parseFloat(first_pass[k][0]);
+	                var dfY2 = parseFloat(first_pass[k][1]);
+	                if (dfX1 > -180 && dfX1 < dfRightBorderX && dfX2 === 180 &&
+	                    k + 1 < first_pass.length &&
+	                   first_pass[k - 1][0] > -180 && first_pass[k - 1][0] < dfRightBorderX) {
+	                    poNewLS.push([-180, first_pass[k][1]]);
+	                    k++;
+	                    poNewLS.push([first_pass[k][0], first_pass[k][1]]);
+	                    continue;
+	                } else if (dfX1 > dfLeftBorderX && dfX1 < 180 && dfX2 === -180 &&
+	                     k + 1 < first_pass.length &&
+	                     first_pass[k - 1][0] > dfLeftBorderX && first_pass[k - 1][0] < 180) {
+	                    poNewLS.push([180, first_pass[k][1]]);
+	                    k++;
+	                    poNewLS.push([first_pass[k][0], first_pass[k][1]]);
+	                    continue;
+	                }
+
+	                if (dfX1 < dfRightBorderX && dfX2 > dfLeftBorderX) {
+	                    // swap dfX1, dfX2
+	                    var tmpX = dfX1;
+	                    dfX1 = dfX2;
+	                    dfX2 = tmpX;
+	                    // swap dfY1, dfY2
+	                    var tmpY = dfY1;
+	                    dfY1 = dfY2;
+	                    dfY2 = tmpY;
+	                }
+	                if (dfX1 > dfLeftBorderX && dfX2 < dfRightBorderX) {
+	                    dfX2 += 360;
+	                }
+	                if (dfX1 <= 180 && dfX2 >= 180 && dfX1 < dfX2) {
+	                    var dfRatio = (180 - dfX1) / (dfX2 - dfX1);
+	                    var dfY = dfRatio * dfY2 + (1 - dfRatio) * dfY1;
+	                    poNewLS.push([first_pass[k - 1][0] > dfLeftBorderX ? 180 : -180, dfY]);
+	                    poNewLS = [];
+	                    poNewLS.push([first_pass[k - 1][0] > dfLeftBorderX ? -180 : 180, dfY]);
+	                    poMulti.push(poNewLS);
+	                } else {
+	                    poNewLS = [];
+	                    poMulti.push(poNewLS);
+	                }
+	                poNewLS.push([dfX0, first_pass[k][1]]);
+	            } else {
+	                poNewLS.push([first_pass[k][0], first_pass[k][1]]);
+	            }
+	        }
+	    } else {
+	        // add normally
+	        var poNewLS0 = [];
+	        poMulti.push(poNewLS0);
+	        for (var l = 0; l < first_pass.length; ++l) {
+	            poNewLS0.push([first_pass[l][0], first_pass[l][1]]);
+	        }
+	    }
+
+	    var arc = new Arc(this.properties);
+	    for (var m = 0; m < poMulti.length; ++m) {
+	        var line = new LineString();
+	        arc.geometries.push(line);
+	        var points = poMulti[m];
+	        for (var j0 = 0; j0 < points.length; ++j0) {
+	            line.move_to(points[j0]);
+	        }
+	    }
+	    return arc;
+	};
+
+	module.exports.Coord = Coord;
+	module.exports.Arc = Arc;
+	module.exports.GreatCircle = GreatCircle;
+
+
+/***/ }),
+/* 475 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -87915,7 +93297,7 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _lodash = __webpack_require__(354);
+	var _lodash = __webpack_require__(359);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -87952,18 +93334,23 @@
 	}
 	function MapContainer() {}
 
-/***/ },
-/* 448 */
-/***/ function(module, exports) {
+/***/ }),
+/* 476 */
+/***/ (function(module, exports) {
 
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
+	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "wXXVzDXRLMe";
 	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
 	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
+	var ROOT_OU_UID = exports.ROOT_OU_UID = "WXW1rhM9hgR";
 
-/***/ }
+	var AFI_DE_3_5 = exports.AFI_DE_3_5 = "oqTYHlWrWBh";
+	var AFI_DE_5_7 = exports.AFI_DE_5_7 = "oDg3FLcVw0R";
+	var ADD_DE_2_3 = exports.ADD_DE_2_3 = "k3C0dkjcSg2";
+
+/***/ })
 /******/ ]);

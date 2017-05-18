@@ -20,53 +20,53 @@ var api = new dhis2API();
 var previousClusterLayer;
 var info;
 
-const imgpath_afi = "images/yellow-point.png";
-const imgpath_lab = "images/violet-point.png";
-const imgpath_add = "images/orange-point.png";
+const imgpath_polygon_5_sided = "images/afi_3.PNG";
+const imgpath_red_circle = "images/lab_1.PNG";
+const imgpath_star = "images/afi_5.PNG";
 const imgpath_cluster = "images/marker-icon-red.png";
-
+const imgpath_yellow_triangle = "images/yellow-triangle.PNG";
 
 function saveClusterFoo(args){
 
-window.saveCluster(args);
+    window.saveCluster(args);
 }
 
 window.saveCluster = function(args){
 
-var properties = utility.unshadowStringify(args);
+    var properties = utility.unshadowStringify(args);
 
-NIE.Cluster_ProgramUID;
+    NIE.Cluster_ProgramUID;
 
-var tei = {
-    trackedEntityInstance : properties.uid,
-    orgUnit : api.getRootOrgUnitUid(),
-    trackedEntity : NIE.TrackedEntity,
-    relationships : [
-       
-    ]
-}
+    var tei = {
+        trackedEntityInstance : properties.uid,
+        orgUnit : api.getRootOrgUnitUid(),
+        trackedEntity : NIE.TrackedEntity,
+        relationships : [
+            
+        ]
+    }
 
-for  (var i=0;i<properties.teis.length;i++){
-    var rel =  {
-           relationship: NIE.Cluster_Relationship,
+    for  (var i=0;i<properties.teis.length;i++){
+        var rel =  {
+            relationship: NIE.Cluster_Relationship,
             trackedEntityInstanceA : tei.trackedEntityInstance,
             trackedEntityInstanceB : properties.teis[i]
         }
-    tei.relationships.push(rel);
-}
-api.save("trackedEntityInstance",tei,callback);
+        tei.relationships.push(rel);
+    }
+    api.save("trackedEntityInstance",tei,callback);
 
-function callback(error,response){
-if (error){
-alert("Already Exists!!");
-}else{
-alert("Cluster Saved Succesfully!");
-}
+    function callback(error,response){
+        if (error){
+            alert("Already Exists!!");
+        }else{
+            alert("Cluster Saved Succesfully!");
+        }
 
 
-}
+    }
 
-//program : NIE.Cluster_ProgramUID,
+    //program : NIE.Cluster_ProgramUID,
 
 }
 
@@ -80,8 +80,8 @@ window.refresh = function(){
     var diff = moment(new Date()).diff(startDate,'days');
     
     $('#movingPeriod').text(diff);
-    getEvents(startDate,endDate).then(function(events){
-        var coords =  extractCoordsFromEvents(events);
+    getTEI(startDate,endDate).then(function(teis){
+        var coords =  extractCoordsFromTEI(teis);
         buildMap(coords,c_dist,threshold);
     });
 
@@ -96,10 +96,11 @@ $('document').ready(function(){
     map = new dhis2Map();
 
     var startDate = new Date();
+    var endDate = new Date();
     var format = "YYYY-MM-DD";
+    startDate.setDate(endDate.getDate() - 5);
     $('#sdate').val(moment(startDate).format(format));
-    startDate.setDate(startDate.getDate() - 5);
-    $('#edate').val(moment(startDate).format(format));
+    $('#edate').val(moment(endDate).format(format));
 
     map.init("mapid",[13.23521,80.3332],9);
     addLegend(map.getMap())
@@ -143,8 +144,8 @@ $('document').ready(function(){
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
 
-    getEvents(startDate,endDate).then(function(events){
-        var coords =  extractCoordsFromEvents(events);
+    getTEI(startDate,endDate).then(function(teis){
+        var coords =  extractCoordsFromTEI(teis);debugger;
         buildMap(coords,5,3);
     });
 
@@ -166,7 +167,7 @@ function addOrgUnitLayer(level,style){
     })
 
 }                    
-function getEvents(startDate,endDate){
+function getTEI(startDate,endDate){
     var def = $.Deferred();
 
     //    var endDate = new Date();
@@ -176,51 +177,73 @@ function getEvents(startDate,endDate){
         type: "GET",
         async: true,
         contentType: "application/json",
-        url: "../../events?orgUnit="+api.getRootOrgUnitUid()+"&ouMode=DESCENDANTS&startDate="+moment(startDate).format(format)+"&endDate="+moment(endDate).format(format)+"&skipPaging=true"
+        url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
     },function(error,response){
         if (error){
             def.resolve(null);
         }else{
-            def.resolve(response.events);
+            def.resolve(response.trackedEntityInstances);
         }
     })
     return def.promise();
 }
 
-function extractCoordsFromEvents(events){
+function extractCoordsFromTEI(teis){
 
     var result = [];
-    for (var i=0;i<events.length;i++){       
-        if (events[i].coordinate){
-            if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                if (events[i].program == "xqoEn6Je5Kj"){
-                    var type = "unknown";
-                    if (events[i].programStage == "Fy9tjDYgdBi"){
-                        var val = findValueAgainstId(events[i].dataValues,"dataElement","ylhxXcMMuZC","value");
-                        if (val == "AFI" || val == "ADD"){
-                            type = val;
-                        }else{continue;}
-                    }else 
-                        if (events[i].programStage == "jo25vJdB3qx"){
-                            if (events[i].dataValues.length>0){
-                                type="LAB";
-                            }else{continue;}
-                        }
+
+    for (var i=0;i<teis.length;i++){       
+        var type = "unknown";
+
+        var coord = findValueAgainstId(teis[i].attributes,"attribute","ALvy8yTD1Np","value");
+
+        var isActive = findValueAgainstId(teis[i].attributes,"attribute","sP8CfjSrtRq","value");
+
+
+        if (coord && isActive){
+
+            coord = JSON.parse(coord);
+            var facility = findValueAgainstId(teis[i].attributes,"attribute","AqHMFVqkwOG","value");
+
+            var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute","oqTYHlWrWBh","value");
+
+            if (afi3_5){
+                result.push({
+                    id : teis[i].trackedEntityInstance+NIE.AFI_DE_3_5 , 
+                    coordinates : coord, 
+                    orgUnit : facility,
+                    type : "AFI3",
+                    trackedEntityInstance : teis[i].trackedEntityInstance
                     
-                    result.push({
-                        id : events[i].event , 
-                        coordinates : events[i].coordinate, 
-                        orgUnit : events[i].orgUnitName,
-                        type : type,
-                        trackedEntityInstance : events[i].trackedEntityInstance
-                        
-                    })
-                }
-                
+                })   
             }
+            var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute","oDg3FLcVw0R","value");
+            if (afi5_7){
+                result.push({
+                    id : teis[i].trackedEntityInstance +NIE.AFI_DE_5_7, 
+                    coordinates : coord, 
+                    orgUnit : facility,
+                    type : "AFI5",
+                    trackedEntityInstance : teis[i].trackedEntityInstance
+                    
+                })   
+            }
+
+            var add2_5 = findValueAgainstId(teis[i].attributes,"attribute","k3C0dkjcSg2","value");
+
+            
+            result.push({
+                id : teis[i].trackedEntityInstance +NIE.ADD_DE_2_3, 
+                coordinates : coord, 
+                orgUnit : facility,
+                type : "ADD2",
+                trackedEntityInstance : teis[i].trackedEntityInstance
+                
+            })   
         }
-        
     }
+    
+    
     return result;
 }
 function findValueAgainstId(data,idKey,id,valKey){
@@ -314,15 +337,19 @@ function buildMap(coords,c_dist,threshold){
                 });
             case 'LAB' :  
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_lab)
+                    icon : getCustomIcon2(imgpath_red_circle)
                 });
                 
-            case 'AFI' :   return L.marker(latlng,{
-                icon :  getCustomIcon2(imgpath_afi)
+            case 'AFI3' :   return L.marker(latlng,{
+                icon :  getCustomIcon2(imgpath_polygon_5_sided,[20,20],[15,0])
             });
-            case 'ADD' :
+            case 'AFI5' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_add)
+                    icon : getCustomIcon2(imgpath_star,[25,25],[0,0])
+                });
+            case 'ADD2' :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_yellow_triangle,[17,17],[0,15])
                 });
                 
             }
@@ -350,6 +377,7 @@ function buildMap(coords,c_dist,threshold){
         var marker = pointToLayer(data.features[i],loc);
 
         marker.desc = data.features[i].properties.label;
+        marker.feature = {properties : data.features[i].properties}
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
@@ -370,7 +398,7 @@ function buildMap(coords,c_dist,threshold){
          // var onEachFeature = onEachFeature;
          map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
     */
-    addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
+    //addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
 
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
@@ -384,10 +412,10 @@ function addLegend(map){
 
 	var div = L.DomUtil.create('div', 'info legend');
         var height = 15,width=15;
-        var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
-	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
-	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
-	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
+        var html = '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
+            '<img src="'+imgpath_star+'"  height="'+height+'" width="'+width+'">  AFI 5 cases in 7 days<br>'+
+	    '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
+	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
             "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
@@ -453,7 +481,7 @@ function addClustergons(map,gjson){
         
         if (feature.properties.type == 'centroid'){                
             
-           var str = feature.properties;
+            var str = feature.properties;
             str = utility.shadowStringify(str);
             layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
             layer.on({
@@ -511,12 +539,12 @@ function zoomToBiggestCluster(map,layers){
 }
 function onEachFeature (feature, layer)
 {
- if (feature.properties.type == 'centroid'){                
-     layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-     
- }else{
-       layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-      }
+    if (feature.properties.type == 'centroid'){                
+        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+        
+    }else{
+        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+    }
 
 }
 
@@ -555,17 +583,26 @@ function getCustomIcon(name){
 }
 
 
-function getCustomIcon2(iconUrl){
+function getCustomIcon2(iconUrl,iconSize,iconAnchor){
+
+    if (!iconSize){
+        iconSize = [15,15]
+    }
+
+    if (!iconAnchor){
+        iconAnchor = [6,1]
+  }
+    
     return   new L.Icon({
         //  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
         iconUrl:iconUrl,
         //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         shadowUrl: 'images/point-shadow.png',
-        iconSize: [15, 15],
+        iconSize:iconSize,
         //        iconSize: [25, 41],
 
         //        iconAnchor: [12, 41],
-        iconAnchor: [6, 1],
+        iconAnchor:iconAnchor,
 
         popupAnchor: [1, -34],
         shadowSize: [16, 20]

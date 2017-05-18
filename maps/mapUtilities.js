@@ -95,22 +95,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 var point = getPointGeoJson(allNodesMap[comp[key]]);
                 geoJsonPointFeatures.features.push(point);
                 var type = allNodesMap[comp[key]].type;
-            /*    if (type == "LAB"){
-                     let mergedCircle= turf.circle(point, radius, steps, units);
-                    mergedCircle.properties.type="cluster";
-                    mergedCircle.properties.layerId = "custom";
-                    mergedCircle.properties.num_points = 1;
-                    mergedCircle.properties.area = turf.area(mergedCircle);
-                    mergedCircle.properties.uid = utility.prepareUID(null,key);
-
-                    let centroid = point;
-                    centroid.properties.type = "centroid";
-                    centroid.properties.layerId = "custom";
-                    centroid.properties.clusterSize = 1;
-
-                    geoJsonPolygonFeatures.features.push(mergedCircle);
-                    geoJsonPolygonFeatures.features.push(centroid);
-                }*/
+           
             }         
 
         }else{ // is pollyygonn - make boundaries for this

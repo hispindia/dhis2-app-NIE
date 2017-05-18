@@ -74,7 +74,7 @@
     <div ng-view></div>
     <div id="mainContainer">
       <div class="hidden-print">
-        <label><h2>eDFSS Alerts</h2></label>
+        <label><h2>eDFSS Alerts - Fixed Algorithm</h2></label>
         <label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 5 </i></b></label>
 
         <br>
@@ -82,9 +82,9 @@
         End Date: <input id="edate" type="date"></input>
 
         Cluster Distance(Km):
-        <input type="number" id="c_dist" value="5"></input>
+        <input hidden type="number" id="c_dist" value="5"></input>
         Threshold:
-        <input type="number" id="threshold" value="3"></input>
+        <input hidden type="number" id="threshold" value="3"></input>
         <input class="btn-info right" type="button" value="Refresh" onclick="refresh();"/>
         <br><br>
       </div>
