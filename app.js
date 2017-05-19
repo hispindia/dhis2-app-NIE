@@ -98,7 +98,7 @@ $('document').ready(function(){
     var startDate = new Date();
     var endDate = new Date();
     var format = "YYYY-MM-DD";
-    startDate.setDate(endDate.getDate() - 5);
+    startDate.setDate(endDate.getDate() - 7);
     $('#sdate').val(moment(startDate).format(format));
     $('#edate').val(moment(endDate).format(format));
 
