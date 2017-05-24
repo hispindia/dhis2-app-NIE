@@ -173,7 +173,7 @@
 	    var startDate = new Date();
 	    var endDate = new Date();
 	    var format = "YYYY-MM-DD";
-	    startDate.setDate(endDate.getDate() - 5);
+	    startDate.setDate(endDate.getDate() - 7);
 	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
 	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(endDate).format(format));
 

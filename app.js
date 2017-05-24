@@ -26,72 +26,6 @@ const imgpath_star = "images/afi_5.PNG";
 const imgpath_cluster = "images/marker-icon-red.png";
 const imgpath_yellow_triangle = "images/yellow-triangle.PNG";
 
-function saveClusterFoo(args){
-
-    window.saveCluster(args);
-}
-
-window.saveCluster = function(args){
-
-    var properties = utility.unshadowStringify(args);
-
-    NIE.Cluster_ProgramUID;
-
-    var tei = {
-        trackedEntityInstance : properties.uid,
-        orgUnit : api.getRootOrgUnitUid(),
-        trackedEntity : NIE.TrackedEntity,
-        relationships : [
-            
-        ]
-    }
-
-    for  (var i=0;i<properties.teis.length;i++){
-        var rel =  {
-            relationship: NIE.Cluster_Relationship,
-            trackedEntityInstanceA : tei.trackedEntityInstance,
-            trackedEntityInstanceB : properties.teis[i]
-        }
-        tei.relationships.push(rel);
-    }
-    api.save("trackedEntityInstance",tei,callback);
-
-    function callback(error,response){
-        if (error){
-            alert("Already Exists!!");
-        }else{
-            alert("Cluster Saved Succesfully!");
-        }
-
-
-    }
-
-    //program : NIE.Cluster_ProgramUID,
-
-}
-
-window.refresh = function(){
-
-    var c_dist=$('#c_dist').val();
-    var threshold=$('#threshold').val();
-    var startDate = $('#sdate').val();
-    var endDate = $('#edate').val();
-
-    var diff = moment(new Date()).diff(startDate,'days');
-    
-    $('#movingPeriod').text(diff);
-    getTEI(startDate,endDate).then(function(teis){
-        var coords =  extractCoordsFromTEI(teis);
-        buildMap(coords,c_dist,threshold);
-    });
-
-}
-
-window.alertConfirmed = function(){
-    alert("SMS alerts to go here!");
-
-}
-
 $('document').ready(function(){
     map = new dhis2Map();
 
@@ -205,7 +139,7 @@ function extractCoordsFromTEI(teis){
             coord = JSON.parse(coord);
             var facility = findValueAgainstId(teis[i].attributes,"attribute","AqHMFVqkwOG","value");
 
-            var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute","oqTYHlWrWBh","value");
+            var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_DE_3_5,"value");
 
             if (afi3_5){
                 result.push({
@@ -217,7 +151,7 @@ function extractCoordsFromTEI(teis){
                     
                 })   
             }
-            var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute","oDg3FLcVw0R","value");
+            var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_DE_5_7,"value");
             if (afi5_7){
                 result.push({
                     id : teis[i].trackedEntityInstance +NIE.AFI_DE_5_7, 
@@ -229,7 +163,7 @@ function extractCoordsFromTEI(teis){
                 })   
             }
 
-            var add2_5 = findValueAgainstId(teis[i].attributes,"attribute","k3C0dkjcSg2","value");
+            var add2_5 = findValueAgainstId(teis[i].attributes,"attribute",NIE.ADD_DE_2_3,"value");
 
             
             result.push({
@@ -239,7 +173,9 @@ function extractCoordsFromTEI(teis){
                 type : "ADD2",
                 trackedEntityInstance : teis[i].trackedEntityInstance
                 
-            })   
+            })
+
+            //var 3afi_5_area = findInArea(3,5);
         }
     }
     
