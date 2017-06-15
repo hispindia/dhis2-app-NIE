@@ -18,6 +18,21 @@
   background: orange;
 }
 
+.linelist{
+
+    overflow-y: scroll;
+    overflow-x: scroll;
+    display: inline-block;
+    height:400px;
+    width :600px;
+    opacity: 1.0;
+    white-space: normal;
+    text-align: center;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding:0px;
+
+}
 
 .yellow{
   background: #e6ac00;

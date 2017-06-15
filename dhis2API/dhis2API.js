@@ -178,6 +178,25 @@ APIx.dhis2API = function(){
             }
         }
     }
+
+ this.getEventsByTEI = function(teiUID,afterThat){
+        ajax.request({
+            type: "GET",
+            async: true,
+            contentType: "application/json",
+            url: "../../events?trackedEntityInstance="+teiUID+"&skipPaging=true"
+        },callback);
+
+        function callback(error, response, body){
+            if (error){
+                args.afterThat(true,null);
+            }else{
+                
+                args.afterThat(null,uid,response.events);
+            }
+        }
+    }
+
     this.getObjByField = function(args,domain,fieldName,fieldValue){
 
         ajax.request({

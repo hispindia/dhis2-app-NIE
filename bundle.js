@@ -102,71 +102,70 @@
 	var previousClusterLayer;
 	var info;
 
-	var imgpath_polygon_5_sided = "images/afi_3.PNG";
-	var imgpath_red_circle = "images/lab_1.PNG";
-	var imgpath_star = "images/afi_5.PNG";
+	var imgpath_polygon_5_sided = "images/afi_3.png";
+	var imgpath_red_circle = "images/lab_1.png";
+	var imgpath_star = "images/afi_5.png";
 	var imgpath_cluster = "images/marker-icon-red.png";
 	var imgpath_yellow_triangle = "images/yellow-triangle.PNG";
 
-	function saveClusterFoo(args) {
+	var deIdToNameMap = [];
+	var clusterDeIdToNameMap = [];
 
-	    window.saveCluster(args);
+	getDE();getClusterToBeShownDE();
+	function getDE() {
+	    _ajaxWrapper2.default.request({
+	        type: "GET",
+	        async: true,
+	        contentType: "application/json",
+	        url: "../../dataElements?fields=[id,name]&paging=false"
+	    }, callback);
+
+	    function callback(error, response, body) {
+	        if (error) {
+	            console.log("de");
+	        }
+	        deIdToNameMap = _utilityFunctions2.default.prepareIdToObjectMap(response.dataElements, "id");
+	    }
 	}
 
-	window.saveCluster = function (args) {
+	function getClusterToBeShownDE() {
+	    _ajaxWrapper2.default.request({
+	        type: "GET",
+	        async: true,
+	        contentType: "application/json",
+	        url: "../../dataElementGroups/" + NIE.DEGROUP_CLUSTERTOBESHOWN + "?fields=id,name,dataElements[id,name]"
+	    }, callback);
 
-	    var properties = _utilityFunctions2.default.unshadowStringify(args);
-
-	    NIE.Cluster_ProgramUID;
-
-	    var tei = {
-	        trackedEntityInstance: properties.uid,
-	        orgUnit: api.getRootOrgUnitUid(),
-	        trackedEntity: NIE.TrackedEntity,
-	        relationships: []
-	    };
-
-	    for (var i = 0; i < properties.teis.length; i++) {
-	        var rel = {
-	            relationship: NIE.Cluster_Relationship,
-	            trackedEntityInstanceA: tei.trackedEntityInstance,
-	            trackedEntityInstanceB: properties.teis[i]
-	        };
-	        tei.relationships.push(rel);
-	    }
-	    api.save("trackedEntityInstance", tei, callback);
-
-	    function callback(error, response) {
+	    function callback(error, response, body) {
 	        if (error) {
-	            alert("Already Exists!!");
-	        } else {
-	            alert("Cluster Saved Succesfully!");
+	            console.log("de cluster");
 	        }
+	        clusterDeIdToNameMap = _utilityFunctions2.default.prepareIdToObjectMap(response.dataElements, "id");
 	    }
+	}
+	wmsInit();
+	function wmsInit() {
+	    _ajaxWrapper2.default.request({
+	        type: "GET",
+	        async: true,
+	        contentType: "application/json",
+	        url: "http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&username=nieicmr&service=WMS&request=GetMap&layers=tnssdi_admin%3Atnssdi_admin&styles=&format=image%2Fjpeg&transparent=false&version=1.1.1&height=256&width=256&srs=EPSG%3A3857&bbox=8922952.933898337,1330615.7883883493,9001224.450862357,1408887.3053523696"
+	    }, callback);
 
-	    //program : NIE.Cluster_ProgramUID,
-	};
+	    function callback(error, response, body) {}
+	}
+
+	window.toggleDuplicate = function (eventUID, currentValue) {};
 
 	window.refresh = function () {
-
-	    var c_dist = (0, _jquery2.default)('#c_dist').val();
-	    var threshold = (0, _jquery2.default)('#threshold').val();
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
 
-	    var diff = (0, _moment2.default)(new Date()).diff(startDate, 'days');
-
-	    (0, _jquery2.default)('#movingPeriod').text(diff);
-	    getTEI(startDate, endDate).then(function (teis) {
+	    getTEI(endDate, endDate).then(function (teis) {
 	        var coords = extractCoordsFromTEI(teis);
-	        buildMap(coords, c_dist, threshold);
+	        buildMap(coords, 5, 3);
 	    });
 	};
-
-	window.alertConfirmed = function () {
-	    alert("SMS alerts to go here!");
-	};
-
 	(0, _jquery2.default)('document').ready(function () {
 	    map = new _map2.default();
 
@@ -211,15 +210,15 @@
 	    style.weight = 0.95;
 	    style.color = "black";
 	    style.opacity = 0.25;
-	    addOrgUnitLayer(8, Object.assign({}, style));
+	    //addOrgUnitLayer(8,Object.assign({},style));
 
 	    // coordinates to be filtered here.
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
 
 	    getTEI(startDate, endDate).then(function (teis) {
-	        var coords = extractCoordsFromTEI(teis);debugger;
-	        buildMap(coords, 5, 3);
+	        var coords = extractCoordsFromTEI(teis);
+	        //  buildMap(coords,5,3);
 	    });
 	});
 
@@ -236,6 +235,7 @@
 	        }
 	    });
 	}
+
 	function getTEI(startDate, endDate) {
 	    var def = _jquery2.default.Deferred();
 
@@ -264,47 +264,40 @@
 	    for (var i = 0; i < teis.length; i++) {
 	        var type = "unknown";
 
-	        var coord = findValueAgainstId(teis[i].attributes, "attribute", "ALvy8yTD1Np", "value");
+	        var coord = findValueAgainstId(teis[i].attributes, "attribute", NIE.DE_COORDS, "value");
 
-	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", "sP8CfjSrtRq", "value");
+	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", NIE.DE_IS_ACTIVE, "value");
 
 	        if (coord && isActive) {
 
 	            coord = JSON.parse(coord);
-	            var facility = findValueAgainstId(teis[i].attributes, "attribute", "AqHMFVqkwOG", "value");
 
-	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", "oqTYHlWrWBh", "value");
+	            var clusterType = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_CLUSTER_TYPE, "value");
+	            var cases = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_CLUSTER_CASES, "value");
+	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_3_5, "value");
+	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_5_7, "value");
+	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_LAB, "value");
 
+	            if (clusterType == "ADD") {
+	                type = "ADD2";
+	            }
 	            if (afi3_5) {
-	                result.push({
-	                    id: teis[i].trackedEntityInstance + NIE.AFI_DE_3_5,
-	                    coordinates: coord,
-	                    orgUnit: facility,
-	                    type: "AFI3",
-	                    trackedEntityInstance: teis[i].trackedEntityInstance
-
-	                });
+	                type = "AFI3";
 	            }
-	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", "oDg3FLcVw0R", "value");
 	            if (afi5_7) {
-	                result.push({
-	                    id: teis[i].trackedEntityInstance + NIE.AFI_DE_5_7,
-	                    coordinates: coord,
-	                    orgUnit: facility,
-	                    type: "AFI5",
-	                    trackedEntityInstance: teis[i].trackedEntityInstance
-
-	                });
+	                type = "AFI5";
 	            }
-
-	            var add2_5 = findValueAgainstId(teis[i].attributes, "attribute", "k3C0dkjcSg2", "value");
+	            if (lab) {
+	                type = "LAB";
+	            }
 
 	            result.push({
-	                id: teis[i].trackedEntityInstance + NIE.ADD_DE_2_3,
+	                id: teis[i].trackedEntityInstance + clusterType,
 	                coordinates: coord,
-	                orgUnit: facility,
-	                type: "ADD2",
-	                trackedEntityInstance: teis[i].trackedEntityInstance
+	                orgUnit: teis[i].orgUnit,
+	                type: type,
+	                trackedEntityInstance: teis[i].trackedEntityInstance,
+	                cases: cases
 
 	            });
 	        }
@@ -433,9 +426,38 @@
 
 	    var popup = new L.Popup();
 	    oms.addListener('click', function (marker) {
-	        popup.setContent(marker.desc);
-	        popup.setLatLng(marker.getLatLng());
-	        map.getMap().openPopup(popup);
+
+	        getClusterCases(marker.feature.properties.cases, callback);
+	        function callback(cases) {
+	            var popupHtml = "<div class='linelist'><input type='checkbox' value='Activate/Deactivate'  checked>Activate/Deactivate</input><br>";
+	            popupHtml = popupHtml + "<table class='listTable'><thead><tr><th>isDuplicate</th>";
+
+	            for (var key in clusterDeIdToNameMap) {
+	                popupHtml += "<th>" + clusterDeIdToNameMap[key].name + "</th>";
+	            }
+	            popupHtml += "</tr></thead><tbody>";
+
+	            for (var i = 0; i < cases.length; i++) {
+
+	                var isDuplicate = findValueAgainstId(cases[i].dataValues, "dataElement", NIE.DE_isDuplicate, "value");
+
+	                popupHtml = popupHtml + "<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('" + cases[i].event + "'," + isDuplicate + ") ></input></td>";
+
+	                for (var key in clusterDeIdToNameMap) {
+	                    var value = findValueAgainstId(cases[i].dataValues, "dataElement", key, "value");
+	                    if (!value) {
+	                        value = "";
+	                    };
+	                    popupHtml += "<td>" + value + "</td>";
+	                }
+
+	                popupHtml = popupHtml + "</tr>";
+	            }
+	            popupHtml += "<tbody></table></div>";
+	            popup.setContent(popupHtml);
+	            popup.setLatLng(marker.getLatLng());
+	            map.getMap().openPopup(popup);
+	        }
 	    });
 	    var data = featureCollection.geoJsonPointFeatures;
 	    for (var i = 0; i < data.features.length; i++) {
@@ -468,6 +490,32 @@
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
 
 	    // map.();
+	}
+
+	function getClusterCases(cases, callback) {
+
+	    cases = cases.split(";");
+	    var clusterCases = [];
+	    getEvent(0, cases);
+	    function getEvent(index, cases) {
+	        if (index == cases.length - 1) {
+	            callback(clusterCases);
+	            return;
+	        }
+
+	        _ajaxWrapper2.default.request({
+	            type: "GET",
+	            async: true,
+	            contentType: "application/json",
+	            url: "../../events/" + cases[index]
+	        }, function (error, response, body) {
+	            if (error) {
+	                console.log("Error Fetch Event");
+	            }
+	            clusterCases.push(response);
+	            getEvent(index + 1, cases);
+	        });
+	    }
 	}
 
 	function addLegend(map) {
@@ -32901,6 +32949,25 @@
 	            }
 	        }
 	    };
+
+	    this.getEventsByTEI = function (teiUID, afterThat) {
+	        ajax.request({
+	            type: "GET",
+	            async: true,
+	            contentType: "application/json",
+	            url: "../../events?trackedEntityInstance=" + teiUID + "&skipPaging=true"
+	        }, callback);
+
+	        function callback(error, response, body) {
+	            if (error) {
+	                args.afterThat(true, null);
+	            } else {
+
+	                args.afterThat(null, uid, response.events);
+	            }
+	        }
+	    };
+
 	    this.getObjByField = function (args, domain, fieldName, fieldValue) {
 
 	        ajax.request({
@@ -61088,11 +61155,20 @@
 	        maxZoom: 8
 	    });
 
+	    var nie = L.tileLayer('http://gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&username=nieicmr', {
+	        attribution: 'Tiles &copy; Esri &mdash; Source: NIE',
+	        maxZoom: 8
+	    });
+
+	    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
+	        layers: 'tnssdi_admin:tnssdi_admin'
+	    });
+
 	    var osm_bw = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
 	        maxZoom: 18,
 	        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	    });
-	    var baseLayers = { "stamen": stamen, "osm": osm, "esri": esri, "osm_bw": osm_bw };
+	    var baseLayers = { "stamen": stamen, "osm": osm, "esri": esri, "osm_bw": osm_bw, "nie": wmsLayer };
 
 	    this.init = function (mapContainerId, center, zoom) {
 	        map = L.map(mapContainerId, {
@@ -61102,8 +61178,8 @@
 
 	        L.easyPrint().addTo(map);
 
-	        //baseLayers.osm_bw.addTo(map);
-	        baseLayers.osm.addTo(map);
+	        baseLayers.nie.addTo(map);
+	        // baseLayers.osm.addTo(map);
 
 	        // var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
 	    };
@@ -61338,7 +61414,9 @@
 	                    id: key,
 	                    type: data.type,
 	                    label: data.orgUnit,
-	                    layerId: "custom"
+	                    layerId: "custom",
+	                    tei: data.trackedEntityInstance,
+	                    cases: data.cases
 
 	                },
 	                "geometry": {
@@ -93343,14 +93421,20 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "wXXVzDXRLMe";
-	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
-	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
-	var ROOT_OU_UID = exports.ROOT_OU_UID = "WXW1rhM9hgR";
+	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "mcnt7nqNrNw";
+	var ROOT_OU_UID = exports.ROOT_OU_UID = "mnbTnDyJ37p";
 
-	var AFI_DE_3_5 = exports.AFI_DE_3_5 = "oqTYHlWrWBh";
-	var AFI_DE_5_7 = exports.AFI_DE_5_7 = "oDg3FLcVw0R";
-	var ADD_DE_2_3 = exports.ADD_DE_2_3 = "k3C0dkjcSg2";
+	var AFI_TEA_3_5 = exports.AFI_TEA_3_5 = "vCeMi4DtfEC";
+	var AFI_TEA_5_7 = exports.AFI_TEA_5_7 = "k0L2KR4ZrU2";
+	var ADD_TEA_2_3 = exports.ADD_TEA_2_3 = "ET5iMtBo5fV";
+	var ADD_TEA_LAB = exports.ADD_TEA_LAB = "nMC9jWaMUTA";
+
+	var DE_IS_ACTIVE = exports.DE_IS_ACTIVE = "DyjpKLdKmoD";
+	var DE_COORDS = exports.DE_COORDS = "sanq4S5uYdb";
+	var TEA_CLUSTER_TYPE = exports.TEA_CLUSTER_TYPE = "sBmb7HfvAau";
+	var TEA_CLUSTER_CASES = exports.TEA_CLUSTER_CASES = "I2eCWfhryZH";
+	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
+	var DEGROUP_CLUSTERTOBESHOWN = exports.DEGROUP_CLUSTERTOBESHOWN = "sXzZ0Xl2F0j";
 
 /***/ })
 /******/ ]);
