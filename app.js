@@ -206,8 +206,8 @@ function extractCoordsFromTEI(teis){
             var cases = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_CLUSTER_CASES,"value");
             var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_3_5,"value");
             var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_5_7,"value");
-            var lab = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_LAB,"value");
-            
+            var lab = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_LAB,"value");
+            debugger
             if (clusterType == "ADD"){
                 type = "ADD2";
             }

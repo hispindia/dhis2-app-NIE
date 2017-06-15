@@ -276,8 +276,8 @@
 	            var cases = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_CLUSTER_CASES, "value");
 	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_3_5, "value");
 	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_5_7, "value");
-	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_LAB, "value");
-
+	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_LAB, "value");
+	            debugger;
 	            if (clusterType == "ADD") {
 	                type = "ADD2";
 	            }
@@ -93427,7 +93427,7 @@
 	var AFI_TEA_3_5 = exports.AFI_TEA_3_5 = "vCeMi4DtfEC";
 	var AFI_TEA_5_7 = exports.AFI_TEA_5_7 = "k0L2KR4ZrU2";
 	var ADD_TEA_2_3 = exports.ADD_TEA_2_3 = "ET5iMtBo5fV";
-	var ADD_TEA_LAB = exports.ADD_TEA_LAB = "nMC9jWaMUTA";
+	var TEA_LAB = exports.TEA_LAB = "nMC9jWaMUTA";
 
 	var DE_IS_ACTIVE = exports.DE_IS_ACTIVE = "DyjpKLdKmoD";
 	var DE_COORDS = exports.DE_COORDS = "sanq4S5uYdb";
