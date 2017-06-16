@@ -18,8 +18,13 @@ function dhis2Map(){
 	maxZoom: 18,
 	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
-    var baseLayers = {"stamen": stamen, "osm":osm, "esri":esri ,"osm_bw":osm_bw};
 
+    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
+        layers: 'tnssdi_admin:tnssdi_admin'
+    });
+    
+    var baseLayers = {"stamen": stamen, "osm":osm, "esri":esri ,"osm_bw":osm_bw , nie:wmsLayer};  
+   
     this.init = function(mapContainerId,center,zoom){
         map = L.map(mapContainerId, {
             center :center,
@@ -28,9 +33,10 @@ function dhis2Map(){
 
         L.easyPrint().addTo(map);
 
-       //baseLayers.osm_bw.addTo(map);
-        baseLayers.osm.addTo(map);
-        
+        //baseLayers.osm_bw.addTo(map);
+        //baseLayers.osm.addTo(map);
+        baseLayers.nie.addTo(map);
+
         // var little = L.marker([13.23521,80.3332]).bindPopup('teshgghgft').addTo(map);
         
     };
@@ -39,11 +45,10 @@ function dhis2Map(){
     this.clearLayers = function(){
         map.eachLayer(function (layer) {
             if (layer.feature){
-                if (layer.feature.properties.layerId){
-
-                    map.removeLayer(layer);
-
-                }
+                if (layer.feature.properties.key){
+                    return
+                    
+                }map.removeLayer(layer);
             }
         });
     }

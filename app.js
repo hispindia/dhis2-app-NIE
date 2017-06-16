@@ -15,16 +15,53 @@ import {AlertPopUp} from './components/components';
 import * as NIE from './nie-constants';
 import utility from './utility-functions';
 
-var map;
+var map
 var api = new dhis2API();
 var previousClusterLayer;
 var info;
+var deNameToIdMap = [];
+var clusterDeIdToNameMap = [];
 
-const imgpath_afi = "images/yellow-point.png";
-const imgpath_lab = "images/violet-point.png";
-const imgpath_add = "images/orange-point.png";
+const imgpath_ipd = "images/ipd.png";
+const imgpath_lab = "images/lab.png";
+const imgpath_opd = "images/opd.png";
+const imgpath_dengue = "images/dengue.png";
+
 const imgpath_cluster = "images/marker-icon-red.png";
 
+
+function fetchDEs(){
+  ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url: "../../dataElements?&fields=id,name&paging=false"
+    },function(error,response){
+        if (error){
+            console.log("Fetch DE")
+        }else{
+            deNameToIdMap = utility.prepareIdToValueMap(response.dataElements,"name","id");
+        }
+    })
+
+};fetchDEs();
+
+
+function getClusterToBeShownDE(){
+ ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url: "../../dataElementGroups/"+NIE.DEGROUP_CLUSTERTOBESHOWN+"?fields=id,name,dataElements[id,name]"
+    },callback);
+    
+    function callback(error, response, body){
+        if (error){
+            console.log("de cluster")
+        }        
+        clusterDeIdToNameMap =  utility.prepareIdToObjectMap(response.dataElements,"id");      
+    }
+}getClusterToBeShownDE();
 
 function saveClusterFoo(args){
 
@@ -48,24 +85,22 @@ var tei = {
 
 for  (var i=0;i<properties.teis.length;i++){
     var rel =  {
-           relationship: NIE.Cluster_Relationship,
-            trackedEntityInstanceA : tei.trackedEntityInstance,
-            trackedEntityInstanceB : properties.teis[i]
-        }
+        relationship: NIE.Cluster_Relationship,
+        trackedEntityInstanceA : tei.trackedEntityInstance,
+        trackedEntityInstanceB : properties.teis[i]
+    }
     tei.relationships.push(rel);
 }
-api.save("trackedEntityInstance",tei,callback);
-
+    api.save("trackedEntityInstance",tei,callback);
+    
 function callback(error,response){
-if (error){
-alert("Already Exists!!");
-}else{
-alert("Cluster Saved Succesfully!");
+    if (error){
+        alert("Already Exists!!");
+    }else{
+        alert("Cluster Saved Succesfully!");
+    }        
 }
-
-
-}
-
+    
 //program : NIE.Cluster_ProgramUID,
 
 }
@@ -81,6 +116,7 @@ window.refresh = function(){
     
     $('#movingPeriod').text(diff);
     getEvents(startDate,endDate).then(function(events){
+        events = filterEvents(events,getFilters(),deNameToIdMap);
         var coords =  extractCoordsFromEvents(events);
         buildMap(coords,c_dist,threshold);
     });
@@ -89,7 +125,6 @@ window.refresh = function(){
 
 window.alertConfirmed = function(){
     alert("SMS alerts to go here!");
-
 }
 
 $('document').ready(function(){
@@ -144,12 +179,23 @@ $('document').ready(function(){
     var endDate = $('#edate').val();
 
     getEvents(startDate,endDate).then(function(events){
+        events = filterEvents(events,getFilters(),deNameToIdMap);
         var coords =  extractCoordsFromEvents(events);
         buildMap(coords,5,3);
     });
 
 });
 
+
+function getFilters(){
+
+    var filters = [];
+    $('#filters:checked').each(function() {
+        var deUID = $(this).data('de');
+        filters.push( {id : deUID, value : $(this).val()});
+    });
+    return filters;
+}
 function addOrgUnitLayer(level,style){
 
     ajax.request({
@@ -188,25 +234,29 @@ function getEvents(startDate,endDate){
 }
 
 function extractCoordsFromEvents(events){
-
+    
     var result = [];
     for (var i=0;i<events.length;i++){       
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
-                if (events[i].program == "xqoEn6Je5Kj"){
+                if (events[i].program == NIE.PROGRAM_ODK_DATA){
                     var type = "unknown";
-                    if (events[i].programStage == "Fy9tjDYgdBi"){
-                        var val = findValueAgainstId(events[i].dataValues,"dataElement","ylhxXcMMuZC","value");
-                        if (val == "AFI" || val == "ADD"){
-                            type = val;
-                        }else{continue;}
-                    }else 
-                        if (events[i].programStage == "jo25vJdB3qx"){
-                            if (events[i].dataValues.length>0){
-                                type="LAB";
-                            }else{continue;}
-                        }
+                   
+                    var id = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["id"],"value")
+                   
+                    switch(id){
+                    case 'eDFSS_IPD_V3' : type = "IPD";
+                        break
+                    case 'eDFSS_OPD_V3' : type = "OPD";
+                        break
+                    case 'DPHL_Lab_V1' : type = "LAB";
+                        break
+                    }
                     
+                    if (utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["Dengue"],"value") == "Dengue_Positive_IgM"){
+                        type = "Dengue";
+                    }
+
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
@@ -223,16 +273,25 @@ function extractCoordsFromEvents(events){
     }
     return result;
 }
-function findValueAgainstId(data,idKey,id,valKey){
-    
-    for (var i=0;i<data.length;i++){
-        if (data[i][idKey]==id){
-            return data[i][valKey]
+
+export function filterEvents(events,filters,deNameToIdMap){
+
+    var filteredEvents = [];
+
+    for (var i =0;i<events.length;i++){
+        
+        for(var key in filters){
+            var value = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap[filters[key].id],"value");
+            if (value == filters[key].value){
+                filteredEvents.push(events[i]);
+                break;
+            }
         }
     }
-    return null;
-    
+
+    return filteredEvents;
 }
+
 function getCoordinatesFromOus(ous){
 
     var ouCoords = [];
@@ -312,19 +371,22 @@ function buildMap(coords,c_dist,threshold){
                 return L.marker(latlng,{
                     icon : centroidIcon
                 });
-            case 'LAB' :  
+            case 'IPD' :  
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_ipd)
+                });
+                
+            case 'OPD' :   return L.marker(latlng,{
+                icon :  getCustomIcon2(imgpath_opd)
+            });
+            case 'LAB' :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_lab)
                 });
-                
-            case 'AFI' :   return L.marker(latlng,{
-                icon :  getCustomIcon2(imgpath_afi)
-            });
-            case 'ADD' :
+            case 'Dengue' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_add)
+                    icon : getCustomIcon2(imgpath_dengue)
                 });
-                
             }
         }
         
@@ -348,7 +410,8 @@ function buildMap(coords,c_dist,threshold){
     for (let i=0;i<data.features.length;i++){
         var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
         var marker = pointToLayer(data.features[i],loc);
-
+        marker.feature = {};
+        marker.feature.properties = data.features[i].properties;
         marker.desc = data.features[i].properties.label;
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
@@ -384,9 +447,10 @@ function addLegend(map){
 
 	var div = L.DomUtil.create('div', 'info legend');
         var height = 15,width=15;
-        var html = '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
-	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
+        var html = '<img src="'+imgpath_ipd+'"  height="'+height+'" width="'+width+'">  IPD<br>'+
+	    '<img src="'+imgpath_opd+'"  height="'+height+'" width="'+width+'">  OPD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+	    '<img src="'+imgpath_dengue+'"  height="'+height+'" width="'+width+'">  Dengue<br>'+
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
@@ -454,22 +518,28 @@ function addClustergons(map,gjson){
         if (feature.properties.type == 'centroid'){                
             
            var str = feature.properties;
-            str = utility.shadowStringify(str);
-            layer.bindPopup('<div id="alert"><input type="button" onclick="saveCluster(\''+str+'\')" value="Save"/></div>');
-            layer.on({
-	        //  mouseover: highlightFeature,
-	        //  mouseout: resetHighlight,
-	        click: panToFeature
-	    });
-            return;   
+            getClusterInfoHTML(str,function(htmlStr){
+            
+                str = utility.shadowStringify(str);
+                
+                layer.bindPopup(htmlStr,{
+                    maxWidth : 600,
+                    maHeight : 400
+                });
+
+                layer.on({
+	             // mouseover: highlightFeature,
+	            //  mouseout: resetHighlight,
+	            click: panToFeature
+	        });             
+            });
         }
-        
         layer.on({
 	    mouseover: highlightFeature,
 	    //  mouseout: resetHighlight,
 	    //   click: zoomToFeature
 	});
-        
+
     }
 
     var pointToLayer = function(feature, latlng) {
@@ -509,6 +579,7 @@ function zoomToBiggestCluster(map,layers){
     map.fitBounds(bounds);
 
 }
+/*
 function onEachFeature (feature, layer)
 {
  if (feature.properties.type == 'centroid'){                
@@ -519,7 +590,7 @@ function onEachFeature (feature, layer)
       }
 
 }
-
+*/
 
 function getPointToLayer(centroidIcon,icon){
     return function(feature, latlng) {
@@ -579,4 +650,60 @@ function getCustomDivIcon(background){
         className : 'alert-icon '+'',
         html:'<i class="alert-icon"  style="background: '+background+'"></i>'
     });
+}
+
+function getClusterInfoHTML(properties,callback){
+
+ getClusterCases(properties.keys,gotCases);
+        function gotCases(cases){
+            var popupHtml = "<div class='linelist'><input type='button' onclick='saveCluster()' value='Save'/><br>";
+            popupHtml = popupHtml+"<table class='listTable'><thead><tr><th>isDuplicate</th>";
+                                 
+            for (var key in clusterDeIdToNameMap ){
+                popupHtml +="<th>"+clusterDeIdToNameMap[key].name+"</th>"
+            }
+            popupHtml+="</tr></thead><tbody>"
+
+            for (var i=0;i<cases.length;i++){
+                
+                var isDuplicate =  utility.findValueAgainstId(cases[i].dataValues,"dataElement",NIE.DE_isDuplicate,"value");
+                
+                popupHtml = popupHtml+"<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('"+cases[i].event+"',"+isDuplicate+") ></input></td>"
+                
+                for (var key in clusterDeIdToNameMap ){
+                    var value = utility.findValueAgainstId(cases[i].dataValues,"dataElement",key,"value");
+                    if (!value){value = ""};
+                    popupHtml +="<td>"+value+"</td>"
+                }
+               
+                popupHtml = popupHtml + "</tr>"
+            }
+            popupHtml +="<tbody></table></div>" 
+            callback(popupHtml);   
+        }
+}
+
+function getClusterCases(cases,callback){
+
+  //  cases = cases.split(";");
+    var clusterCases = [];
+    getEvent(0,cases);
+    function getEvent(index,cases){
+        if (index == cases.length-1){
+            callback(clusterCases);
+            return
+        }
+        ajax.request({
+            type: "GET",
+            async: true,
+            contentType: "application/json",
+            url: "../../events/"+cases[index]
+        },function(error,response,body){
+            if (error){
+                console.log("Error Fetch Event")
+            }
+            clusterCases.push(response);
+            getEvent(index+1,cases);
+        });
+    }      
 }

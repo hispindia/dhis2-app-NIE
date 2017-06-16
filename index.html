@@ -86,7 +86,22 @@
         Threshold:
         <input type="number" id="threshold" value="3"></input>
         <input class="btn-info right" type="button" value="Refresh" onclick="refresh();"/>
-        <br><br>
+        <br>
+        <div>
+        <input id='filters' type='checkbox' data-de="id" value='eDFSS_IPD_V3'  checked>IPD</input>
+        <input id='filters' type='checkbox' data-de="id" value='eDFSS_OPD_V3'  checked>OPD</input>
+        <input id='filters' type='checkbox' data-de="id" value='DPHL_Lab_V1'  checked>LAB</input>
+        </div>
+
+        <div>
+        <input id='filters' type='checkbox' data-de="Dengue" value='Dengue_Positive_IgM'  checked>Dengue</input>
+        <input id='filters' type='checkbox' data-de="Scrub_typhus" value='true'  checked>Scrub Typhus</input>
+        <input id='filters' type='checkbox' data-de="Leptosprirosis" value='true'  checked>Lepto</input>
+        <input id='filters' type='checkbox' data-de="Malaria" value='true'  checked>Malaria</input>
+        </div>
+
+
+        <br>
       </div>
       <div id="container"></div>
       <div id="requestStats"></div>

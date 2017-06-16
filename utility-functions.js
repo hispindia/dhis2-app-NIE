@@ -12,6 +12,14 @@ _.prepareIdToObjectMap = function(object,id){
     return map;
 }
 
+
+_.prepareIdToValueMap = function(object,id,valueKey){
+    var map = [];
+    for (var i=0;i<object.length;i++){
+        map[object[i][id]] = object[i][valueKey];
+    }
+    return map;
+}
 _.prepareMapGroupedById= function(object,id){
     var map = [];
     for (var i=0;i<object.length;i++){
@@ -66,5 +74,16 @@ _.unshadowStringify = function(str){
     str = str.replace(/>/g,'}');
 
     return JSON.parse(str);
+}
+
+_.findValueAgainstId = function (data,idKey,id,valKey){
+    
+    for (var i=0;i<data.length;i++){
+        if (data[i][idKey]==id){
+            return data[i][valKey]
+        }
+    }
+    return null;
+    
 }
 module.exports = _;
