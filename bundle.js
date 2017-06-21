@@ -112,7 +112,7 @@
 	var imgpath_ipd = "images/ipd.png";
 	var imgpath_lab = "images/lab.png";
 	var imgpath_opd = "images/opd.png";
-	var imgpath_dengue = "images/dengue.png";
+	var imgpath_dengue = "images/dengue2.png";
 
 	var imgpath_cluster = "images/marker-icon-red.png";
 
@@ -640,18 +640,14 @@
 
 	    map.fitBounds(bounds);
 	}
-	/*
-	function onEachFeature (feature, layer)
-	{
-	 if (feature.properties.type == 'centroid'){                
-	     layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-	     
-	 }else{
-	       layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-	      }
 
+	function onEachFeature(feature, layer) {
+	    if (feature.properties.type == 'centroid') {
+	        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+	    } else {
+	        layer.bindPopup('<div id="alert"><i>Fever Case[<b> ' + feature.properties.label + '</b>]<br></div>');
+	    }
 	}
-	*/
 
 	function getPointToLayer(centroidIcon, icon) {
 	    return function (feature, latlng) {
@@ -689,7 +685,7 @@
 	        iconUrl: iconUrl,
 	        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
 	        shadowUrl: 'images/point-shadow.png',
-	        iconSize: [15, 15],
+	        iconSize: [25, 25],
 	        //        iconSize: [25, 41],
 
 	        //        iconAnchor: [12, 41],
@@ -61194,8 +61190,27 @@
 
 	'use strict';
 
-	//import L from 'leaflet';
-	//require('leaflet-measure');
+	/*
+	function initWMS(){
+	  ajax.request({
+	        type: "GET",
+	        async: true,
+	        contentType: "application/json",
+	      "Upgrade-Insecure-Requests":1,
+	        url: "http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&service=WMS&request=GetMap&layers=tnssdi_admin%3Atnssdi_admin&styles=&format=image%2Fjpeg&transparent=false&version=1.1.1&height=256&width=256&srs=EPSG%3A3857&bbox=8942520.81313934,1487158.8223163905,8962088.692380346,1506726.7015573943"
+	    },function(error,response){
+	        if (error){
+	            console.log("Fetch DE")
+	        }else{
+	            deNameToIdMap = utility.prepareIdToValueMap(response.dataElements,"name","id");
+	        }
+	    })
+
+	};initWMS();
+
+	*/
+	window.open('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&service=WMS&request=GetMap&layers=tnssdi_admin%3Atnssdi_admin&styles=&format=image%2Fjpeg&transparent=false&version=1.1.1&height=256&width=256&srs=EPSG%3A3857&bbox=8942520.81313934,1487158.8223163905,8962088.692380346,1506726.7015573943', '_blank' // <- This is what makes it open in a new window.
+	);
 
 	function dhis2Map() {
 
@@ -61213,9 +61228,12 @@
 	        maxZoom: 18,
 	        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	    });
-
 	    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
 	        layers: 'tnssdi_admin:tnssdi_admin'
+	    });
+
+	    var wmsLayer2 = L.tileLayer.wms('http://cartodb-basemaps-b.global.ssl.fastly.net/light_all?', {
+	        layers: 'ne:ne'
 	    });
 
 	    var baseLayers = { "stamen": stamen, "osm": osm, "esri": esri, "osm_bw": osm_bw, nie: wmsLayer };

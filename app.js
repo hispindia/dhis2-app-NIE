@@ -25,10 +25,9 @@ var clusterDeIdToNameMap = [];
 const imgpath_ipd = "images/ipd.png";
 const imgpath_lab = "images/lab.png";
 const imgpath_opd = "images/opd.png";
-const imgpath_dengue = "images/dengue.png";
+const imgpath_dengue = "images/dengue2.png";
 
 const imgpath_cluster = "images/marker-icon-red.png";
-
 
 function fetchDEs(){
   ajax.request({
@@ -579,7 +578,7 @@ function zoomToBiggestCluster(map,layers){
     map.fitBounds(bounds);
 
 }
-/*
+
 function onEachFeature (feature, layer)
 {
  if (feature.properties.type == 'centroid'){                
@@ -590,7 +589,7 @@ function onEachFeature (feature, layer)
       }
 
 }
-*/
+
 
 function getPointToLayer(centroidIcon,icon){
     return function(feature, latlng) {
@@ -632,7 +631,7 @@ function getCustomIcon2(iconUrl){
         iconUrl:iconUrl,
         //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         shadowUrl: 'images/point-shadow.png',
-        iconSize: [15, 15],
+        iconSize: [25, 25],
         //        iconSize: [25, 41],
 
         //        iconAnchor: [12, 41],
