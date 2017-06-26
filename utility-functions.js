@@ -67,4 +67,15 @@ _.unshadowStringify = function(str){
 
     return JSON.parse(str);
 }
+
+_.findValueAgainstId = function(data,idKey,id,valKey){
+    
+    for (var i=0;i<data.length;i++){
+        if (data[i][idKey]==id){
+            return data[i][valKey]
+        }
+    }
+    return null;
+    
+}
 module.exports = _;

@@ -1,5 +1,4 @@
 
-
 /***
 Param : {unique_id : "",
          coordinates : []    
@@ -12,6 +11,7 @@ import utility from '../utility-functions';
 import turf from '@turf/turf';
 
 var _ = {};
+module.exports = _;
 
 
 function distance(lat1, lon1, lat2, lon2, unit) {
@@ -214,7 +214,6 @@ function strToInt(str){
 
     return intVal;
 }
-module.exports = _;
 
 function buildCoordinates(data,coord){
 

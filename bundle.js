@@ -80,7 +80,7 @@
 
 	var _components = __webpack_require__(475);
 
-	var _nieConstants = __webpack_require__(476);
+	var _nieConstants = __webpack_require__(477);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
@@ -88,16 +88,20 @@
 
 	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
 
+	var _dhisAPIHelper = __webpack_require__(476);
+
+	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var map;
 	//import L from 'leaflet';
 	/**
 	 * Created by harsh on 15/12/16.
 	 */
 
+	var map;
 	var api = new _dhis2API2.default();
 	var previousClusterLayer;
 	var info;
@@ -143,7 +147,7 @@
 	        clusterDeIdToNameMap = _utilityFunctions2.default.prepareIdToObjectMap(response.dataElements, "id");
 	    }
 	}
-	wmsInit();
+	//wmsInit();
 	function wmsInit() {
 	    _ajaxWrapper2.default.request({
 	        type: "GET",
@@ -155,7 +159,18 @@
 	    function callback(error, response, body) {}
 	}
 
-	window.toggleDuplicate = function (eventUID, currentValue) {};
+	window.toggleDuplicate = function (eventUID, currentValue) {
+
+	    if (currentValue) {
+	        currentValue = false;
+	    } else {
+	        currentValue = true;
+	    }
+
+	    _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, currentValue, function () {
+	        debugger;
+	    });
+	};
 
 	window.refresh = function () {
 	    var startDate = (0, _jquery2.default)('#sdate').val();
@@ -220,6 +235,13 @@
 	        var coords = extractCoordsFromTEI(teis);
 	        //  buildMap(coords,5,3);
 	    });
+
+	    map.getMap().on('popupopen', function (e) {
+
+	        var data = JSON.parse(e.popup._contentNode.childNodes[0].attributes[2].nodeValue);
+	        _reactDom2.default.render(_react2.default.createElement(_components.AlertPopUp, { data: data, deMap: clusterDeIdToNameMap }), document.getElementById('hello'));
+	        //var marker = e.popup._source;
+	    });
 	});
 
 	function addOrgUnitLayer(level, style) {
@@ -277,7 +299,7 @@
 	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_3_5, "value");
 	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_5_7, "value");
 	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_LAB, "value");
-	            debugger;
+
 	            if (clusterType == "ADD") {
 	                type = "ADD2";
 	            }
@@ -372,16 +394,6 @@
 	    //  window.coords=coords;
 	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold);
 
-	    var icon = getCustomIcon();
-
-	    //var redAlertMarker = new icon({iconUrl: 'images/red-icon.png'})
-	    var feverDotIcon = L.divIcon({
-	        className: 'alert-icon leaflet-clickable',
-	        html: '<i class="alert-icon"></i>'
-	    });
-
-	    var feverIcon = getCustomIcon('yellow');
-
 	    var pointToLayer = function pointToLayer(feature, latlng) {
 	        if (feature.properties) {
 	            switch (feature.properties.type) {
@@ -415,50 +427,20 @@
 	            }
 	        }
 
-	        return L.marker(latlng, {
-	            // icon: icon
-	        });
+	        return L.marker(latlng, {});
 	    };
 
 	    var oms = new OverlappingMarkerSpiderfier(map.getMap(), {
 	        nearbyDistance: 1, keepSpiderfied: true
 	    });
 
-	    var popup = new L.Popup();
 	    oms.addListener('click', function (marker) {
-
-	        getClusterCases(marker.feature.properties.cases, callback);
-	        function callback(cases) {
-	            var popupHtml = "<div class='linelist'><input type='checkbox' value='Activate/Deactivate'  checked>Activate/Deactivate</input><br>";
-	            popupHtml = popupHtml + "<table class='listTable'><thead><tr><th>isDuplicate</th>";
-
-	            for (var key in clusterDeIdToNameMap) {
-	                popupHtml += "<th>" + clusterDeIdToNameMap[key].name + "</th>";
-	            }
-	            popupHtml += "</tr></thead><tbody>";
-
-	            for (var i = 0; i < cases.length; i++) {
-
-	                var isDuplicate = findValueAgainstId(cases[i].dataValues, "dataElement", NIE.DE_isDuplicate, "value");
-
-	                popupHtml = popupHtml + "<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('" + cases[i].event + "'," + isDuplicate + ") ></input></td>";
-
-	                for (var key in clusterDeIdToNameMap) {
-	                    var value = findValueAgainstId(cases[i].dataValues, "dataElement", key, "value");
-	                    if (!value) {
-	                        value = "";
-	                    };
-	                    popupHtml += "<td>" + value + "</td>";
-	                }
-
-	                popupHtml = popupHtml + "</tr>";
-	            }
-	            popupHtml += "<tbody></table></div>";
-	            popup.setContent(popupHtml);
-	            popup.setLatLng(marker.getLatLng());
-	            map.getMap().openPopup(popup);
-	        }
+	        var popup = new L.Popup(_components.AlertPopUp);
+	        popup.setContent("<div class='linelist' id='hello' data=" + JSON.stringify(marker.feature.properties) + "></div>");
+	        popup.setLatLng(marker.getLatLng());
+	        map.getMap().openPopup(popup);
 	    });
+
 	    var data = featureCollection.geoJsonPointFeatures;
 	    for (var i = 0; i < data.features.length; i++) {
 	        var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
@@ -469,27 +451,6 @@
 	        map.getMap().addLayer(marker);
 	        oms.addMarker(marker);
 	    }
-	    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-
-	    /*   
-	         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
-	         var style = function(){
-	         return { color: "darkred",
-	         opacity: 0.75,
-	         fillColor: "red",
-	         fillOpacity: 0.1,                
-	         dashArray: '5, 5',
-	         //weight: 5
-	          }
-	         }
-	         // var onEachFeature = onEachFeature;
-	         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
-	    */
-	    //addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
-
-	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
-
-	    // map.();
 	}
 
 	function getClusterCases(cases, callback) {
@@ -662,18 +623,6 @@
 	            // icon: icon
 	        });
 	    };
-	}
-	function getCustomIcon(name) {
-	    return new L.Icon({
-	        //  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-	        iconUrl: 'images/marker-icon-' + name + '.png',
-	        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-	        shadowUrl: 'images/marker-shadow.png',
-	        iconSize: [25, 41],
-	        iconAnchor: [12, 41],
-	        popupAnchor: [1, -34],
-	        shadowSize: [41, 41]
-	    });
 	}
 
 	function getCustomIcon2(iconUrl, iconSize, iconAnchor) {
@@ -32873,6 +32822,20 @@
 	            _callback(error, response, body);
 	        }
 	    };
+
+	    this.get = function (domain, id, _callback) {
+	        ajax.request({
+	            type: "GET",
+	            async: true,
+	            contentType: "application/json",
+	            url: "../../" + domain + "/" + id
+	        }, callback);
+
+	        function callback(error, response, body) {
+	            _callback(error, response, body);
+	        }
+	    };
+
 	    this.getCustomObject = function (_retriever) {
 	        if (this[_retriever]) {
 	            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -33133,6 +33096,16 @@
 	    str = str.replace(/>/g, '}');
 
 	    return JSON.parse(str);
+	};
+
+	_.findValueAgainstId = function (data, idKey, id, valKey) {
+
+	    for (var i = 0; i < data.length; i++) {
+	        if (data[i][idKey] == id) {
+	            return data[i][valKey];
+	        }
+	    }
+	    return null;
 	};
 	module.exports = _;
 
@@ -61257,7 +61230,6 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var _ = {};
-
 	/***
 	Param : {unique_id : "",
 	         coordinates : []    
@@ -61266,6 +61238,7 @@
 	return : GeoJson
 	***/
 
+	module.exports = _;
 
 	function distance(lat1, lon1, lat2, lon2, unit) {
 
@@ -61469,7 +61442,6 @@
 
 	    return intVal;
 	}
-	module.exports = _;
 
 	function buildCoordinates(data, coord) {}
 
@@ -93365,11 +93337,10 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	        value: true
+	    value: true
 	});
 	exports.UploadFile = UploadFile;
 	exports.AlertPopUp = AlertPopUp;
-	exports.MapContainer = MapContainer;
 
 	var _react = __webpack_require__(1);
 
@@ -93379,41 +93350,262 @@
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
+	var _dhisAPIHelper = __webpack_require__(476);
+
+	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
+
+	var _nieConstants = __webpack_require__(477);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	/**
-	 * Created by harsh on 21/12/16.
-	 */
-
 	function UploadFile(props) {
-	        return _react2.default.createElement(
-	                'div',
-	                null,
-	                _react2.default.createElement(
-	                        'label',
-	                        null,
-	                        'Upload .json file'
-	                ),
-	                _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
-	                _react2.default.createElement(
-	                        'button',
-	                        { onClick: props.onClick },
-	                        'Import'
-	                )
-	        );
-	}
+	    return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	            'label',
+	            null,
+	            'Upload .json file'
+	        ),
+	        _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
+	        _react2.default.createElement(
+	            'button',
+	            { onClick: props.onClick },
+	            'Import'
+	        )
+	    );
+	} /**
+	   * Created by harsh on 21/12/16.
+	   */
 
 	function AlertPopUp(props) {
+
+	    var instance = Object.create(_react2.default.Component.prototype);
+
+	    instance.props = props;
+	    instance.state = { data: props.data, cases: [] };
+
+	    instance.componentDidMount = function () {
+	        _dhisAPIHelper2.default.getClusterCases(props.data.cases, function (cases) {
+	            instance.setState({ cases: cases, deMap: props.deMap, componentDidMount: instance.componentDidMount });
+	        });
+	    };
+
+	    instance.clusterActivationToggle = function (e) {
+	        debugger;
+	    };
+
+	    instance.render = function () {
 	        return _react2.default.createElement(
-	                'div',
-	                null,
-	                'Hello'
+	            'div',
+	            { className: 'linelist' },
+	            _react2.default.createElement('input', { type: 'checkbox', value: 'Activate/Deactivate', onChange: this.clusterActivationToggle }),
+	            ' ',
+	            _react2.default.createElement('br', null),
+	            _react2.default.createElement(AlertTable, { data: this.state })
 	        );
+	    };
+
+	    return instance;
 	}
-	function MapContainer() {}
+
+	function AlertTable(props) {
+
+	    function callIt() {
+	        props.data.componentDidMount();
+	    }
+	    function getHeaderRows() {
+
+	        if (!props.data.deMap) {
+	            return;
+	        }
+
+	        var tableHeaders = [];
+	        tableHeaders.push(_react2.default.createElement(
+	            'th',
+	            { key: _lodash2.default.uniqueId("th_") },
+	            'isDuplicate'
+	        ));
+
+	        for (var key in props.data.deMap) {
+	            tableHeaders.push(_react2.default.createElement(
+	                'th',
+	                { key: _lodash2.default.uniqueId("th_") },
+	                props.data.deMap[key].name
+	            ));
+	        }
+
+	        return tableHeaders;
+	    }
+
+	    function toggleDuplicate(eventUID, currentValue) {
+
+	        var _currentValue = !currentValue;
+
+	        _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, _currentValue, function () {
+	            callIt();
+	        });
+
+	        return currentValue;
+	    }
+
+	    function getRows(cases, clusterDeIdToNameMap) {
+	        var rows = [];
+	        cases.map(function (eventCase) {
+	            var isDuplicate = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", NIE.DE_isDuplicate, "value");
+	            if (isDuplicate == null || isDuplicate == undefined) {
+	                isDuplicate = false;
+	            }
+	            isDuplicate = JSON.parse(isDuplicate);
+
+	            var duplicateRowClass = '';
+	            var cells = [];
+	            var eventUID = eventCase.event;
+	            cells.push(_react2.default.createElement(
+	                'td',
+	                { key: eventCase.event + "-" + NIE.DE_isDuplicate },
+	                _react2.default.createElement('input', { key: "input_" + eventCase.event + "-" + NIE.DE_isDuplicate, type: 'checkbox', value: 'duplicate', onChange: function onChange() {
+	                        return toggleDuplicate(eventUID, isDuplicate);
+	                    }, checked: isDuplicate })
+	            ));
+
+	            for (var key in clusterDeIdToNameMap) {
+	                var value = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", key, "value");
+	                if (!value) {
+	                    value = "";
+	                };
+	                cells.push(_react2.default.createElement(
+	                    'td',
+	                    { key: eventCase.event + "-" + key },
+	                    value
+	                ));
+	            }
+	            if (isDuplicate) {
+	                duplicateRowClass = 'violet';
+	            }
+	            rows.push(_react2.default.createElement(
+	                'tr',
+	                { className: duplicateRowClass, key: eventCase.event },
+	                cells
+	            ));
+	        });
+
+	        return rows;
+	    }
+
+	    return _react2.default.createElement(
+	        'table',
+	        { className: 'listTable' },
+	        _react2.default.createElement(
+	            'thead',
+	            null,
+	            _react2.default.createElement(
+	                'tr',
+	                null,
+	                getHeaderRows()
+	            )
+	        ),
+	        _react2.default.createElement(
+	            'tbody',
+	            null,
+	            getRows(props.data.cases, props.data.deMap)
+	        )
+	    );
+	}
 
 /***/ }),
 /* 476 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _dhis2API = __webpack_require__(184);
+
+	var _dhis2API2 = _interopRequireDefault(_dhis2API);
+
+	var _ajaxWrapper = __webpack_require__(182);
+
+	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	module.exports = new dhisAPIHelper();
+
+	var api = new _dhis2API2.default();
+
+
+	function dhisAPIHelper() {
+
+	    this.getClusterCases = function (cases, callback) {
+
+	        cases = cases.split(";");
+	        var clusterCases = [];
+	        getEvent(0, cases);
+	        function getEvent(index, cases) {
+	            if (index == cases.length - 1) {
+	                callback(clusterCases);
+	                return;
+	            }
+
+	            _ajaxWrapper2.default.request({
+	                type: "GET",
+	                async: true,
+	                contentType: "application/json",
+	                url: "../../events/" + cases[index]
+	            }, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error Fetch Event");
+	                }
+	                clusterCases.push(response);
+	                getEvent(index + 1, cases);
+	            });
+	        }
+	    };
+
+	    this.saveEventWithDataValue = function (eventUID, deUID, deValue, callback) {
+
+	        api.get("events", eventUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch event");
+	                return;
+	            }
+	            var event = response;
+	            event = addUpdateEvent(event, deUID, deValue);
+
+	            api.update("event", eventUID, event, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update event");
+	                    return;
+	                }
+	                callback();
+	            });
+	        });
+	    };
+
+	    function addUpdateEvent(event, deUID, deValue) {
+
+	        for (var key in event.dataValues) {
+	            if (event.dataValues[key].dataElement == deUID) {
+	                event.dataValues[key].value = deValue;
+	                return event;
+	            }
+	        }
+	        event.dataValues.push({ dataElement: deUID, value: deValue });
+	        return event;
+	    }
+	}
+
+/***/ }),
+/* 477 */
 /***/ (function(module, exports) {
 
 	"use strict";

@@ -14,6 +14,7 @@ import mUtility from './maps/mapUtilities';
 import {AlertPopUp} from './components/components';
 import * as NIE from './nie-constants';
 import utility from './utility-functions';
+import dhisAPIHelper from './dhisAPIHelper';
 
 var map;
 var api = new dhis2API();
@@ -61,7 +62,7 @@ function getClusterToBeShownDE(){
         clusterDeIdToNameMap =  utility.prepareIdToObjectMap(response.dataElements,"id");      
     }
 }
-wmsInit();
+//wmsInit();
 function wmsInit(){
     ajax.request({
         type: "GET",
@@ -77,6 +78,16 @@ function wmsInit(){
 }
 
 window.toggleDuplicate = function(eventUID,currentValue){
+
+    if (currentValue){
+        currentValue = false
+    }else{
+        currentValue = true
+    }
+
+    dhisAPIHelper.saveEventWithDataValue(eventUID,NIE.DE_isDuplicate,currentValue,function(){
+    debugger
+    });
 
 }
 
@@ -147,7 +158,14 @@ $('document').ready(function(){
         //  buildMap(coords,5,3);
     });
 
+    map.getMap().on('popupopen', function(e) {
+        
+        var data = JSON.parse(e.popup._contentNode.childNodes[0].attributes[2].nodeValue);
+        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} />, document.getElementById('hello'));
+        //var marker = e.popup._source;
+    });
 });
+
 
 function addOrgUnitLayer(level,style){
 
@@ -207,7 +225,7 @@ function extractCoordsFromTEI(teis){
             var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_3_5,"value");
             var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_5_7,"value");
             var lab = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_LAB,"value");
-            debugger
+            
             if (clusterType == "ADD"){
                 type = "ADD2";
             }
@@ -296,6 +314,8 @@ function addOrgUnits(blockCoords,style){
 
 }
 
+
+
 function buildMap(coords,c_dist,threshold){
     if (threshold < 3){alert("threshold cannot be less than 3"); return}
 
@@ -304,16 +324,6 @@ function buildMap(coords,c_dist,threshold){
     //  window.coords=coords;
     var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
     
-    var icon = getCustomIcon();
-
-    //var redAlertMarker = new icon({iconUrl: 'images/red-icon.png'})
-    var feverDotIcon =L.divIcon({
-        className:'alert-icon leaflet-clickable',
-        html:'<i class="alert-icon"></i>'
-    });
-    
-    var feverIcon =getCustomIcon('yellow');
-
     var pointToLayer = function(feature, latlng) {
         if (feature.properties){
             switch(feature.properties.type){
@@ -346,52 +356,21 @@ function buildMap(coords,c_dist,threshold){
             }
         }
         
-        return L.marker(latlng, {
-            // icon: icon
-        });
+        return L.marker(latlng, {});
         
     }
     
     var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
         nearbyDistance : 1 , keepSpiderfied : true
     });
-
-    var popup = new L.Popup();
+    
     oms.addListener('click', function(marker) {
-        
-        getClusterCases(marker.feature.properties.cases,callback);
-        function callback(cases){
-            var popupHtml = "<div class='linelist'><input type='checkbox' value='Activate/Deactivate'  checked>Activate/Deactivate</input><br>";
-            popupHtml = popupHtml+"<table class='listTable'><thead><tr><th>isDuplicate</th>";
-                                 
-            for (var key in clusterDeIdToNameMap ){
-                popupHtml +="<th>"+clusterDeIdToNameMap[key].name+"</th>"
-            }
-            popupHtml+="</tr></thead><tbody>"
-
-            for (var i=0;i<cases.length;i++){
-                
-                var isDuplicate =  findValueAgainstId(cases[i].dataValues,"dataElement",NIE.DE_isDuplicate,"value");
-                
-                popupHtml = popupHtml+"<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('"+cases[i].event+"',"+isDuplicate+") ></input></td>"
-                
-                for (var key in clusterDeIdToNameMap ){
-                    var value = findValueAgainstId(cases[i].dataValues,"dataElement",key,"value");
-                    if (!value){value = ""};
-                    popupHtml +="<td>"+value+"</td>"
-                }
-               
-                popupHtml = popupHtml + "</tr>"
-            }
-            popupHtml +="<tbody></table></div>" 
-            popup.setContent(popupHtml);
-            popup.setLatLng(marker.getLatLng());
-            map.getMap().openPopup(popup);
-            
-        }
-        
-        
+        var popup = new L.Popup(AlertPopUp);
+        popup.setContent("<div class='linelist' id='hello' data="+JSON.stringify(marker.feature.properties)+"></div>");
+        popup.setLatLng(marker.getLatLng());
+        map.getMap().openPopup(popup);                    
     });
+
     var data = featureCollection.geoJsonPointFeatures;
     for (let i=0;i<data.features.length;i++){
         var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
@@ -402,28 +381,6 @@ function buildMap(coords,c_dist,threshold){
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
-    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-    
-    /*   
-         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
-         var style = function(){
-         return { color: "darkred",
-         opacity: 0.75,
-         fillColor: "red",
-         fillOpacity: 0.1,                
-         dashArray: '5, 5',
-         //weight: 5
-
-         }
-         }
-         // var onEachFeature = onEachFeature;
-         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
-    */
-    //addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
-
-    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
-
-    // map.();
 }
 
 
@@ -617,20 +574,6 @@ function getPointToLayer(centroidIcon,icon){
     };
 
 }
-function getCustomIcon(name){
-    return   new L.Icon({
-        //  iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-        iconUrl: 'images/marker-icon-'+name+'.png',
-        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        shadowUrl: 'images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-}
-
 
 function getCustomIcon2(iconUrl,iconSize,iconAnchor){
 
