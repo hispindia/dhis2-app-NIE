@@ -25,6 +25,8 @@ var clusterDeIdToNameMap = [];
 const imgpath_ipd = "images/ipd.png";
 const imgpath_lab = "images/lab.png";
 const imgpath_opd = "images/opd.png";
+const imgpath_afi = "images/yellow-point.png";
+const imgpath_add = "images/green-point.png";
 const imgpath_dengue = "images/dengue2.png";
 
 const imgpath_cluster = "images/marker-icon-red.png";
@@ -135,7 +137,7 @@ $('document').ready(function(){
     startDate.setDate(startDate.getDate() - 5);
     $('#edate').val(moment(startDate).format(format));
 
-    map.init("mapid",[13.23521,80.3332],9);
+    map.init("mapid",[13.239758,79.978065],10);
     addLegend(map.getMap())
 
     // control that shows state info on hover
@@ -183,6 +185,11 @@ $('document').ready(function(){
         buildMap(coords,5,3);
     });
 
+    map.getMap().on('popupopen', function(e) {        
+        var data = e.popup.data;
+        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} />, document.getElementById('hello'));
+        //var marker = e.popup._source;
+    });
 });
 
 
@@ -254,6 +261,13 @@ function extractCoordsFromEvents(events){
                     
                     if (utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["Dengue"],"value") == "Dengue_Positive_IgM"){
                         type = "Dengue";
+                    }
+
+                    var syndrome = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["Diagnosis_Information/Syndrome"],"value");
+
+                    switch(syndrome){
+                    case 'AFI' : type = "AFI"; break;
+                    case 'ADD' : type = "ADD"; break;
                     }
 
                     result.push({
@@ -382,6 +396,13 @@ function buildMap(coords,c_dist,threshold){
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_lab)
                 });
+            case 'AFI' :   return L.marker(latlng,{
+                icon :  getCustomIcon2(imgpath_afi)
+            });
+            case 'ADD' :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_add)
+                });
             case 'Dengue' :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_dengue)
@@ -415,23 +436,7 @@ function buildMap(coords,c_dist,threshold){
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
-    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
-    
-    /*   
-         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
-         var style = function(){
-         return { color: "darkred",
-         opacity: 0.75,
-         fillColor: "red",
-         fillOpacity: 0.1,                
-         dashArray: '5, 5',
-         //weight: 5
-
-         }
-         }
-         // var onEachFeature = onEachFeature;
-         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
-    */
+ 
     addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
 
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
@@ -449,6 +454,8 @@ function addLegend(map){
         var html = '<img src="'+imgpath_ipd+'"  height="'+height+'" width="'+width+'">  IPD<br>'+
 	    '<img src="'+imgpath_opd+'"  height="'+height+'" width="'+width+'">  OPD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
+	    '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
 	    '<img src="'+imgpath_dengue+'"  height="'+height+'" width="'+width+'">  Dengue<br>'+
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
         
@@ -516,23 +523,23 @@ function addClustergons(map,gjson){
         
         if (feature.properties.type == 'centroid'){                
             
-           var str = feature.properties;
-            getClusterInfoHTML(str,function(htmlStr){
+            var popup = new L.Popup(AlertPopUp);
+            popup.data = feature.properties; 
+            popup.setContent("<div class='linelist' id='hello'></div>");
+            popup.setLatLng(layer.getLatLng());
             
-                str = utility.shadowStringify(str);
-                
-                layer.bindPopup(htmlStr,{
-                    maxWidth : 600,
-                    maHeight : 400
-                });
-
-                layer.on({
-	             // mouseover: highlightFeature,
-	            //  mouseout: resetHighlight,
-	            click: panToFeature
-	        });             
+            layer.bindPopup(popup,{
+                maxWidth : 600
+            });
+            
+            layer.on({
+	        // mouseover: highlightFeature,
+	        //  mouseout: resetHighlight,
+	        click: panToFeature
+	        
             });
         }
+        
         layer.on({
 	    mouseover: highlightFeature,
 	    //  mouseout: resetHighlight,
@@ -631,7 +638,7 @@ function getCustomIcon2(iconUrl){
         iconUrl:iconUrl,
         //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         shadowUrl: 'images/point-shadow.png',
-        iconSize: [25, 25],
+        iconSize: [20, 20],
         //        iconSize: [25, 41],
 
         //        iconAnchor: [12, 41],
@@ -649,60 +656,4 @@ function getCustomDivIcon(background){
         className : 'alert-icon '+'',
         html:'<i class="alert-icon"  style="background: '+background+'"></i>'
     });
-}
-
-function getClusterInfoHTML(properties,callback){
-
- getClusterCases(properties.keys,gotCases);
-        function gotCases(cases){
-            var popupHtml = "<div class='linelist'><input type='button' onclick='saveCluster()' value='Save'/><br>";
-            popupHtml = popupHtml+"<table class='listTable'><thead><tr><th>isDuplicate</th>";
-                                 
-            for (var key in clusterDeIdToNameMap ){
-                popupHtml +="<th>"+clusterDeIdToNameMap[key].name+"</th>"
-            }
-            popupHtml+="</tr></thead><tbody>"
-
-            for (var i=0;i<cases.length;i++){
-                
-                var isDuplicate =  utility.findValueAgainstId(cases[i].dataValues,"dataElement",NIE.DE_isDuplicate,"value");
-                
-                popupHtml = popupHtml+"<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('"+cases[i].event+"',"+isDuplicate+") ></input></td>"
-                
-                for (var key in clusterDeIdToNameMap ){
-                    var value = utility.findValueAgainstId(cases[i].dataValues,"dataElement",key,"value");
-                    if (!value){value = ""};
-                    popupHtml +="<td>"+value+"</td>"
-                }
-               
-                popupHtml = popupHtml + "</tr>"
-            }
-            popupHtml +="<tbody></table></div>" 
-            callback(popupHtml);   
-        }
-}
-
-function getClusterCases(cases,callback){
-
-  //  cases = cases.split(";");
-    var clusterCases = [];
-    getEvent(0,cases);
-    function getEvent(index,cases){
-        if (index == cases.length-1){
-            callback(clusterCases);
-            return
-        }
-        ajax.request({
-            type: "GET",
-            async: true,
-            contentType: "application/json",
-            url: "../../events/"+cases[index]
-        },function(error,response,body){
-            if (error){
-                console.log("Error Fetch Event")
-            }
-            clusterCases.push(response);
-            getEvent(index+1,cases);
-        });
-    }      
 }

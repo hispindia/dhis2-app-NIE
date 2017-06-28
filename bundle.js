@@ -112,6 +112,8 @@
 	var imgpath_ipd = "images/ipd.png";
 	var imgpath_lab = "images/lab.png";
 	var imgpath_opd = "images/opd.png";
+	var imgpath_afi = "images/yellow-point.png";
+	var imgpath_add = "images/green-point.png";
 	var imgpath_dengue = "images/dengue2.png";
 
 	var imgpath_cluster = "images/marker-icon-red.png";
@@ -216,7 +218,7 @@
 	    startDate.setDate(startDate.getDate() - 5);
 	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(startDate).format(format));
 
-	    map.init("mapid", [13.23521, 80.3332], 9);
+	    map.init("mapid", [13.239758, 79.978065], 10);
 	    addLegend(map.getMap());
 
 	    // control that shows state info on hover
@@ -260,6 +262,12 @@
 	        events = filterEvents(events, getFilters(), deNameToIdMap);
 	        var coords = extractCoordsFromEvents(events);
 	        buildMap(coords, 5, 3);
+	    });
+
+	    map.getMap().on('popupopen', function (e) {
+	        var data = e.popup.data;
+	        _reactDom2.default.render(_react2.default.createElement(_components.AlertPopUp, { data: data, deMap: clusterDeIdToNameMap }), document.getElementById('hello'));
+	        //var marker = e.popup._source;
 	    });
 	});
 
@@ -331,6 +339,15 @@
 
 	                    if (_utilityFunctions2.default.findValueAgainstId(events[i].dataValues, "dataElement", deNameToIdMap["Dengue"], "value") == "Dengue_Positive_IgM") {
 	                        type = "Dengue";
+	                    }
+
+	                    var syndrome = _utilityFunctions2.default.findValueAgainstId(events[i].dataValues, "dataElement", deNameToIdMap["Diagnosis_Information/Syndrome"], "value");
+
+	                    switch (syndrome) {
+	                        case 'AFI':
+	                            type = "AFI";break;
+	                        case 'ADD':
+	                            type = "ADD";break;
 	                    }
 
 	                    result.push({
@@ -459,6 +476,14 @@
 	                    return L.marker(latlng, {
 	                        icon: getCustomIcon2(imgpath_lab)
 	                    });
+	                case 'AFI':
+	                    return L.marker(latlng, {
+	                        icon: getCustomIcon2(imgpath_afi)
+	                    });
+	                case 'ADD':
+	                    return L.marker(latlng, {
+	                        icon: getCustomIcon2(imgpath_add)
+	                    });
 	                case 'Dengue':
 	                    return L.marker(latlng, {
 	                        icon: getCustomIcon2(imgpath_dengue)
@@ -491,22 +516,7 @@
 	        map.getMap().addLayer(marker);
 	        oms.addMarker(marker);
 	    }
-	    // var pointsLayers =  map.addGeoJson(featureCollection.geoJsonPointFeatures,pointToLayer,null,onEachFeature); 
 
-	    /*   
-	         pointToLayer = getPointToLayer(feverIcon,feverDotIcon);  
-	         var style = function(){
-	         return { color: "darkred",
-	         opacity: 0.75,
-	         fillColor: "red",
-	         fillOpacity: 0.1,                
-	         dashArray: '5, 5',
-	         //weight: 5
-	          }
-	         }
-	         // var onEachFeature = onEachFeature;
-	         map.addGeoJson(featureCollection.geoJsonPolygonFeatures,pointToLayer,style,onEachFeature);
-	    */
 	    addClustergons(map.getMap(), featureCollection.geoJsonPolygonFeatures);
 
 	    //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
@@ -522,7 +532,7 @@
 	        var div = L.DomUtil.create('div', 'info legend');
 	        var height = 15,
 	            width = 15;
-	        var html = '<img src="' + imgpath_ipd + '"  height="' + height + '" width="' + width + '">  IPD<br>' + '<img src="' + imgpath_opd + '"  height="' + height + '" width="' + width + '">  OPD<br>' + '<img src="' + imgpath_lab + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_dengue + '"  height="' + height + '" width="' + width + '">  Dengue<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
+	        var html = '<img src="' + imgpath_ipd + '"  height="' + height + '" width="' + width + '">  IPD<br>' + '<img src="' + imgpath_opd + '"  height="' + height + '" width="' + width + '">  OPD<br>' + '<img src="' + imgpath_lab + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_add + '"  height="' + height + '" width="' + width + '">  ADD<br>' + '<img src="' + imgpath_afi + '"  height="' + height + '" width="' + width + '">  AFI<br>' + '<img src="' + imgpath_dengue + '"  height="' + height + '" width="' + width + '">  Dengue<br>' + '<img src="' + imgpath_cluster + '"  height="' + 22 + '" width="' + 17 + '">  CLUSTER';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
 	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
@@ -584,23 +594,23 @@
 
 	        if (feature.properties.type == 'centroid') {
 
-	            var str = feature.properties;
-	            getClusterInfoHTML(str, function (htmlStr) {
+	            var popup = new L.Popup(_components.AlertPopUp);
+	            popup.data = feature.properties;
+	            popup.setContent("<div class='linelist' id='hello'></div>");
+	            popup.setLatLng(layer.getLatLng());
 
-	                str = _utilityFunctions2.default.shadowStringify(str);
+	            layer.bindPopup(popup, {
+	                maxWidth: 600
+	            });
 
-	                layer.bindPopup(htmlStr, {
-	                    maxWidth: 600,
-	                    maHeight: 400
-	                });
+	            layer.on({
+	                // mouseover: highlightFeature,
+	                //  mouseout: resetHighlight,
+	                click: panToFeature
 
-	                layer.on({
-	                    // mouseover: highlightFeature,
-	                    //  mouseout: resetHighlight,
-	                    click: panToFeature
-	                });
 	            });
 	        }
+
 	        layer.on({
 	            mouseover: highlightFeature
 	        });
@@ -685,7 +695,7 @@
 	        iconUrl: iconUrl,
 	        //  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
 	        shadowUrl: 'images/point-shadow.png',
-	        iconSize: [25, 25],
+	        iconSize: [20, 20],
 	        //        iconSize: [25, 41],
 
 	        //        iconAnchor: [12, 41],
@@ -702,64 +712,6 @@
 	        className: 'alert-icon ' + '',
 	        html: '<i class="alert-icon"  style="background: ' + background + '"></i>'
 	    });
-	}
-
-	function getClusterInfoHTML(properties, callback) {
-
-	    getClusterCases(properties.keys, gotCases);
-	    function gotCases(cases) {
-	        var popupHtml = "<div class='linelist'><input type='button' onclick='saveCluster()' value='Save'/><br>";
-	        popupHtml = popupHtml + "<table class='listTable'><thead><tr><th>isDuplicate</th>";
-
-	        for (var key in clusterDeIdToNameMap) {
-	            popupHtml += "<th>" + clusterDeIdToNameMap[key].name + "</th>";
-	        }
-	        popupHtml += "</tr></thead><tbody>";
-
-	        for (var i = 0; i < cases.length; i++) {
-
-	            var isDuplicate = _utilityFunctions2.default.findValueAgainstId(cases[i].dataValues, "dataElement", NIE.DE_isDuplicate, "value");
-
-	            popupHtml = popupHtml + "<tr class=''><td><input type='checkbox' value='duplicate' onchange=toggleDuplicate('" + cases[i].event + "'," + isDuplicate + ") ></input></td>";
-
-	            for (var key in clusterDeIdToNameMap) {
-	                var value = _utilityFunctions2.default.findValueAgainstId(cases[i].dataValues, "dataElement", key, "value");
-	                if (!value) {
-	                    value = "";
-	                };
-	                popupHtml += "<td>" + value + "</td>";
-	            }
-
-	            popupHtml = popupHtml + "</tr>";
-	        }
-	        popupHtml += "<tbody></table></div>";
-	        callback(popupHtml);
-	    }
-	}
-
-	function getClusterCases(cases, callback) {
-
-	    //  cases = cases.split(";");
-	    var clusterCases = [];
-	    getEvent(0, cases);
-	    function getEvent(index, cases) {
-	        if (index == cases.length - 1) {
-	            callback(clusterCases);
-	            return;
-	        }
-	        _ajaxWrapper2.default.request({
-	            type: "GET",
-	            async: true,
-	            contentType: "application/json",
-	            url: "../../events/" + cases[index]
-	        }, function (error, response, body) {
-	            if (error) {
-	                console.log("Error Fetch Event");
-	            }
-	            clusterCases.push(response);
-	            getEvent(index + 1, cases);
-	        });
-	    }
 	}
 
 /***/ }),
@@ -32925,6 +32877,20 @@
 	            _callback(error, response, body);
 	        }
 	    };
+
+	    this.get = function (domain, id, _callback) {
+	        ajax.request({
+	            type: "GET",
+	            async: true,
+	            contentType: "application/json",
+	            url: "../../" + domain + "/" + id
+	        }, callback);
+
+	        function callback(error, response, body) {
+	            _callback(error, response, body);
+	        }
+	    };
+
 	    this.getCustomObject = function (_retriever) {
 	        if (this[_retriever]) {
 	            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -33001,6 +32967,25 @@
 	            }
 	        }
 	    };
+
+	    this.getEventsByTEI = function (teiUID, afterThat) {
+	        ajax.request({
+	            type: "GET",
+	            async: true,
+	            contentType: "application/json",
+	            url: "../../events?trackedEntityInstance=" + teiUID + "&skipPaging=true"
+	        }, callback);
+
+	        function callback(error, response, body) {
+	            if (error) {
+	                args.afterThat(true, null);
+	            } else {
+
+	                args.afterThat(null, uid, response.events);
+	            }
+	        }
+	    };
+
 	    this.getObjByField = function (args, domain, fieldName, fieldValue) {
 
 	        ajax.request({
@@ -93431,11 +93416,10 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	        value: true
+	    value: true
 	});
 	exports.UploadFile = UploadFile;
 	exports.AlertPopUp = AlertPopUp;
-	exports.MapContainer = MapContainer;
 
 	var _react = __webpack_require__(1);
 
@@ -93445,38 +93429,180 @@
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
+	var _dhisAPIHelper = __webpack_require__(477);
+
+	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
+
+	var _nieConstants = __webpack_require__(476);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	/**
-	 * Created by harsh on 21/12/16.
-	 */
-
 	function UploadFile(props) {
-	        return _react2.default.createElement(
-	                'div',
-	                null,
-	                _react2.default.createElement(
-	                        'label',
-	                        null,
-	                        'Upload .json file'
-	                ),
-	                _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
-	                _react2.default.createElement(
-	                        'button',
-	                        { onClick: props.onClick },
-	                        'Import'
-	                )
-	        );
-	}
+	    return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	            'label',
+	            null,
+	            'Upload .json file'
+	        ),
+	        _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
+	        _react2.default.createElement(
+	            'button',
+	            { onClick: props.onClick },
+	            'Import'
+	        )
+	    );
+	} /**
+	   * Created by harsh on 21/12/16.
+	   */
 
 	function AlertPopUp(props) {
+
+	    var instance = Object.create(_react2.default.Component.prototype);
+
+	    instance.props = props;
+	    instance.state = { data: props.data, cases: [] };
+	    debugger;
+	    instance.componentDidMount = function () {
+	        _dhisAPIHelper2.default.getClusterCases(props.data.keys, function (cases) {
+	            instance.setState({ cases: cases, deMap: props.deMap, componentDidMount: instance.componentDidMount });
+	        });
+	    };
+
+	    instance.clusterActivationToggle = function (data, isActive) {
+	        var _this = this;
+
+	        isActive = !isActive;
+	        _dhisAPIHelper2.default.saveTEIWithDataValue(data.trackedEntityInstance, NIE.TEA_IS_ACTIVE, isActive, function (attributes) {
+	            _this.state.data.attributes = attributes;
+	            _this.setState({ data: _this.state.data });
+	            debugger;
+	        });
+	    };
+
+	    var isClusterActive = false;
+	    instance.render = function () {
+
 	        return _react2.default.createElement(
-	                'div',
-	                null,
-	                'Hello'
+	            'div',
+	            { className: 'linelist ' },
+	            _react2.default.createElement('br', null),
+	            _react2.default.createElement(AlertTable, { data: this.state })
 	        );
+	    };
+
+	    return instance;
 	}
-	function MapContainer() {}
+
+	function AlertTable(props) {
+
+	    function getHeaderRows() {
+
+	        if (!props.data.deMap) {
+	            return;
+	        }
+
+	        var tableHeaders = [];
+	        tableHeaders.push(_react2.default.createElement(
+	            'th',
+	            { key: _lodash2.default.uniqueId("th_") },
+	            'isDuplicate'
+	        ));
+
+	        for (var key in props.data.deMap) {
+	            tableHeaders.push(_react2.default.createElement(
+	                'th',
+	                { key: _lodash2.default.uniqueId("th_") },
+	                props.data.deMap[key].name
+	            ));
+	        }
+
+	        return tableHeaders;
+	    }
+
+	    function toggleDuplicate(eventUID, currentValue) {
+
+	        var _currentValue = !currentValue;
+
+	        _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, _currentValue, function () {
+	            props.data.componentDidMount();
+	        });
+
+	        return currentValue;
+	    }
+
+	    function getRows(cases, clusterDeIdToNameMap) {
+	        var rows = [];
+	        cases.map(function (eventCase) {
+	            var isDuplicate = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", NIE.DE_isDuplicate, "value");
+	            if (isDuplicate == null || isDuplicate == undefined) {
+	                isDuplicate = false;
+	            }
+	            isDuplicate = JSON.parse(isDuplicate);
+
+	            var duplicateRowClass = '';
+	            var cells = [];
+	            var eventUID = eventCase.event;
+	            cells.push(_react2.default.createElement(
+	                'td',
+	                { key: eventCase.event + "-" + NIE.DE_isDuplicate },
+	                _react2.default.createElement('input', { key: "input_" + eventCase.event + "-" + NIE.DE_isDuplicate, type: 'checkbox', value: 'duplicate', onChange: function onChange() {
+	                        return toggleDuplicate(eventUID, isDuplicate);
+	                    }, checked: isDuplicate })
+	            ));
+
+	            for (var key in clusterDeIdToNameMap) {
+	                var value = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", key, "value");
+	                if (!value) {
+	                    value = "";
+	                };
+	                cells.push(_react2.default.createElement(
+	                    'td',
+	                    { key: eventCase.event + "-" + key },
+	                    value
+	                ));
+	            }
+	            if (isDuplicate) {
+	                duplicateRowClass = 'violet';
+	            }
+	            rows.push(_react2.default.createElement(
+	                'tr',
+	                { className: duplicateRowClass, key: eventCase.event },
+	                cells
+	            ));
+	        });
+
+	        return rows;
+	    }
+
+	    return _react2.default.createElement(
+	        'table',
+	        { className: 'alertsTable' },
+	        _react2.default.createElement(
+	            'thead',
+	            null,
+	            _react2.default.createElement(
+	                'tr',
+	                null,
+	                getHeaderRows()
+	            )
+	        ),
+	        _react2.default.createElement(
+	            'tbody',
+	            null,
+	            getRows(props.data.cases, props.data.deMap)
+	        )
+	    );
+	}
 
 /***/ }),
 /* 476 */
@@ -93504,6 +93630,122 @@
 	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
 
 	var DE_NAMES_VALUES = exports.DE_NAMES_VALUES = [{ id: "id", value: "eDFSS_IPD_V3" }, { id: "id", value: "eDFSS_OPD_V3" }, { id: "id", value: "DPHL_Lab_V1" }, { id: "Dengue", value: "Dengue_Positive_IgM" }, { id: "Scrub_typhus", value: "true" }, { id: "Leptosprirosis", value: "true" }, { id: "Malaria", value: "true" }];
+
+/***/ }),
+/* 477 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _dhis2API = __webpack_require__(184);
+
+	var _dhis2API2 = _interopRequireDefault(_dhis2API);
+
+	var _ajaxWrapper = __webpack_require__(182);
+
+	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	module.exports = new dhisAPIHelper();
+
+	var api = new _dhis2API2.default();
+
+
+	function dhisAPIHelper() {
+
+	    this.getClusterCases = function (cases, callback) {
+
+	        //   cases = cases.split(";");
+	        var clusterCases = [];
+	        getEvent(0, cases);
+	        function getEvent(index, cases) {
+	            if (index == cases.length) {
+	                callback(clusterCases);
+	                return;
+	            }
+
+	            _ajaxWrapper2.default.request({
+	                type: "GET",
+	                async: true,
+	                contentType: "application/json",
+	                url: "../../events/" + cases[index]
+	            }, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error Fetch Event");
+	                }
+	                clusterCases.push(response);
+	                getEvent(index + 1, cases);
+	            });
+	        }
+	    };
+
+	    this.saveEventWithDataValue = function (eventUID, deUID, deValue, callback) {
+
+	        api.get("events", eventUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch event");
+	                return;
+	            }
+	            var event = response;
+	            event = addUpdateEvent(event, deUID, deValue);
+
+	            api.update("event", eventUID, event, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update event");
+	                    return;
+	                }
+	                callback();
+	            });
+	        });
+	    };
+
+	    this.saveTEIWithDataValue = function (teiUID, attrUID, attrValue, callback) {
+
+	        api.get("trackedEntityInstances", teiUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch tei");
+	                return;
+	            }
+	            var tei = response;
+	            tei = addUpdateTEI(tei, attrUID, attrValue);
+
+	            api.update("trackedEntityInstance", teiUID, tei, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update tei");
+	                    return;
+	                }
+	                callback(tei.attributes);
+	            });
+	        });
+	    };
+
+	    function addUpdateTEI(tei, attrUID, deValue) {
+
+	        for (var key in tei.attributes) {
+	            if (tei.attributes[key].attribute == attrUID) {
+	                tei.attributes[key].value = deValue;
+	                return tei;
+	            }
+	        }
+	        tei.attributes.push({ attribute: attrUID, value: attrValue });
+	        return tei;
+	    }
+
+	    function addUpdateEvent(event, deUID, deValue) {
+
+	        for (var key in event.dataValues) {
+	            if (event.dataValues[key].dataElement == deUID) {
+	                event.dataValues[key].value = deValue;
+	                return event;
+	            }
+	        }
+	        event.dataValues.push({ dataElement: deUID, value: deValue });
+	        return event;
+	    }
+	}
 
 /***/ })
 /******/ ]);
