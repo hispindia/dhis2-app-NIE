@@ -111,7 +111,7 @@ $('document').ready(function(){
     $('#sdate').val(moment(startDate).format(format));
     $('#edate').val(moment(endDate).format(format));
 
-    map.init("mapid",[13.23521,80.3332],9);
+    map.init("mapid",[13.239758,79.978065],10);
     addLegend(map.getMap())
 
     // control that shows state info on hover
