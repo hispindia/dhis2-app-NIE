@@ -18,9 +18,7 @@
   background: orange;
 }
 
-
-.linelist{
-
+.alertsTable{
     overflow-y: scroll;
     overflow-x: scroll;
     display: inline-block;
@@ -30,7 +28,20 @@
     white-space: normal;
     text-align: center;
     border: 1px solid #aaa;
-    border-radius: 4px;
+    padding:0px;
+}
+
+
+.alertsTable th,td{  
+    border: 1px solid #aaa;
+}
+
+.linelist{   
+    display: inline-block;
+    height:400px;
+    width :600px;
+    opacity: 1.0;
+    white-space: normal;   
     padding:0px;
 
 }

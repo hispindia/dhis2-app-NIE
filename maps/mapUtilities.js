@@ -158,9 +158,9 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                         type : data.type,
                         label :data.orgUnit,
                         layerId :"custom",
-                        tei : data.trackedEntityInstance,
+                        trackedEntityInstance : data.trackedEntityInstance,
+                        attributes : data.attributes,
                         cases : data.cases
-
                     },
                     "geometry": {
                         "type": "Point",

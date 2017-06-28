@@ -238,7 +238,7 @@
 
 	    map.getMap().on('popupopen', function (e) {
 
-	        var data = JSON.parse(e.popup._contentNode.childNodes[0].attributes[2].nodeValue);
+	        var data = e.popup.data;
 	        _reactDom2.default.render(_react2.default.createElement(_components.AlertPopUp, { data: data, deMap: clusterDeIdToNameMap }), document.getElementById('hello'));
 	        //var marker = e.popup._source;
 	    });
@@ -286,9 +286,9 @@
 	    for (var i = 0; i < teis.length; i++) {
 	        var type = "unknown";
 
-	        var coord = findValueAgainstId(teis[i].attributes, "attribute", NIE.DE_COORDS, "value");
+	        var coord = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_COORDS, "value");
 
-	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", NIE.DE_IS_ACTIVE, "value");
+	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
 
 	        if (coord && isActive) {
 
@@ -319,6 +319,7 @@
 	                orgUnit: teis[i].orgUnit,
 	                type: type,
 	                trackedEntityInstance: teis[i].trackedEntityInstance,
+	                attributes: teis[i].attributes,
 	                cases: cases
 
 	            });
@@ -436,7 +437,8 @@
 
 	    oms.addListener('click', function (marker) {
 	        var popup = new L.Popup(_components.AlertPopUp);
-	        popup.setContent("<div class='linelist' id='hello' data=" + JSON.stringify(marker.feature.properties) + "></div>");
+	        popup.data = marker.feature.properties;
+	        popup.setContent("<div class='linelist' id='hello'></div>");
 	        popup.setLatLng(marker.getLatLng());
 	        map.getMap().openPopup(popup);
 	    });
@@ -61388,9 +61390,9 @@
 	                    type: data.type,
 	                    label: data.orgUnit,
 	                    layerId: "custom",
-	                    tei: data.trackedEntityInstance,
+	                    trackedEntityInstance: data.trackedEntityInstance,
+	                    attributes: data.attributes,
 	                    cases: data.cases
-
 	                },
 	                "geometry": {
 	                    "type": "Point",
@@ -93399,15 +93401,33 @@
 	        });
 	    };
 
-	    instance.clusterActivationToggle = function (e) {
-	        debugger;
+	    instance.clusterActivationToggle = function (data, isActive) {
+	        var _this = this;
+
+	        isActive = !isActive;
+	        _dhisAPIHelper2.default.saveTEIWithDataValue(data.trackedEntityInstance, NIE.TEA_IS_ACTIVE, isActive, function (attributes) {
+	            _this.state.data.attributes = attributes;
+	            _this.setState({ data: _this.state.data });
+	            debugger;
+	        });
 	    };
 
+	    var isClusterActive = false;
 	    instance.render = function () {
+	        var _this2 = this;
+
+	        var isActive = _utilityFunctions2.default.findValueAgainstId(this.state.data.attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
+	        if (isActive == null || isActive == undefined) {
+	            isActive = false;
+	        }
+	        isActive = JSON.parse(isActive);
 	        return _react2.default.createElement(
 	            'div',
-	            { className: 'linelist' },
-	            _react2.default.createElement('input', { type: 'checkbox', value: 'Activate/Deactivate', onChange: this.clusterActivationToggle }),
+	            { className: 'linelist ' },
+	            'is Active ? ',
+	            _react2.default.createElement('input', { type: 'checkbox', value: 'Activate/Deactivate', onChange: function onChange() {
+	                    return _this2.clusterActivationToggle(_this2.props.data, isActive);
+	                }, checked: isActive }),
 	            ' ',
 	            _react2.default.createElement('br', null),
 	            _react2.default.createElement(AlertTable, { data: this.state })
@@ -93419,9 +93439,6 @@
 
 	function AlertTable(props) {
 
-	    function callIt() {
-	        props.data.componentDidMount();
-	    }
 	    function getHeaderRows() {
 
 	        if (!props.data.deMap) {
@@ -93451,7 +93468,7 @@
 	        var _currentValue = !currentValue;
 
 	        _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, _currentValue, function () {
-	            callIt();
+	            props.data.componentDidMount();
 	        });
 
 	        return currentValue;
@@ -93503,7 +93520,7 @@
 
 	    return _react2.default.createElement(
 	        'table',
-	        { className: 'listTable' },
+	        { className: 'alertsTable' },
 	        _react2.default.createElement(
 	            'thead',
 	            null,
@@ -93591,6 +93608,39 @@
 	        });
 	    };
 
+	    this.saveTEIWithDataValue = function (teiUID, attrUID, attrValue, callback) {
+
+	        api.get("trackedEntityInstances", teiUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch tei");
+	                return;
+	            }
+	            var tei = response;
+	            tei = addUpdateTEI(tei, attrUID, attrValue);
+
+	            api.update("trackedEntityInstance", teiUID, tei, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update tei");
+	                    return;
+	                }
+	                callback(tei.attributes);
+	            });
+	        });
+	    };
+
+	    function addUpdateTEI(tei, attrUID, deValue) {
+
+	        for (var key in tei.attributes) {
+	            if (tei.attributes[key].attribute == attrUID) {
+	                tei.attributes[key].value = deValue;
+	                return tei;
+	            }
+	        }
+	        tei.attributes.push({ attribute: attrUID, value: attrValue });
+	        return tei;
+	    }
+
 	    function addUpdateEvent(event, deUID, deValue) {
 
 	        for (var key in event.dataValues) {
@@ -93621,8 +93671,8 @@
 	var ADD_TEA_2_3 = exports.ADD_TEA_2_3 = "ET5iMtBo5fV";
 	var TEA_LAB = exports.TEA_LAB = "nMC9jWaMUTA";
 
-	var DE_IS_ACTIVE = exports.DE_IS_ACTIVE = "DyjpKLdKmoD";
-	var DE_COORDS = exports.DE_COORDS = "sanq4S5uYdb";
+	var TEA_IS_ACTIVE = exports.TEA_IS_ACTIVE = "DyjpKLdKmoD";
+	var TEA_COORDS = exports.TEA_COORDS = "sanq4S5uYdb";
 	var TEA_CLUSTER_TYPE = exports.TEA_CLUSTER_TYPE = "sBmb7HfvAau";
 	var TEA_CLUSTER_CASES = exports.TEA_CLUSTER_CASES = "I2eCWfhryZH";
 	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";

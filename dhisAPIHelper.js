@@ -35,8 +35,6 @@ function dhisAPIHelper(){
         
     }
 
-
-
     this.saveEventWithDataValue = function(eventUID,deUID,deValue,callback){
 
         
@@ -59,6 +57,39 @@ function dhisAPIHelper(){
         })
     }
 
+    this.saveTEIWithDataValue = function(teiUID,attrUID,attrValue,callback){
+        
+        api.get("trackedEntityInstances",teiUID,function(error,response,body){
+            
+            if (error){
+                console.log("Error : Fetch tei");
+                return
+            }
+            var tei = response;
+            tei = addUpdateTEI(tei,attrUID,attrValue);
+            
+            api.update("trackedEntityInstance",teiUID,tei,function(error,response,body){
+                if (error){
+                    console.log("Error : update tei");
+                    return
+                }
+                callback(tei.attributes);
+            })
+        })
+    }
+
+    function addUpdateTEI(tei,attrUID,deValue){
+        
+        for (var key in tei.attributes){
+            if (tei.attributes[key].attribute == attrUID){
+                tei.attributes[key].value = deValue;
+                return tei;
+            }
+        }
+        tei.attributes.push({attribute : attrUID,value : attrValue});
+        return tei;
+    }
+    
     function addUpdateEvent(event,deUID,deValue){
         
         for (var key in event.dataValues){

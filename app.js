@@ -160,7 +160,7 @@ $('document').ready(function(){
 
     map.getMap().on('popupopen', function(e) {
         
-        var data = JSON.parse(e.popup._contentNode.childNodes[0].attributes[2].nodeValue);
+        var data = e.popup.data;
         ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} />, document.getElementById('hello'));
         //var marker = e.popup._source;
     });
@@ -211,9 +211,9 @@ function extractCoordsFromTEI(teis){
     for (var i=0;i<teis.length;i++){       
         var type = "unknown";
 
-        var coord = findValueAgainstId(teis[i].attributes,"attribute",NIE.DE_COORDS,"value");
+        var coord = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_COORDS,"value");
 
-        var isActive = findValueAgainstId(teis[i].attributes,"attribute",NIE.DE_IS_ACTIVE,"value");
+        var isActive = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_IS_ACTIVE,"value");
 
 
         if (coord && isActive){
@@ -245,6 +245,7 @@ function extractCoordsFromTEI(teis){
                 orgUnit : teis[i].orgUnit,
                 type : type,
                 trackedEntityInstance : teis[i].trackedEntityInstance,
+                attributes : teis[i].attributes,
                 cases : cases
                 
             })   
@@ -356,8 +357,7 @@ function buildMap(coords,c_dist,threshold){
             }
         }
         
-        return L.marker(latlng, {});
-        
+        return L.marker(latlng, {});        
     }
     
     var oms = new OverlappingMarkerSpiderfier(map.getMap(),{
@@ -366,7 +366,8 @@ function buildMap(coords,c_dist,threshold){
     
     oms.addListener('click', function(marker) {
         var popup = new L.Popup(AlertPopUp);
-        popup.setContent("<div class='linelist' id='hello' data="+JSON.stringify(marker.feature.properties)+"></div>");
+        popup.data = marker.feature.properties; 
+        popup.setContent("<div class='linelist' id='hello'></div>");
         popup.setLatLng(marker.getLatLng());
         map.getMap().openPopup(popup);                    
     });
@@ -382,7 +383,6 @@ function buildMap(coords,c_dist,threshold){
         oms.addMarker(marker); 
     }
 }
-
 
 function getClusterCases(cases,callback){
 
