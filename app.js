@@ -106,7 +106,15 @@ function callback(error,response){
 
 }
 
+function setImageVisible(id, visible) {
+    var img = document.getElementById(id);
+    img.style.visibility = (visible ? 'visible' : 'hidden');
+}
+
 window.refresh = function(){
+
+    setImageVisible("loader",true);
+    info.update({uid : "",num_points : "",area:""});
 
     var c_dist=$('#c_dist').val();
     var threshold=$('#threshold').val();
@@ -133,9 +141,10 @@ $('document').ready(function(){
 
     var startDate = new Date();
     var format = "YYYY-MM-DD";
-    $('#sdate').val(moment(startDate).format(format));
-    startDate.setDate(startDate.getDate() - 5);
     $('#edate').val(moment(startDate).format(format));
+    startDate.setDate(startDate.getDate() - 5);
+    $('#sdate').val(moment(startDate).format(format));
+
 
     map.init("mapid",[13.239758,79.978065],10);
     addLegend(map.getMap())
@@ -270,6 +279,14 @@ function extractCoordsFromEvents(events){
                     case 'ADD' : type = "ADD"; break;
                     }
 
+                    if (events[i].type){
+                        switch(events[i].type){
+                        case "eDFSS_IPD_V3" : type = "IPD";break;
+                        case "eDFSS_OPD_V3" : type = "OPD";break;
+                        case "DPHL_Lab_V1" : type = "LAB";break;
+                        }
+                   }
+                 
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
@@ -278,11 +295,9 @@ function extractCoordsFromEvents(events){
                         trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
-                }
-                
+                }                
             }
-        }
-        
+        }        
     }
     return result;
 }
@@ -290,19 +305,61 @@ function extractCoordsFromEvents(events){
 export function filterEvents(events,filters,deNameToIdMap){
 
     var filteredEvents = [];
+   // var filterHelp = distributeFilters(filters);
 
     for (var i =0;i<events.length;i++){
-        
+        var idFlag = false;
+        var diagnosisFlag = false;
+        var labFlag = false;
+        var idValue = "";
+
         for(var key in filters){
             var value = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap[filters[key].id],"value");
             if (value == filters[key].value){
-                filteredEvents.push(events[i]);
-                break;
+                if (filters[key].id == "id"){
+                    idFlag = true;
+                    idValue = filters[key].value;
+                }else 
+                    if (filters[key].id == "Diagnosis_Information/Syndrome"){
+                        diagnosisFlag = true;
+                    }else{
+                        labFlag = true;
+                    }               
             }
         }
+                   
+        if ((idFlag && diagnosisFlag) || (idFlag && labFlag)){
+            filteredEvents.push(events[i]);            
+        }else if (idFlag){debugger
+            events[i].type = idValue;
+            filteredEvents.push(events[i]);            
+        }
+    }
+    
+    return filteredEvents;
+}
+
+function distributeFilters(filters){
+
+    var result = {
+        id : [],
+        diagnosis : [],
+        lab : false
+    };
+
+    for (var key in filters){
+        if (filters[key].id == "id"){
+            result.id.push(filters[key])
+        }else    
+        if (filters[key].id == "Diagnosis_Information/Syndrome"){
+            result.diagnosis.push(filters[key]);
+        }else
+            {
+                result.lab = true
+            }     
     }
 
-    return filteredEvents;
+    return result;
 }
 
 function getCoordinatesFromOus(ous){
@@ -567,6 +624,8 @@ function addClustergons(map,gjson){
 	onEachFeature: onEachFeature,
         pointToLayer : pointToLayer
     }).addTo(map);
+
+    setImageVisible("loader",false);
 
     //zoomToBiggestCluster(map,geojson._layers);
 }

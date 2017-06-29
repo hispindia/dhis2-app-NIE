@@ -85,7 +85,7 @@
 
 	var _components = __webpack_require__(475);
 
-	var _nieConstants = __webpack_require__(476);
+	var _nieConstants = __webpack_require__(477);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
@@ -188,7 +188,15 @@
 	    //program : NIE.Cluster_ProgramUID,
 	};
 
+	function setImageVisible(id, visible) {
+	    var img = document.getElementById(id);
+	    img.style.visibility = visible ? 'visible' : 'hidden';
+	}
+
 	window.refresh = function () {
+
+	    setImageVisible("loader", true);
+	    info.update({ uid: "", num_points: "", area: "" });
 
 	    var c_dist = (0, _jquery2.default)('#c_dist').val();
 	    var threshold = (0, _jquery2.default)('#threshold').val();
@@ -214,9 +222,9 @@
 
 	    var startDate = new Date();
 	    var format = "YYYY-MM-DD";
-	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
-	    startDate.setDate(startDate.getDate() - 5);
 	    (0, _jquery2.default)('#edate').val((0, _moment2.default)(startDate).format(format));
+	    startDate.setDate(startDate.getDate() - 5);
+	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
 
 	    map.init("mapid", [13.239758, 79.978065], 10);
 	    addLegend(map.getMap());
@@ -350,6 +358,17 @@
 	                            type = "ADD";break;
 	                    }
 
+	                    if (events[i].type) {
+	                        switch (events[i].type) {
+	                            case "eDFSS_IPD_V3":
+	                                type = "IPD";break;
+	                            case "eDFSS_OPD_V3":
+	                                type = "OPD";break;
+	                            case "DPHL_Lab_V1":
+	                                type = "LAB";break;
+	                        }
+	                    }
+
 	                    result.push({
 	                        id: events[i].event,
 	                        coordinates: events[i].coordinate,
@@ -368,19 +387,59 @@
 	function filterEvents(events, filters, deNameToIdMap) {
 
 	    var filteredEvents = [];
+	    // var filterHelp = distributeFilters(filters);
 
 	    for (var i = 0; i < events.length; i++) {
+	        var idFlag = false;
+	        var diagnosisFlag = false;
+	        var labFlag = false;
+	        var idValue = "";
 
 	        for (var key in filters) {
 	            var value = _utilityFunctions2.default.findValueAgainstId(events[i].dataValues, "dataElement", deNameToIdMap[filters[key].id], "value");
 	            if (value == filters[key].value) {
-	                filteredEvents.push(events[i]);
-	                break;
+	                if (filters[key].id == "id") {
+	                    idFlag = true;
+	                    idValue = filters[key].value;
+	                } else if (filters[key].id == "Diagnosis_Information/Syndrome") {
+	                    diagnosisFlag = true;
+	                } else {
+	                    labFlag = true;
+	                }
 	            }
+	        }
+
+	        if (idFlag && diagnosisFlag || idFlag && labFlag) {
+	            filteredEvents.push(events[i]);
+	        } else if (idFlag) {
+	            debugger;
+	            events[i].type = idValue;
+	            filteredEvents.push(events[i]);
 	        }
 	    }
 
 	    return filteredEvents;
+	}
+
+	function distributeFilters(filters) {
+
+	    var result = {
+	        id: [],
+	        diagnosis: [],
+	        lab: false
+	    };
+
+	    for (var key in filters) {
+	        if (filters[key].id == "id") {
+	            result.id.push(filters[key]);
+	        } else if (filters[key].id == "Diagnosis_Information/Syndrome") {
+	            result.diagnosis.push(filters[key]);
+	        } else {
+	            result.lab = true;
+	        }
+	    }
+
+	    return result;
 	}
 
 	function getCoordinatesFromOus(ous) {
@@ -633,6 +692,8 @@
 	        onEachFeature: onEachFeature,
 	        pointToLayer: pointToLayer
 	    }).addTo(map);
+
+	    setImageVisible("loader", false);
 
 	    //zoomToBiggestCluster(map,geojson._layers);
 	}
@@ -93429,11 +93490,11 @@
 
 	var _lodash2 = _interopRequireDefault(_lodash);
 
-	var _dhisAPIHelper = __webpack_require__(477);
+	var _dhisAPIHelper = __webpack_require__(476);
 
 	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
 
-	var _nieConstants = __webpack_require__(476);
+	var _nieConstants = __webpack_require__(477);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
@@ -93608,33 +93669,6 @@
 /* 476 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
-
-	var _utilityFunctions = __webpack_require__(185);
-
-	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
-	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
-	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
-
-	var PROGRAM_ODK_DATA = exports.PROGRAM_ODK_DATA = "Ml0ZNj9APN0";
-	var DEGROUP_CLUSTERTOBESHOWN = exports.DEGROUP_CLUSTERTOBESHOWN = "sXzZ0Xl2F0j";
-	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
-
-	var DE_NAMES_VALUES = exports.DE_NAMES_VALUES = [{ id: "id", value: "eDFSS_IPD_V3" }, { id: "id", value: "eDFSS_OPD_V3" }, { id: "id", value: "DPHL_Lab_V1" }, { id: "Dengue", value: "Dengue_Positive_IgM" }, { id: "Scrub_typhus", value: "true" }, { id: "Leptosprirosis", value: "true" }, { id: "Malaria", value: "true" }];
-
-/***/ }),
-/* 477 */
-/***/ (function(module, exports, __webpack_require__) {
-
 	'use strict';
 
 	var _dhis2API = __webpack_require__(184);
@@ -93746,6 +93780,33 @@
 	        return event;
 	    }
 	}
+
+/***/ }),
+/* 477 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
+	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
+	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
+
+	var PROGRAM_ODK_DATA = exports.PROGRAM_ODK_DATA = "Ml0ZNj9APN0";
+	var DEGROUP_CLUSTERTOBESHOWN = exports.DEGROUP_CLUSTERTOBESHOWN = "sXzZ0Xl2F0j";
+	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
+
+	var DE_NAMES_VALUES = exports.DE_NAMES_VALUES = [{ id: "id", value: "eDFSS_IPD_V3" }, { id: "id", value: "eDFSS_OPD_V3" }, { id: "id", value: "DPHL_Lab_V1" }, { id: "Dengue", value: "Dengue_Positive_IgM" }, { id: "Scrub_typhus", value: "true" }, { id: "Leptosprirosis", value: "true" }, { id: "Malaria", value: "true" }];
 
 /***/ })
 /******/ ]);
