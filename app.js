@@ -293,13 +293,9 @@ function extractCoordsFromEvents(events){
 export function filterEvents(events,filters,deNameToIdMap){
 
     var filteredEvents = [];
-   // var filterHelp = distributeFilters(filters);
 
     for (var i =0;i<events.length;i++){
-        var idFlag = false;
-        var diagnosisFlag = false;
-        var labFlag = false;
-        var idValue = "";
+       
         var deIdToNameMap = utility.invert(deNameToIdMap);
         var idToValueDVMap = utility.prepareIdToValueMap(events[i].dataValues,"dataElement","value");
         var source = idToValueDVMap[deNameToIdMap["id"]];
@@ -346,36 +342,15 @@ export function filterEvents(events,filters,deNameToIdMap){
         }
       
   
-        if ((filters.diagnosis.length == 0 && filters.lab_confirmed.length != 0 ) && utility.contains(filters.source,source) && (source == NIE.IPD_FORM_VAL || source == NIE.OPD_FORM_VAL) ){
+        if ((filters.diagnosis.length == 0 && filters.lab_confirmed.length != 0 ) && 
+            utility.contains(filters.source,source) && 
+            (source == NIE.IPD_FORM_VAL || source == NIE.OPD_FORM_VAL) ){
             events[i].type = source;
             filteredEvents.push(events[i]); continue;     
         }
     }
     
     return filteredEvents;
-}
-
-function distributeFilters(filters){
-
-    var result = {
-        id : [],
-        diagnosis : [],
-        lab : false
-    };
-
-    for (var key in filters){
-        if (filters[key].id == "id"){
-            result.id.push(filters[key])
-        }else    
-        if (filters[key].id == "Diagnosis_Information/Syndrome"){
-            result.diagnosis.push(filters[key]);
-        }else
-            {
-                result.lab = true
-            }     
-    }
-
-    return result;
 }
 
 function getCoordinatesFromOus(ous){

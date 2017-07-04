@@ -367,13 +367,9 @@
 	function filterEvents(events, filters, deNameToIdMap) {
 
 	    var filteredEvents = [];
-	    // var filterHelp = distributeFilters(filters);
 
 	    for (var i = 0; i < events.length; i++) {
-	        var idFlag = false;
-	        var diagnosisFlag = false;
-	        var labFlag = false;
-	        var idValue = "";
+
 	        var deIdToNameMap = _utilityFunctions2.default.invert(deNameToIdMap);
 	        var idToValueDVMap = _utilityFunctions2.default.prepareIdToValueMap(events[i].dataValues, "dataElement", "value");
 	        var source = idToValueDVMap[deNameToIdMap["id"]];
@@ -425,27 +421,6 @@
 	    }
 
 	    return filteredEvents;
-	}
-
-	function distributeFilters(filters) {
-
-	    var result = {
-	        id: [],
-	        diagnosis: [],
-	        lab: false
-	    };
-
-	    for (var key in filters) {
-	        if (filters[key].id == "id") {
-	            result.id.push(filters[key]);
-	        } else if (filters[key].id == "Diagnosis_Information/Syndrome") {
-	            result.diagnosis.push(filters[key]);
-	        } else {
-	            result.lab = true;
-	        }
-	    }
-
-	    return result;
 	}
 
 	function getCoordinatesFromOus(ous) {
