@@ -44,7 +44,7 @@ debugger
     var isClusterActive = false;
     instance.render = function() {       
       
-        return  <div className='linelist '>
+        return  <div className='linelist '> isActive <input key = {"input_"} type='checkbox' value='duplicate' onChange={ () => toggleDuplicate(eventUID,isDuplicate)} checked = {true} />
             <br></br>
             <AlertTable data={this.state} />
             </div>            

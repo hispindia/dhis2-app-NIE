@@ -86,20 +86,28 @@
         <input type="number" id="c_dist" value="5"></input>
         Threshold:
         <input type="number" id="threshold" value="3"></input>
+        <!--<input type='checkbox' id="area" value=''  onClick = "setDistance();" > Area </input>
+-->
         <input class="btn-info right" type="button" value="Refresh" onclick="refresh();"/>
         <br>
         <div>
           
           <div>
+            <label> Source*  :</label>
         <input id='filters' type='checkbox' data-de="id" value='eDFSS_IPD_V3'  checked>IPD</input>
         <input id='filters' type='checkbox' data-de="id" value='eDFSS_OPD_V3'  >OPD</input>
         <input id='filters' type='checkbox' data-de="id" value='DPHL_Lab_V1'  >LAB</input>
         </div>
           
           <div>
+            <label> Diagnosis  : </label>
         <input id='filters' type='checkbox' data-de="Diagnosis_Information/Syndrome" value='AFI'  checked>AFI</input>
         <input id='filters' type='checkbox' data-de="Diagnosis_Information/Syndrome" value='ADD'  >ADD</input>
           </div>
+
+          <div>
+          <label> Lab Cases  :</label>
+
         <input id='filters' type='checkbox' data-de="Dengue" value='Dengue_Positive_IgM'  >Dengue</input>
         <input id='filters' type='checkbox' data-de="Scrub_typhus" value='true'  >Scrub Typhus</input>
         <input id='filters' type='checkbox' data-de="Leptosprirosis" value='true'  >Lepto</input>

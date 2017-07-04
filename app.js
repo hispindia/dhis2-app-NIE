@@ -69,6 +69,11 @@ function saveClusterFoo(args){
 window.saveCluster(args);
 }
 
+window.setDistance = function(){
+    $('#c_dist').val("1.78412");
+debugger
+}
+
 window.saveCluster = function(args){
 
 var properties = utility.unshadowStringify(args);
@@ -204,10 +209,24 @@ $('document').ready(function(){
 
 function getFilters(){
 
-    var filters = [];
+    var filters = {source : [],
+                  diagnosis : [],
+                  lab_confirmed : []
+                  };
     $('#filters:checked').each(function() {
-        var deUID = $(this).data('de');
-        filters.push( {id : deUID, value : $(this).val()});
+        var deName = $(this).data('de');
+        switch(deName){
+            case "id" :         
+            filters.source.push($(this).val());
+            break;
+
+            case "Diagnosis_Information/Syndrome":
+            filters.diagnosis.push(  $(this).val());
+            break;
+
+            default : 
+            filters.lab_confirmed.push($(this).val());
+        }
     });
     return filters;
 }
@@ -255,43 +274,12 @@ function extractCoordsFromEvents(events){
         if (events[i].coordinate){
             if (events[i].coordinate.latitude!=0&&events[i].coordinate.longitude!=0){
                 if (events[i].program == NIE.PROGRAM_ODK_DATA){
-                    var type = "unknown";
-                   
-                    var id = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["id"],"value")
-                   
-                    switch(id){
-                    case 'eDFSS_IPD_V3' : type = "IPD";
-                        break
-                    case 'eDFSS_OPD_V3' : type = "OPD";
-                        break
-                    case 'DPHL_Lab_V1' : type = "LAB";
-                        break
-                    }
                     
-                    if (utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["Dengue"],"value") == "Dengue_Positive_IgM"){
-                        type = "Dengue";
-                    }
-
-                    var syndrome = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap["Diagnosis_Information/Syndrome"],"value");
-
-                    switch(syndrome){
-                    case 'AFI' : type = "AFI"; break;
-                    case 'ADD' : type = "ADD"; break;
-                    }
-
-                    if (events[i].type){
-                        switch(events[i].type){
-                        case "eDFSS_IPD_V3" : type = "IPD";break;
-                        case "eDFSS_OPD_V3" : type = "OPD";break;
-                        case "DPHL_Lab_V1" : type = "LAB";break;
-                        }
-                   }
-                 
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
                         orgUnit : events[i].orgUnitName,
-                        type : type,
+                        type : events[i].type,
                         trackedEntityInstance : events[i].trackedEntityInstance
                         
                     })
@@ -312,27 +300,55 @@ export function filterEvents(events,filters,deNameToIdMap){
         var diagnosisFlag = false;
         var labFlag = false;
         var idValue = "";
+        var deIdToNameMap = utility.invert(deNameToIdMap);
+        var idToValueDVMap = utility.prepareIdToValueMap(events[i].dataValues,"dataElement","value");
+        var source = idToValueDVMap[deNameToIdMap["id"]];
+        var diagnosis = idToValueDVMap[deNameToIdMap["Diagnosis_Information/Syndrome"]];
+        var dengue = idToValueDVMap[deNameToIdMap[NIE.DENGUE_NAME]];
+        var scrub = idToValueDVMap[deNameToIdMap[NIE.SCRUB_NAME]];
+        var lepto = idToValueDVMap[deNameToIdMap[NIE.LEPTO_NAME]];
+        var malaria = idToValueDVMap[deNameToIdMap[NIE.MALARIA_NAME]];
+        
 
-        for(var key in filters){
-            var value = utility.findValueAgainstId(events[i].dataValues,"dataElement",deNameToIdMap[filters[key].id],"value");
-            if (value == filters[key].value){
-                if (filters[key].id == "id"){
-                    idFlag = true;
-                    idValue = filters[key].value;
-                }else 
-                    if (filters[key].id == "Diagnosis_Information/Syndrome"){
-                        diagnosisFlag = true;
-                    }else{
-                        labFlag = true;
-                    }               
+        if (source == NIE.LAB_FORM_VAL && utility.contains(filters.source,source)){
+            if (utility.contains(filters.lab_confirmed,scrub)){
+                events[i].type = scrub;
+                filteredEvents.push(events[i]);  continue; 
+            }
+            if (utility.contains(filters.lab_confirmed,dengue)){
+                events[i].type = dengue;
+            filteredEvents.push(events[i]);  continue; 
+            }
+            if (utility.contains(filters.lab_confirmed,malaria)){
+                events[i].type = malaria;
+                filteredEvents.push(events[i]);   continue;
+            }
+            if (utility.contains(filters.lab_confirmed,lepto)){
+                events[i].type = lepto;
+                filteredEvents.push(events[i]);   continue;
             }
         }
-                   
-        if ((idFlag && diagnosisFlag) || (idFlag && labFlag)){
-            filteredEvents.push(events[i]);            
-        }else if (idFlag){debugger
-            events[i].type = idValue;
-            filteredEvents.push(events[i]);            
+
+        if ((source == NIE.IPD_FORM_VAL || source == NIE.OPD_FORM_VAL) && utility.contains(filters.diagnosis,diagnosis) && utility.contains(filters.source,source)  ){
+            events[i].type = diagnosis;
+            filteredEvents.push(events[i]);
+            continue;
+        }
+        
+        if ((filters.diagnosis.length == 0 && filters.lab_confirmed.length == 0 ) && utility.contains(filters.source,source) ){
+            events[i].type = source;
+            filteredEvents.push(events[i]); continue;     
+        }
+        
+        if ((filters.diagnosis.length != 0 && filters.lab_confirmed.length == 0 ) && utility.contains(filters.source,source) && source == NIE.LAB_FORM_VAL ){
+            events[i].type = source;
+            filteredEvents.push(events[i]); continue;     
+        }
+      
+  
+        if ((filters.diagnosis.length == 0 && filters.lab_confirmed.length != 0 ) && utility.contains(filters.source,source) && (source == NIE.IPD_FORM_VAL || source == NIE.OPD_FORM_VAL) ){
+            events[i].type = source;
+            filteredEvents.push(events[i]); continue;     
         }
     }
     
@@ -441,26 +457,26 @@ function buildMap(coords,c_dist,threshold){
                 return L.marker(latlng,{
                     icon : centroidIcon
                 });
-            case 'IPD' :  
+            case NIE.IPD_FORM_VAL :  
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_ipd)
                 });
                 
-            case 'OPD' :   return L.marker(latlng,{
+            case NIE.OPD_FORM_VAL :   return L.marker(latlng,{
                 icon :  getCustomIcon2(imgpath_opd)
             });
-            case 'LAB' :
+            case NIE.LAB_FORM_VAL :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_lab)
                 });
-            case 'AFI' :   return L.marker(latlng,{
+            case NIE.AFI_DIAGNOSIS_VAL :   return L.marker(latlng,{
                 icon :  getCustomIcon2(imgpath_afi)
             });
-            case 'ADD' :
+            case NIE.ADD_DIAGNOSIS_VAL :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_add)
                 });
-            case 'Dengue' :
+            case NIE.DENGUE_VAL :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_dengue)
                 });

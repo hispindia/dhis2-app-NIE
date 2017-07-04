@@ -21,3 +21,22 @@ export const DE_NAMES_VALUES = [
 
 
 ]
+
+export const IPD_FORM_VAL =  "eDFSS_IPD_V3";
+export const OPD_FORM_VAL =  "eDFSS_OPD_V3";
+export const LAB_FORM_VAL =  "DPHL_Lab_V1";
+
+export const AFI_DIAGNOSIS_VAL =  "AFI";
+export const ADD_DIAGNOSIS_VAL =  "ADD";
+
+
+export const DENGUE_VAL =  "Dengue_Positive_IgM";
+export const SCRUB_VAL =  "Scrub_typhus";
+export const LEPTO_VAL =  "Leptosprirosis";
+export const MALARIA_VAL =  "Malaria";
+
+
+export const DENGUE_NAME =  "Dengue";
+export const SCRUB_NAME =  "Scrub_typhus";
+export const LEPTO_NAME =  "Leptosprirosis";
+export const MALARIA_NAME =  "Malaria";

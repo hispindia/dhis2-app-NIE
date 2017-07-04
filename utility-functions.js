@@ -2,7 +2,8 @@
  * Created by harsh on 7/5/16.
  */
 
-var _ = {};
+
+var _ = require('underscore');
 
 _.prepareIdToObjectMap = function(object,id){
     var map = [];
@@ -86,4 +87,6 @@ _.findValueAgainstId = function (data,idKey,id,valKey){
     return null;
     
 }
+
+
 module.exports = _;
