@@ -95,8 +95,11 @@ window.toggleDuplicate = function(eventUID,currentValue){
 window.refresh = function(){
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
-
-    getTEI(endDate,endDate).then(function(teis){
+    
+    startDate = new Date(endDate)
+    startDate = startDate.setDate(startDate.getDate() - 7);            
+    startDate = moment(startDate).format("YYYY-MM-DD");
+    getTEI(startDate,endDate).then(function(teis){
         var coords =  extractCoordsFromTEI(teis);
         buildMap(coords,5,3);
     });
@@ -152,7 +155,7 @@ $('document').ready(function(){
     // coordinates to be filtered here.
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
-
+  
     getTEI(startDate,endDate).then(function(teis){
         var coords =  extractCoordsFromTEI(teis);
         //  buildMap(coords,5,3);

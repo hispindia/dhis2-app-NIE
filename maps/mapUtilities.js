@@ -182,7 +182,7 @@ function createGraph(data,clusterDist){
  var graph = new graphlib.Graph({ directed: false, compound: true, multigraph: false });
   
     for (var i=0;i<data.length;i++){
-        for (var j=i+1;j<data.length;j++){
+        for (var j=i;j<data.length;j++){
             
             var coord1 = data[i].coordinates;
             var coord2 = data[j].coordinates;

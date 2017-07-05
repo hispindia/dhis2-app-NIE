@@ -176,7 +176,10 @@
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
 
-	    getTEI(endDate, endDate).then(function (teis) {
+	    startDate = new Date(endDate);
+	    startDate = startDate.setDate(startDate.getDate() - 7);
+	    startDate = (0, _moment2.default)(startDate).format("YYYY-MM-DD");
+	    getTEI(startDate, endDate).then(function (teis) {
 	        var coords = extractCoordsFromTEI(teis);
 	        buildMap(coords, 5, 3);
 	    });
@@ -61413,7 +61416,7 @@
 	    var graph = new _graphlib2.default.Graph({ directed: false, compound: true, multigraph: false });
 
 	    for (var i = 0; i < data.length; i++) {
-	        for (var j = i + 1; j < data.length; j++) {
+	        for (var j = i; j < data.length; j++) {
 
 	            var coord1 = data[i].coordinates;
 	            var coord2 = data[j].coordinates;
