@@ -123,6 +123,8 @@ window.refresh = function(){
 
     var c_dist=$('#c_dist').val();
     var threshold=$('#threshold').val();
+    var area =$('#area').val();
+
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
 
@@ -132,7 +134,7 @@ window.refresh = function(){
     getEvents(startDate,endDate).then(function(events){
         events = filterEvents(events,getFilters(),deNameToIdMap);
         var coords =  extractCoordsFromEvents(events);
-        buildMap(coords,c_dist,threshold);
+        buildMap(coords,c_dist,threshold,area);
     });
 
 }
@@ -169,7 +171,7 @@ $('document').ready(function(){
 
         this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>'+props.uid+'</b></i></th></tr><thead>'+
             '<tbody><tr><td>No of Cases </td><td> <b><i>'+props.num_points + '</b></i></td></tr>'+
-            '<tr><td>Area </td><td><b><i> '+((parseFloat(props.area)/1000000)).toFixed(2)+'(sq Kms)</b></i></td></tr></tbody></table>';
+            '<tr><td>Area </td><td><b><i> '+parseFloat(props.area).toFixed(2)+'(sq Kms)</b></i></td></tr></tbody></table>';
     };
 
     info.addTo(map.getMap());
@@ -192,11 +194,14 @@ $('document').ready(function(){
     // coordinates to be filtered here.
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
+    var c_dist=$('#c_dist').val();
+    var threshold=$('#threshold').val();
+    var area =$('#area').val();
 
     getEvents(startDate,endDate).then(function(events){
         events = filterEvents(events,getFilters(),deNameToIdMap);
         var coords =  extractCoordsFromEvents(events);
-        buildMap(coords,5,3);
+        buildMap(coords,c_dist,threshold,area);
     });
 
     map.getMap().on('popupopen', function(e) {        
@@ -278,9 +283,9 @@ function extractCoordsFromEvents(events){
                     result.push({
                         id : events[i].event , 
                         coordinates : events[i].coordinate, 
-                        orgUnit : events[i].orgUnitName,
+                        orgUnitName : events[i].orgUnitName,
                         type : events[i].type,
-                        trackedEntityInstance : events[i].trackedEntityInstance
+                        orgUnit : events[i].orgUnit
                         
                     })
                 }                
@@ -402,13 +407,13 @@ function addOrgUnits(blockCoords,style){
 
 }
 
-function buildMap(coords,c_dist,threshold){
+function buildMap(coords,c_dist,threshold,area){
     if (threshold < 3){alert("threshold cannot be less than 3"); return}
 
     map.clearLayers();
 
     //  window.coords=coords;
-    var featureCollection = mUtility.clusterize(coords,c_dist,threshold);
+    var featureCollection = mUtility.clusterize(coords,c_dist,threshold,area);
     
     var icon = getCustomIcon();
 

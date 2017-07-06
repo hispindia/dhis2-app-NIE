@@ -99,4 +99,12 @@ _.reduce = function(list,id,seperator){
     return accumlator;
 }
 
+_.getMapLength = function(map){
+    var index =0;
+    for (var key in map){
+        index = index+1;
+    }
+    debugger
+    return index;
+}
 module.exports = _;

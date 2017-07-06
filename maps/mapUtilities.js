@@ -57,7 +57,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 	return dist
 }
 
-_.clusterize = function(data,clusterDist,threshold,labelMap){
+_.clusterize = function(data,clusterDist,threshold,area){
 
     var graph = createGraph(data,clusterDist);
     
@@ -66,13 +66,13 @@ _.clusterize = function(data,clusterDist,threshold,labelMap){
     var nodes = serializedGraph.nodes;
     var edges = serializedGraph.edges;
     
-    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap);
+    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area);
     
     return featureCollection;
 
 }
 
-function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap){
+function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area){
 
     var geoJsonPointFeatures = {
         type:"FeatureCollection",
@@ -104,10 +104,10 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 features : []
             };
             var pointsKeys = [];
-            var teis = [];
+            var orgUnitsMap = [];
 
             var circles = [],
-                radius = (clusterDist)/2,
+                radius = parseFloat(clusterDist)/2,
                 steps = 0, 
                 units = 'kilometers';
 
@@ -118,23 +118,34 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                 points.features.push(point);
                 geoJsonPointFeatures.features.push(point);
                 pointsKeys.push(comp[key]);
-                teis.push(allNodesMap[comp[key]].trackedEntityInstance);
+                orgUnitsMap[allNodesMap[comp[key]].orgUnit]=true;
             }
             
+            if (utility.getMapLength(orgUnitsMap) <= 1)
+            {// Filter for excluding points coming from same village
+                return
+            }
             if (points.features.length <3){return}
             var centroid = turf.centroid(points);
+            
             centroid.properties.type = "centroid";
             centroid.properties.layerId = "custom";
             centroid.properties.clusterSize = points.features.length;
             centroid.properties.keys = pointsKeys;
-            centroid.properties.teis = teis;
 
           //  var hull = turf.concave(points, 1000, 'kilometers');
             var mergedCircle = turf.union.apply(this,circles);
             mergedCircle.properties.type="cluster";
             mergedCircle.properties.layerId = "custom";
             mergedCircle.properties.num_points = points.features.length;
-            mergedCircle.properties.area = turf.area(mergedCircle);
+            
+            mergedCircle.properties.area = (parseFloat(turf.area(mergedCircle))/1000000);
+            debugger
+            if (mergedCircle.properties.area < parseFloat(area))
+            { // Cluster Area should be greater than threshold area;therefore skipping 
+                return
+            }
+
             mergedCircle.properties.uid = utility.prepareUID(null,pointsKeys);
             centroid.properties.uid = mergedCircle.properties.uid;
 
@@ -152,7 +163,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                     properties : {
                         id : key,
                         type : data.type,
-                        label :data.orgUnit,
+                        label :data.orgUnitName,
+                        orgUnit : data.orgUnit,
                         layerId :"custom" 
 
                     },

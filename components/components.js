@@ -29,7 +29,8 @@ export function AlertPopUp(props){
         
         dhisAPIHelper.getCluster(props.data.uid,function(error,response,body){
             if (error){
-                console.log("Get Cluster Error")
+                console.log("Get Cluster Error");
+                return
             }
             instance.state.data.cluster = response;
             instance.setState({data:instance.state.data})

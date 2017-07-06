@@ -83,9 +83,9 @@
 
 	var _mapUtilities2 = _interopRequireDefault(_mapUtilities);
 
-	var _components = __webpack_require__(476);
+	var _components = __webpack_require__(356);
 
-	var _nieConstants = __webpack_require__(478);
+	var _nieConstants = __webpack_require__(359);
 
 	var NIE = _interopRequireWildcard(_nieConstants);
 
@@ -205,6 +205,8 @@
 
 	    var c_dist = (0, _jquery2.default)('#c_dist').val();
 	    var threshold = (0, _jquery2.default)('#threshold').val();
+	    var area = (0, _jquery2.default)('#area').val();
+
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
 
@@ -214,7 +216,7 @@
 	    getEvents(startDate, endDate).then(function (events) {
 	        events = filterEvents(events, getFilters(), deNameToIdMap);
 	        var coords = extractCoordsFromEvents(events);
-	        buildMap(coords, c_dist, threshold);
+	        buildMap(coords, c_dist, threshold, area);
 	    });
 	};
 
@@ -249,7 +251,7 @@
 	            return;
 	        }
 
-	        this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>' + props.uid + '</b></i></th></tr><thead>' + '<tbody><tr><td>No of Cases </td><td> <b><i>' + props.num_points + '</b></i></td></tr>' + '<tr><td>Area </td><td><b><i> ' + (parseFloat(props.area) / 1000000).toFixed(2) + '(sq Kms)</b></i></td></tr></tbody></table>';
+	        this._div.innerHTML = '<table><thead><tr><th>Cluster Id  </th><th><b><i>' + props.uid + '</b></i></th></tr><thead>' + '<tbody><tr><td>No of Cases </td><td> <b><i>' + props.num_points + '</b></i></td></tr>' + '<tr><td>Area </td><td><b><i> ' + parseFloat(props.area).toFixed(2) + '(sq Kms)</b></i></td></tr></tbody></table>';
 	    };
 
 	    info.addTo(map.getMap());
@@ -270,11 +272,14 @@
 	    // coordinates to be filtered here.
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
+	    var c_dist = (0, _jquery2.default)('#c_dist').val();
+	    var threshold = (0, _jquery2.default)('#threshold').val();
+	    var area = (0, _jquery2.default)('#area').val();
 
 	    getEvents(startDate, endDate).then(function (events) {
 	        events = filterEvents(events, getFilters(), deNameToIdMap);
 	        var coords = extractCoordsFromEvents(events);
-	        buildMap(coords, 5, 3);
+	        buildMap(coords, c_dist, threshold, area);
 	    });
 
 	    map.getMap().on('popupopen', function (e) {
@@ -352,9 +357,9 @@
 	                    result.push({
 	                        id: events[i].event,
 	                        coordinates: events[i].coordinate,
-	                        orgUnit: events[i].orgUnitName,
+	                        orgUnitName: events[i].orgUnitName,
 	                        type: events[i].type,
-	                        trackedEntityInstance: events[i].trackedEntityInstance
+	                        orgUnit: events[i].orgUnit
 
 	                    });
 	                }
@@ -471,7 +476,7 @@
 	    map.addGeoJson(mp, null, style);
 	}
 
-	function buildMap(coords, c_dist, threshold) {
+	function buildMap(coords, c_dist, threshold, area) {
 	    if (threshold < 3) {
 	        alert("threshold cannot be less than 3");return;
 	    }
@@ -479,7 +484,7 @@
 	    map.clearLayers();
 
 	    //  window.coords=coords;
-	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold);
+	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold, area);
 
 	    var icon = getCustomIcon();
 
@@ -33239,6 +33244,14 @@
 	    return accumlator;
 	};
 
+	_.getMapLength = function (map) {
+	    var index = 0;
+	    for (var key in map) {
+	        index = index + 1;
+	    }
+	    debugger;
+	    return index;
+	};
 	module.exports = _;
 
 /***/ }),
@@ -62919,7 +62932,7 @@
 
 	'use strict';
 
-	var _graphlib = __webpack_require__(356);
+	var _graphlib = __webpack_require__(360);
 
 	var _graphlib2 = _interopRequireDefault(_graphlib);
 
@@ -62927,7 +62940,7 @@
 
 	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
 
-	var _turf = __webpack_require__(377);
+	var _turf = __webpack_require__(380);
 
 	var _turf2 = _interopRequireDefault(_turf);
 
@@ -62991,7 +63004,7 @@
 	    return dist;
 	}
 
-	_.clusterize = function (data, clusterDist, threshold, labelMap) {
+	_.clusterize = function (data, clusterDist, threshold, area) {
 
 	    var graph = createGraph(data, clusterDist);
 
@@ -63000,12 +63013,12 @@
 	    var nodes = serializedGraph.nodes;
 	    var edges = serializedGraph.edges;
 
-	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist, labelMap);
+	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area);
 
 	    return featureCollection;
 	};
 
-	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist, labelMap) {
+	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area) {
 
 	    var geoJsonPointFeatures = {
 	        type: "FeatureCollection",
@@ -63038,10 +63051,10 @@
 	                features: []
 	            };
 	            var pointsKeys = [];
-	            var teis = [];
+	            var orgUnitsMap = [];
 
 	            var circles = [],
-	                radius = clusterDist / 2,
+	                radius = parseFloat(clusterDist) / 2,
 	                steps = 0,
 	                units = 'kilometers';
 
@@ -63052,25 +63065,36 @@
 	                points.features.push(point);
 	                geoJsonPointFeatures.features.push(point);
 	                pointsKeys.push(comp[key]);
-	                teis.push(allNodesMap[comp[key]].trackedEntityInstance);
+	                orgUnitsMap[allNodesMap[comp[key]].orgUnit] = true;
 	            }
 
+	            if (_utilityFunctions2.default.getMapLength(orgUnitsMap) <= 1) {
+	                // Filter for excluding points coming from same village
+	                return;
+	            }
 	            if (points.features.length < 3) {
 	                return;
 	            }
 	            var centroid = _turf2.default.centroid(points);
+
 	            centroid.properties.type = "centroid";
 	            centroid.properties.layerId = "custom";
 	            centroid.properties.clusterSize = points.features.length;
 	            centroid.properties.keys = pointsKeys;
-	            centroid.properties.teis = teis;
 
 	            //  var hull = turf.concave(points, 1000, 'kilometers');
 	            var mergedCircle = _turf2.default.union.apply(this, circles);
 	            mergedCircle.properties.type = "cluster";
 	            mergedCircle.properties.layerId = "custom";
 	            mergedCircle.properties.num_points = points.features.length;
-	            mergedCircle.properties.area = _turf2.default.area(mergedCircle);
+
+	            mergedCircle.properties.area = parseFloat(_turf2.default.area(mergedCircle)) / 1000000;
+	            debugger;
+	            if (mergedCircle.properties.area < parseFloat(area)) {
+	                // Cluster Area should be greater than threshold area;therefore skipping 
+	                return;
+	            }
+
 	            mergedCircle.properties.uid = _utilityFunctions2.default.prepareUID(null, pointsKeys);
 	            centroid.properties.uid = mergedCircle.properties.uid;
 
@@ -63087,7 +63111,8 @@
 	                properties: {
 	                    id: key,
 	                    type: data.type,
-	                    label: data.orgUnit,
+	                    label: data.orgUnitName,
+	                    orgUnit: data.orgUnit,
 	                    layerId: "custom"
 
 	                },
@@ -63149,605 +63174,225 @@
 /* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright (c) 2014, Chris Pettitt
-	 * All rights reserved.
-	 *
-	 * Redistribution and use in source and binary forms, with or without
-	 * modification, are permitted provided that the following conditions are met:
-	 *
-	 * 1. Redistributions of source code must retain the above copyright notice, this
-	 * list of conditions and the following disclaimer.
-	 *
-	 * 2. Redistributions in binary form must reproduce the above copyright notice,
-	 * this list of conditions and the following disclaimer in the documentation
-	 * and/or other materials provided with the distribution.
-	 *
-	 * 3. Neither the name of the copyright holder nor the names of its contributors
-	 * may be used to endorse or promote products derived from this software without
-	 * specific prior written permission.
-	 *
-	 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	 * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	 * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-	 * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	 * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-	 * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-	 * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-	 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
+	'use strict';
 
-	var lib = __webpack_require__(357);
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.UploadFile = UploadFile;
+	exports.AlertPopUp = AlertPopUp;
 
-	module.exports = {
-	  Graph: lib.Graph,
-	  json: __webpack_require__(362),
-	  alg: __webpack_require__(363),
-	  version: lib.version
-	};
+	var _react = __webpack_require__(1);
 
+	var _react2 = _interopRequireDefault(_react);
+
+	var _lodash = __webpack_require__(357);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	var _dhisAPIHelper = __webpack_require__(358);
+
+	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
+
+	var _nieConstants = __webpack_require__(359);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function UploadFile(props) {
+	    return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	            'label',
+	            null,
+	            'Upload .json file'
+	        ),
+	        _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
+	        _react2.default.createElement(
+	            'button',
+	            { onClick: props.onClick },
+	            'Import'
+	        )
+	    );
+	} /**
+	   * Created by harsh on 21/12/16.
+	   */
+
+	function AlertPopUp(props) {
+
+	    var instance = Object.create(_react2.default.Component.prototype);
+
+	    instance.props = props;
+	    instance.state = { data: props.data, cases: [] };
+
+	    instance.componentDidMount = function () {
+
+	        _dhisAPIHelper2.default.getCluster(props.data.uid, function (error, response, body) {
+	            if (error) {
+	                console.log("Get Cluster Error");
+	                return;
+	            }
+	            instance.state.data.cluster = response;
+	            instance.setState({ data: instance.state.data });
+	        });
+
+	        _dhisAPIHelper2.default.getClusterCases(props.data.keys, function (cases) {
+	            instance.setState({ cases: cases, deMap: props.deMap, componentDidMount: instance.componentDidMount });
+	        });
+	    };
+
+	    instance.getClusterID = function () {
+
+	        if (!this.state.data.cluster) {
+	            return "";
+	        }
+
+	        var id = _utilityFunctions2.default.findValueAgainstId(this.state.data.cluster.attributes, "attribute", NIE.CLUSTER_TEA_CLUSTERID, "value");
+	        return "ClusterID :" + id;
+	    };
+
+	    instance.approveAndSave = function (state) {
+	        var _this = this;
+
+	        _dhisAPIHelper2.default.saveCluster(state, function (message, cluster) {
+	            alert(message);
+	            _this.state.data.cluster = cluster;
+	            _this.setState({ data: _this.state.data });
+	            debugger;
+	        });
+	    };
+
+	    var isClusterActive = false;
+	    instance.render = function () {
+	        var _this2 = this;
+
+	        return _react2.default.createElement(
+	            'div',
+	            { className: 'linelist ' },
+	            ' ',
+	            _react2.default.createElement('input', { key: "input_save", type: 'button', value: 'Approve and Save', onClick: function onClick() {
+	                    return _this2.approveAndSave(_this2.state);
+	                } }),
+	            this.getClusterID(),
+	            _react2.default.createElement('br', null),
+	            _react2.default.createElement(AlertTable, { data: this.state })
+	        );
+	    };
+
+	    return instance;
+	}
+
+	function AlertTable(props) {
+
+	    function getHeaderRows() {
+
+	        if (!props.data.deMap) {
+	            return;
+	        }
+
+	        var tableHeaders = [];
+	        tableHeaders.push(_react2.default.createElement(
+	            'th',
+	            { key: _lodash2.default.uniqueId("th_") },
+	            'isDuplicate'
+	        ));
+
+	        for (var key in props.data.deMap) {
+	            tableHeaders.push(_react2.default.createElement(
+	                'th',
+	                { key: _lodash2.default.uniqueId("th_") },
+	                props.data.deMap[key].name
+	            ));
+	        }
+
+	        return tableHeaders;
+	    }
+
+	    function toggleDuplicate(eventUID, currentValue) {
+
+	        var _currentValue = !currentValue;
+
+	        _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, _currentValue, function () {
+	            props.data.componentDidMount();
+	        });
+
+	        return currentValue;
+	    }
+
+	    function getRows(cases, clusterDeIdToNameMap) {
+	        var rows = [];
+	        cases.map(function (eventCase) {
+	            var isDuplicate = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", NIE.DE_isDuplicate, "value");
+	            if (isDuplicate == null || isDuplicate == undefined) {
+	                isDuplicate = false;
+	            }
+	            isDuplicate = JSON.parse(isDuplicate);
+
+	            var duplicateRowClass = '';
+	            var cells = [];
+	            var eventUID = eventCase.event;
+	            cells.push(_react2.default.createElement(
+	                'td',
+	                { key: eventCase.event + "-" + NIE.DE_isDuplicate },
+	                _react2.default.createElement('input', { key: "input_" + eventCase.event + "-" + NIE.DE_isDuplicate, type: 'checkbox', value: 'duplicate', onChange: function onChange() {
+	                        return toggleDuplicate(eventUID, isDuplicate);
+	                    }, checked: isDuplicate })
+	            ));
+
+	            for (var key in clusterDeIdToNameMap) {
+	                var value = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", key, "value");
+	                if (!value) {
+	                    value = "";
+	                };
+	                cells.push(_react2.default.createElement(
+	                    'td',
+	                    { key: eventCase.event + "-" + key },
+	                    value
+	                ));
+	            }
+	            if (isDuplicate) {
+	                duplicateRowClass = 'violet';
+	            }
+	            rows.push(_react2.default.createElement(
+	                'tr',
+	                { className: duplicateRowClass, key: eventCase.event },
+	                cells
+	            ));
+	        });
+
+	        return rows;
+	    }
+
+	    return _react2.default.createElement(
+	        'table',
+	        { className: 'alertsTable' },
+	        _react2.default.createElement(
+	            'thead',
+	            null,
+	            _react2.default.createElement(
+	                'tr',
+	                null,
+	                getHeaderRows()
+	            )
+	        ),
+	        _react2.default.createElement(
+	            'tbody',
+	            null,
+	            getRows(props.data.cases, props.data.deMap)
+	        )
+	    );
+	}
 
 /***/ }),
 /* 357 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// Includes only the "core" of graphlib
-	module.exports = {
-	  Graph: __webpack_require__(358),
-	  version: __webpack_require__(361)
-	};
-
-
-/***/ }),
-/* 358 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	var _ = __webpack_require__(359);
-
-	module.exports = Graph;
-
-	var DEFAULT_EDGE_NAME = "\x00",
-	    GRAPH_NODE = "\x00",
-	    EDGE_KEY_DELIM = "\x01";
-
-	// Implementation notes:
-	//
-	//  * Node id query functions should return string ids for the nodes
-	//  * Edge id query functions should return an "edgeObj", edge object, that is
-	//    composed of enough information to uniquely identify an edge: {v, w, name}.
-	//  * Internally we use an "edgeId", a stringified form of the edgeObj, to
-	//    reference edges. This is because we need a performant way to look these
-	//    edges up and, object properties, which have string keys, are the closest
-	//    we're going to get to a performant hashtable in JavaScript.
-
-	function Graph(opts) {
-	  this._isDirected = _.has(opts, "directed") ? opts.directed : true;
-	  this._isMultigraph = _.has(opts, "multigraph") ? opts.multigraph : false;
-	  this._isCompound = _.has(opts, "compound") ? opts.compound : false;
-
-	  // Label for the graph itself
-	  this._label = undefined;
-
-	  // Defaults to be set when creating a new node
-	  this._defaultNodeLabelFn = _.constant(undefined);
-
-	  // Defaults to be set when creating a new edge
-	  this._defaultEdgeLabelFn = _.constant(undefined);
-
-	  // v -> label
-	  this._nodes = {};
-
-	  if (this._isCompound) {
-	    // v -> parent
-	    this._parent = {};
-
-	    // v -> children
-	    this._children = {};
-	    this._children[GRAPH_NODE] = {};
-	  }
-
-	  // v -> edgeObj
-	  this._in = {};
-
-	  // u -> v -> Number
-	  this._preds = {};
-
-	  // v -> edgeObj
-	  this._out = {};
-
-	  // v -> w -> Number
-	  this._sucs = {};
-
-	  // e -> edgeObj
-	  this._edgeObjs = {};
-
-	  // e -> label
-	  this._edgeLabels = {};
-	}
-
-	/* Number of nodes in the graph. Should only be changed by the implementation. */
-	Graph.prototype._nodeCount = 0;
-
-	/* Number of edges in the graph. Should only be changed by the implementation. */
-	Graph.prototype._edgeCount = 0;
-
-
-	/* === Graph functions ========= */
-
-	Graph.prototype.isDirected = function() {
-	  return this._isDirected;
-	};
-
-	Graph.prototype.isMultigraph = function() {
-	  return this._isMultigraph;
-	};
-
-	Graph.prototype.isCompound = function() {
-	  return this._isCompound;
-	};
-
-	Graph.prototype.setGraph = function(label) {
-	  this._label = label;
-	  return this;
-	};
-
-	Graph.prototype.graph = function() {
-	  return this._label;
-	};
-
-
-	/* === Node functions ========== */
-
-	Graph.prototype.setDefaultNodeLabel = function(newDefault) {
-	  if (!_.isFunction(newDefault)) {
-	    newDefault = _.constant(newDefault);
-	  }
-	  this._defaultNodeLabelFn = newDefault;
-	  return this;
-	};
-
-	Graph.prototype.nodeCount = function() {
-	  return this._nodeCount;
-	};
-
-	Graph.prototype.nodes = function() {
-	  return _.keys(this._nodes);
-	};
-
-	Graph.prototype.sources = function() {
-	  return _.filter(this.nodes(), _.bind(function(v) {
-	    return _.isEmpty(this._in[v]);
-	  }, this));
-	};
-
-	Graph.prototype.sinks = function() {
-	  return _.filter(this.nodes(), _.bind(function(v) {
-	    return _.isEmpty(this._out[v]);
-	  }, this));
-	};
-
-	Graph.prototype.setNodes = function(vs, value) {
-	  var args = arguments;
-	  _.each(vs, _.bind(function(v) {
-	    if (args.length > 1) {
-	      this.setNode(v, value);
-	    } else {
-	      this.setNode(v);
-	    }
-	  }, this));
-	  return this;
-	};
-
-	Graph.prototype.setNode = function(v, value) {
-	  if (_.has(this._nodes, v)) {
-	    if (arguments.length > 1) {
-	      this._nodes[v] = value;
-	    }
-	    return this;
-	  }
-
-	  this._nodes[v] = arguments.length > 1 ? value : this._defaultNodeLabelFn(v);
-	  if (this._isCompound) {
-	    this._parent[v] = GRAPH_NODE;
-	    this._children[v] = {};
-	    this._children[GRAPH_NODE][v] = true;
-	  }
-	  this._in[v] = {};
-	  this._preds[v] = {};
-	  this._out[v] = {};
-	  this._sucs[v] = {};
-	  ++this._nodeCount;
-	  return this;
-	};
-
-	Graph.prototype.node = function(v) {
-	  return this._nodes[v];
-	};
-
-	Graph.prototype.hasNode = function(v) {
-	  return _.has(this._nodes, v);
-	};
-
-	Graph.prototype.removeNode =  function(v) {
-	  var self = this;
-	  if (_.has(this._nodes, v)) {
-	    var removeEdge = function(e) { self.removeEdge(self._edgeObjs[e]); };
-	    delete this._nodes[v];
-	    if (this._isCompound) {
-	      this._removeFromParentsChildList(v);
-	      delete this._parent[v];
-	      _.each(this.children(v), _.bind(function(child) {
-	        this.setParent(child);
-	      }, this));
-	      delete this._children[v];
-	    }
-	    _.each(_.keys(this._in[v]), removeEdge);
-	    delete this._in[v];
-	    delete this._preds[v];
-	    _.each(_.keys(this._out[v]), removeEdge);
-	    delete this._out[v];
-	    delete this._sucs[v];
-	    --this._nodeCount;
-	  }
-	  return this;
-	};
-
-	Graph.prototype.setParent = function(v, parent) {
-	  if (!this._isCompound) {
-	    throw new Error("Cannot set parent in a non-compound graph");
-	  }
-
-	  if (_.isUndefined(parent)) {
-	    parent = GRAPH_NODE;
-	  } else {
-	    // Coerce parent to string
-	    parent += "";
-	    for (var ancestor = parent;
-	         !_.isUndefined(ancestor);
-	         ancestor = this.parent(ancestor)) {
-	      if (ancestor === v) {
-	        throw new Error("Setting " + parent+ " as parent of " + v +
-	                        " would create create a cycle");
-	      }
-	    }
-
-	    this.setNode(parent);
-	  }
-
-	  this.setNode(v);
-	  this._removeFromParentsChildList(v);
-	  this._parent[v] = parent;
-	  this._children[parent][v] = true;
-	  return this;
-	};
-
-	Graph.prototype._removeFromParentsChildList = function(v) {
-	  delete this._children[this._parent[v]][v];
-	};
-
-	Graph.prototype.parent = function(v) {
-	  if (this._isCompound) {
-	    var parent = this._parent[v];
-	    if (parent !== GRAPH_NODE) {
-	      return parent;
-	    }
-	  }
-	};
-
-	Graph.prototype.children = function(v) {
-	  if (_.isUndefined(v)) {
-	    v = GRAPH_NODE;
-	  }
-
-	  if (this._isCompound) {
-	    var children = this._children[v];
-	    if (children) {
-	      return _.keys(children);
-	    }
-	  } else if (v === GRAPH_NODE) {
-	    return this.nodes();
-	  } else if (this.hasNode(v)) {
-	    return [];
-	  }
-	};
-
-	Graph.prototype.predecessors = function(v) {
-	  var predsV = this._preds[v];
-	  if (predsV) {
-	    return _.keys(predsV);
-	  }
-	};
-
-	Graph.prototype.successors = function(v) {
-	  var sucsV = this._sucs[v];
-	  if (sucsV) {
-	    return _.keys(sucsV);
-	  }
-	};
-
-	Graph.prototype.neighbors = function(v) {
-	  var preds = this.predecessors(v);
-	  if (preds) {
-	    return _.union(preds, this.successors(v));
-	  }
-	};
-
-	Graph.prototype.filterNodes = function(filter) {
-	  var copy = new this.constructor({
-	    directed: this._isDirected,
-	    multigraph: this._isMultigraph,
-	    compound: this._isCompound
-	  });
-
-	  copy.setGraph(this.graph());
-
-	  _.each(this._nodes, _.bind(function(value, v) {
-	    if (filter(v)) {
-	      copy.setNode(v, value);
-	    }
-	  }, this));
-
-	  _.each(this._edgeObjs, _.bind(function(e) {
-	    if (copy.hasNode(e.v) && copy.hasNode(e.w)) {
-	      copy.setEdge(e, this.edge(e));
-	    }
-	  }, this));
-
-	  var self = this;
-	  var parents = {};
-	  function findParent(v) {
-	    var parent = self.parent(v);
-	    if (parent === undefined || copy.hasNode(parent)) {
-	      parents[v] = parent;
-	      return parent;
-	    } else if (parent in parents) {
-	      return parents[parent];
-	    } else {
-	      return findParent(parent);
-	    }
-	  }
-
-	  if (this._isCompound) {
-	    _.each(copy.nodes(), function(v) {
-	      copy.setParent(v, findParent(v));
-	    });
-	  }
-
-	  return copy;
-	};
-
-	/* === Edge functions ========== */
-
-	Graph.prototype.setDefaultEdgeLabel = function(newDefault) {
-	  if (!_.isFunction(newDefault)) {
-	    newDefault = _.constant(newDefault);
-	  }
-	  this._defaultEdgeLabelFn = newDefault;
-	  return this;
-	};
-
-	Graph.prototype.edgeCount = function() {
-	  return this._edgeCount;
-	};
-
-	Graph.prototype.edges = function() {
-	  return _.values(this._edgeObjs);
-	};
-
-	Graph.prototype.setPath = function(vs, value) {
-	  var self = this,
-	      args = arguments;
-	  _.reduce(vs, function(v, w) {
-	    if (args.length > 1) {
-	      self.setEdge(v, w, value);
-	    } else {
-	      self.setEdge(v, w);
-	    }
-	    return w;
-	  });
-	  return this;
-	};
-
-	/*
-	 * setEdge(v, w, [value, [name]])
-	 * setEdge({ v, w, [name] }, [value])
-	 */
-	Graph.prototype.setEdge = function() {
-	  var v, w, name, value,
-	      valueSpecified = false,
-	      arg0 = arguments[0];
-
-	  if (typeof arg0 === "object" && arg0 !== null && "v" in arg0) {
-	    v = arg0.v;
-	    w = arg0.w;
-	    name = arg0.name;
-	    if (arguments.length === 2) {
-	      value = arguments[1];
-	      valueSpecified = true;
-	    }
-	  } else {
-	    v = arg0;
-	    w = arguments[1];
-	    name = arguments[3];
-	    if (arguments.length > 2) {
-	      value = arguments[2];
-	      valueSpecified = true;
-	    }
-	  }
-
-	  v = "" + v;
-	  w = "" + w;
-	  if (!_.isUndefined(name)) {
-	    name = "" + name;
-	  }
-
-	  var e = edgeArgsToId(this._isDirected, v, w, name);
-	  if (_.has(this._edgeLabels, e)) {
-	    if (valueSpecified) {
-	      this._edgeLabels[e] = value;
-	    }
-	    return this;
-	  }
-
-	  if (!_.isUndefined(name) && !this._isMultigraph) {
-	    throw new Error("Cannot set a named edge when isMultigraph = false");
-	  }
-
-	  // It didn't exist, so we need to create it.
-	  // First ensure the nodes exist.
-	  this.setNode(v);
-	  this.setNode(w);
-
-	  this._edgeLabels[e] = valueSpecified ? value : this._defaultEdgeLabelFn(v, w, name);
-
-	  var edgeObj = edgeArgsToObj(this._isDirected, v, w, name);
-	  // Ensure we add undirected edges in a consistent way.
-	  v = edgeObj.v;
-	  w = edgeObj.w;
-
-	  Object.freeze(edgeObj);
-	  this._edgeObjs[e] = edgeObj;
-	  incrementOrInitEntry(this._preds[w], v);
-	  incrementOrInitEntry(this._sucs[v], w);
-	  this._in[w][e] = edgeObj;
-	  this._out[v][e] = edgeObj;
-	  this._edgeCount++;
-	  return this;
-	};
-
-	Graph.prototype.edge = function(v, w, name) {
-	  var e = (arguments.length === 1
-	            ? edgeObjToId(this._isDirected, arguments[0])
-	            : edgeArgsToId(this._isDirected, v, w, name));
-	  return this._edgeLabels[e];
-	};
-
-	Graph.prototype.hasEdge = function(v, w, name) {
-	  var e = (arguments.length === 1
-	            ? edgeObjToId(this._isDirected, arguments[0])
-	            : edgeArgsToId(this._isDirected, v, w, name));
-	  return _.has(this._edgeLabels, e);
-	};
-
-	Graph.prototype.removeEdge = function(v, w, name) {
-	  var e = (arguments.length === 1
-	            ? edgeObjToId(this._isDirected, arguments[0])
-	            : edgeArgsToId(this._isDirected, v, w, name)),
-	      edge = this._edgeObjs[e];
-	  if (edge) {
-	    v = edge.v;
-	    w = edge.w;
-	    delete this._edgeLabels[e];
-	    delete this._edgeObjs[e];
-	    decrementOrRemoveEntry(this._preds[w], v);
-	    decrementOrRemoveEntry(this._sucs[v], w);
-	    delete this._in[w][e];
-	    delete this._out[v][e];
-	    this._edgeCount--;
-	  }
-	  return this;
-	};
-
-	Graph.prototype.inEdges = function(v, u) {
-	  var inV = this._in[v];
-	  if (inV) {
-	    var edges = _.values(inV);
-	    if (!u) {
-	      return edges;
-	    }
-	    return _.filter(edges, function(edge) { return edge.v === u; });
-	  }
-	};
-
-	Graph.prototype.outEdges = function(v, w) {
-	  var outV = this._out[v];
-	  if (outV) {
-	    var edges = _.values(outV);
-	    if (!w) {
-	      return edges;
-	    }
-	    return _.filter(edges, function(edge) { return edge.w === w; });
-	  }
-	};
-
-	Graph.prototype.nodeEdges = function(v, w) {
-	  var inEdges = this.inEdges(v, w);
-	  if (inEdges) {
-	    return inEdges.concat(this.outEdges(v, w));
-	  }
-	};
-
-	function incrementOrInitEntry(map, k) {
-	  if (map[k]) {
-	    map[k]++;
-	  } else {
-	    map[k] = 1;
-	  }
-	}
-
-	function decrementOrRemoveEntry(map, k) {
-	  if (!--map[k]) { delete map[k]; }
-	}
-
-	function edgeArgsToId(isDirected, v_, w_, name) {
-	  var v = "" + v_;
-	  var w = "" + w_;
-	  if (!isDirected && v > w) {
-	    var tmp = v;
-	    v = w;
-	    w = tmp;
-	  }
-	  return v + EDGE_KEY_DELIM + w + EDGE_KEY_DELIM +
-	             (_.isUndefined(name) ? DEFAULT_EDGE_NAME : name);
-	}
-
-	function edgeArgsToObj(isDirected, v_, w_, name) {
-	  var v = "" + v_;
-	  var w = "" + w_;
-	  if (!isDirected && v > w) {
-	    var tmp = v;
-	    v = w;
-	    w = tmp;
-	  }
-	  var edgeObj =  { v: v, w: w };
-	  if (name) {
-	    edgeObj.name = name;
-	  }
-	  return edgeObj;
-	}
-
-	function edgeObjToId(isDirected, edgeObj) {
-	  return edgeArgsToId(isDirected, edgeObj.v, edgeObj.w, edgeObj.name);
-	}
-
-
-/***/ }),
-/* 359 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* global window */
-
-	var lodash;
-
-	if (true) {
-	  try {
-	    lodash = __webpack_require__(360);
-	  } catch (e) {}
-	}
-
-	if (!lodash) {
-	  lodash = window._;
-	}
-
-	module.exports = lodash;
-
-
-/***/ }),
-/* 360 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -80838,18 +80483,916 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(252)(module)))
 
 /***/ }),
-/* 361 */
-/***/ (function(module, exports) {
+/* 358 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = '2.1.1';
+	'use strict';
+
+	var _dhis2API = __webpack_require__(184);
+
+	var _dhis2API2 = _interopRequireDefault(_dhis2API);
+
+	var _ajaxWrapper = __webpack_require__(182);
+
+	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
+
+	var _nieConstants = __webpack_require__(359);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	var _moment = __webpack_require__(251);
+
+	var _moment2 = _interopRequireDefault(_moment);
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	module.exports = new dhisAPIHelper();
+
+	var api = new _dhis2API2.default();
+
+
+	function dhisAPIHelper() {
+
+	    this.getClusterCases = function (cases, callback) {
+
+	        //   cases = cases.split(";");
+	        var clusterCases = [];
+	        getEvent(0, cases);
+	        function getEvent(index, cases) {
+	            if (index == cases.length) {
+	                callback(clusterCases);
+	                return;
+	            }
+
+	            _ajaxWrapper2.default.request({
+	                type: "GET",
+	                async: true,
+	                contentType: "application/json",
+	                url: "../../events/" + cases[index]
+	            }, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error Fetch Event");
+	                }
+	                clusterCases.push(response);
+	                getEvent(index + 1, cases);
+	            });
+	        }
+	    };
+
+	    this.saveCluster = function (state, callback) {
+
+	        makeNewCluster(state, callback);
+
+	        function makeNewCluster(state, callback) {
+	            api.get("organisationUnits", state.cases[0].orgUnit + "?fields=parent[id]", function (error, response, body) {
+	                if (error) {
+	                    callback("Orgnisation Unit Fetch error");
+	                    return;
+	                }
+
+	                getClusterID(function (totalTEI) {
+	                    var clusterDate = new Date();
+
+	                    var cluster_tei = {
+	                        "trackedEntityInstance": state.data.uid,
+	                        "trackedEntity": NIE.CLUSTER_TRACKED_ENTITY,
+	                        "orgUnit": response.parent.id,
+	                        "attributes": [],
+	                        "enrollments": [{
+	                            "orgUnit": state.cases[0].orgUnit,
+	                            "program": NIE.CLUSTER_PROGRAM,
+	                            "enrollmentDate": clusterDate,
+	                            "incidentDate": clusterDate
+	                        }]
+
+	                    };
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTERID,
+	                        "value": "CLUSTER" + (totalTEI + 1) + "_" + (0, _moment2.default)(clusterDate).format("YYYY-MM-DD")
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TYPE,
+	                        "value": "MANUAL"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_COORDINATE,
+	                        "value": JSON.stringify(state.cases[0].coordinate)
+	                    });
+
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_FEATURETYPE,
+	                        "value": "POINT"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_IS_ACTIVE,
+	                        "value": "true"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_METHOD,
+	                        "value": "MANUAL"
+	                    });
+
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
+	                        "value": _utilityFunctions2.default.reduce(state.cases, "event", ";")
+	                    });
+
+	                    saveCluster(cluster_tei, callback);
+	                });
+	            });
+	        }
+
+	        function saveCluster(cluster_tei, callback) {
+
+	            api.get("trackedEntityInstances", cluster_tei.trackedEntityInstance, function (error, response, body) {
+	                if (error) {
+	                    console.log("Custer Fetch error");
+	                }
+
+	                if (response.statusText == "Not Found") {
+	                    api.save("trackedEntityInstance", cluster_tei, function (error, response, body) {
+	                        if (error) {
+	                            console.log("Error : save tei");
+	                            callback("Some Error Occured");
+	                            return;
+	                        }
+	                        callback("Cluster Saved", cluster_tei);
+	                    });
+	                } else {
+	                    api.update("trackedEntityInstance", cluster_tei.trackedEntityInstance, cluster_tei, function (error, response, body) {
+	                        if (error) {
+	                            console.log("Error : update tei");
+	                            callback("Some Error Occured");
+	                            return;
+	                        }
+	                        callback("Cluster Updated", cluster_tei);
+	                    });
+	                    //callback("Already Exists!",response)
+	                }
+	            });
+	        }
+	    };
+
+	    function getClusterID(callback) {
+	        api.getTotalTEICount(NIE.CLUSTER_PROGRAM, function (error, response, body) {
+	            if (error) {
+	                __logger.error("Get Cluster ID");
+	            }
+	            var body = response;
+
+	            callback(body.pager.total);
+	        });
+	    }
+
+	    this.saveEventWithDataValue = function (eventUID, deUID, deValue, callback) {
+
+	        api.get("events", eventUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch event");
+	                return;
+	            }
+	            var event = response;
+	            event = addUpdateEvent(event, deUID, deValue);
+
+	            api.update("event", eventUID, event, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update event");
+	                    return;
+	                }
+	                callback();
+	            });
+	        });
+	    };
+
+	    this.saveTEIWithDataValue = function (teiUID, attrUID, attrValue, callback) {
+
+	        api.get("trackedEntityInstances", teiUID, function (error, response, body) {
+
+	            if (error) {
+	                console.log("Error : Fetch tei");
+	                return;
+	            }
+	            var tei = response;
+	            tei = addUpdateTEI(tei, attrUID, attrValue);
+
+	            api.update("trackedEntityInstance", teiUID, tei, function (error, response, body) {
+	                if (error) {
+	                    console.log("Error : update tei");
+	                    return;
+	                }
+	                callback(tei.attributes);
+	            });
+	        });
+	    };
+
+	    this.getCluster = function (teiUID, callback) {
+	        api.get("trackedEntityInstances", teiUID, callback);
+	    };
+
+	    function addUpdateTEI(tei, attrUID, deValue) {
+
+	        for (var key in tei.attributes) {
+	            if (tei.attributes[key].attribute == attrUID) {
+	                tei.attributes[key].value = deValue;
+	                return tei;
+	            }
+	        }
+	        tei.attributes.push({ attribute: attrUID, value: attrValue });
+	        return tei;
+	    }
+
+	    function addUpdateEvent(event, deUID, deValue) {
+
+	        for (var key in event.dataValues) {
+	            if (event.dataValues[key].dataElement == deUID) {
+	                event.dataValues[key].value = deValue;
+	                return event;
+	            }
+	        }
+	        event.dataValues.push({ dataElement: deUID, value: deValue });
+	        return event;
+	    }
+	}
+
+/***/ }),
+/* 359 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.DHIS_ROOT_OU_UID = exports.CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTERID = exports.CLUSTER_PROGRAM = exports.CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_COORDINATE = exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
+	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
+	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
+
+	var PROGRAM_ODK_DATA = exports.PROGRAM_ODK_DATA = "Ml0ZNj9APN0";
+	var DEGROUP_CLUSTERTOBESHOWN = exports.DEGROUP_CLUSTERTOBESHOWN = "sXzZ0Xl2F0j";
+	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
+
+	var DE_NAMES_VALUES = exports.DE_NAMES_VALUES = [{ id: "id", value: "eDFSS_IPD_V3" }, { id: "id", value: "eDFSS_OPD_V3" }, { id: "id", value: "DPHL_Lab_V1" }, { id: "Dengue", value: "Dengue_Positive_IgM" }, { id: "Scrub_typhus", value: "true" }, { id: "Leptosprirosis", value: "true" }, { id: "Malaria", value: "true" }];
+
+	var IPD_FORM_VAL = exports.IPD_FORM_VAL = "eDFSS_IPD_V3";
+	var OPD_FORM_VAL = exports.OPD_FORM_VAL = "eDFSS_OPD_V3";
+	var LAB_FORM_VAL = exports.LAB_FORM_VAL = "DPHL_Lab_V1";
+
+	var AFI_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = "AFI";
+	var ADD_DIAGNOSIS_VAL = exports.ADD_DIAGNOSIS_VAL = "ADD";
+
+	var DENGUE_VAL = exports.DENGUE_VAL = "Dengue_Positive_IgM";
+	var SCRUB_VAL = exports.SCRUB_VAL = "Scrub_typhus";
+	var LEPTO_VAL = exports.LEPTO_VAL = "Leptosprirosis";
+	var MALARIA_VAL = exports.MALARIA_VAL = "Malaria";
+
+	var DENGUE_NAME = exports.DENGUE_NAME = "Dengue";
+	var SCRUB_NAME = exports.SCRUB_NAME = "Scrub_typhus";
+	var LEPTO_NAME = exports.LEPTO_NAME = "Leptosprirosis";
+	var MALARIA_NAME = exports.MALARIA_NAME = "Malaria";
+
+	var CLUSTER_TEA_COORDINATE = exports.CLUSTER_TEA_COORDINATE = "sanq4S5uYdb";
+	var CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_FEATURETYPE = "Dh0HlV2bqh2";
+	var CLUSTER_PROGRAM = exports.CLUSTER_PROGRAM = "mcnt7nqNrNw";
+
+	var CLUSTER_TEA_CLUSTERID = exports.CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
+	var CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTER_TYPE = "sBmb7HfvAau";
+	var CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CASES_UIDS = "I2eCWfhryZH";
+	var CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CLUSTER_METHOD = "nifrYIceHDu";
+	var CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_IS_ACTIVE = "DyjpKLdKmoD";
+
+	var CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TRACKED_ENTITY = "q0NbkqzMUF8";
+
+	var DHIS_ROOT_OU_UID = exports.DHIS_ROOT_OU_UID = "mnbTnDyJ37p";
+
+/***/ }),
+/* 360 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright (c) 2014, Chris Pettitt
+	 * All rights reserved.
+	 *
+	 * Redistribution and use in source and binary forms, with or without
+	 * modification, are permitted provided that the following conditions are met:
+	 *
+	 * 1. Redistributions of source code must retain the above copyright notice, this
+	 * list of conditions and the following disclaimer.
+	 *
+	 * 2. Redistributions in binary form must reproduce the above copyright notice,
+	 * this list of conditions and the following disclaimer in the documentation
+	 * and/or other materials provided with the distribution.
+	 *
+	 * 3. Neither the name of the copyright holder nor the names of its contributors
+	 * may be used to endorse or promote products derived from this software without
+	 * specific prior written permission.
+	 *
+	 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+	 * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+	 * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+	 * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+	 * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+	 * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+	 * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+	 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	var lib = __webpack_require__(361);
+
+	module.exports = {
+	  Graph: lib.Graph,
+	  json: __webpack_require__(365),
+	  alg: __webpack_require__(366),
+	  version: lib.version
+	};
+
+
+/***/ }),
+/* 361 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	// Includes only the "core" of graphlib
+	module.exports = {
+	  Graph: __webpack_require__(362),
+	  version: __webpack_require__(364)
+	};
 
 
 /***/ }),
 /* 362 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359),
-	    Graph = __webpack_require__(358);
+	"use strict";
+
+	var _ = __webpack_require__(363);
+
+	module.exports = Graph;
+
+	var DEFAULT_EDGE_NAME = "\x00",
+	    GRAPH_NODE = "\x00",
+	    EDGE_KEY_DELIM = "\x01";
+
+	// Implementation notes:
+	//
+	//  * Node id query functions should return string ids for the nodes
+	//  * Edge id query functions should return an "edgeObj", edge object, that is
+	//    composed of enough information to uniquely identify an edge: {v, w, name}.
+	//  * Internally we use an "edgeId", a stringified form of the edgeObj, to
+	//    reference edges. This is because we need a performant way to look these
+	//    edges up and, object properties, which have string keys, are the closest
+	//    we're going to get to a performant hashtable in JavaScript.
+
+	function Graph(opts) {
+	  this._isDirected = _.has(opts, "directed") ? opts.directed : true;
+	  this._isMultigraph = _.has(opts, "multigraph") ? opts.multigraph : false;
+	  this._isCompound = _.has(opts, "compound") ? opts.compound : false;
+
+	  // Label for the graph itself
+	  this._label = undefined;
+
+	  // Defaults to be set when creating a new node
+	  this._defaultNodeLabelFn = _.constant(undefined);
+
+	  // Defaults to be set when creating a new edge
+	  this._defaultEdgeLabelFn = _.constant(undefined);
+
+	  // v -> label
+	  this._nodes = {};
+
+	  if (this._isCompound) {
+	    // v -> parent
+	    this._parent = {};
+
+	    // v -> children
+	    this._children = {};
+	    this._children[GRAPH_NODE] = {};
+	  }
+
+	  // v -> edgeObj
+	  this._in = {};
+
+	  // u -> v -> Number
+	  this._preds = {};
+
+	  // v -> edgeObj
+	  this._out = {};
+
+	  // v -> w -> Number
+	  this._sucs = {};
+
+	  // e -> edgeObj
+	  this._edgeObjs = {};
+
+	  // e -> label
+	  this._edgeLabels = {};
+	}
+
+	/* Number of nodes in the graph. Should only be changed by the implementation. */
+	Graph.prototype._nodeCount = 0;
+
+	/* Number of edges in the graph. Should only be changed by the implementation. */
+	Graph.prototype._edgeCount = 0;
+
+
+	/* === Graph functions ========= */
+
+	Graph.prototype.isDirected = function() {
+	  return this._isDirected;
+	};
+
+	Graph.prototype.isMultigraph = function() {
+	  return this._isMultigraph;
+	};
+
+	Graph.prototype.isCompound = function() {
+	  return this._isCompound;
+	};
+
+	Graph.prototype.setGraph = function(label) {
+	  this._label = label;
+	  return this;
+	};
+
+	Graph.prototype.graph = function() {
+	  return this._label;
+	};
+
+
+	/* === Node functions ========== */
+
+	Graph.prototype.setDefaultNodeLabel = function(newDefault) {
+	  if (!_.isFunction(newDefault)) {
+	    newDefault = _.constant(newDefault);
+	  }
+	  this._defaultNodeLabelFn = newDefault;
+	  return this;
+	};
+
+	Graph.prototype.nodeCount = function() {
+	  return this._nodeCount;
+	};
+
+	Graph.prototype.nodes = function() {
+	  return _.keys(this._nodes);
+	};
+
+	Graph.prototype.sources = function() {
+	  return _.filter(this.nodes(), _.bind(function(v) {
+	    return _.isEmpty(this._in[v]);
+	  }, this));
+	};
+
+	Graph.prototype.sinks = function() {
+	  return _.filter(this.nodes(), _.bind(function(v) {
+	    return _.isEmpty(this._out[v]);
+	  }, this));
+	};
+
+	Graph.prototype.setNodes = function(vs, value) {
+	  var args = arguments;
+	  _.each(vs, _.bind(function(v) {
+	    if (args.length > 1) {
+	      this.setNode(v, value);
+	    } else {
+	      this.setNode(v);
+	    }
+	  }, this));
+	  return this;
+	};
+
+	Graph.prototype.setNode = function(v, value) {
+	  if (_.has(this._nodes, v)) {
+	    if (arguments.length > 1) {
+	      this._nodes[v] = value;
+	    }
+	    return this;
+	  }
+
+	  this._nodes[v] = arguments.length > 1 ? value : this._defaultNodeLabelFn(v);
+	  if (this._isCompound) {
+	    this._parent[v] = GRAPH_NODE;
+	    this._children[v] = {};
+	    this._children[GRAPH_NODE][v] = true;
+	  }
+	  this._in[v] = {};
+	  this._preds[v] = {};
+	  this._out[v] = {};
+	  this._sucs[v] = {};
+	  ++this._nodeCount;
+	  return this;
+	};
+
+	Graph.prototype.node = function(v) {
+	  return this._nodes[v];
+	};
+
+	Graph.prototype.hasNode = function(v) {
+	  return _.has(this._nodes, v);
+	};
+
+	Graph.prototype.removeNode =  function(v) {
+	  var self = this;
+	  if (_.has(this._nodes, v)) {
+	    var removeEdge = function(e) { self.removeEdge(self._edgeObjs[e]); };
+	    delete this._nodes[v];
+	    if (this._isCompound) {
+	      this._removeFromParentsChildList(v);
+	      delete this._parent[v];
+	      _.each(this.children(v), _.bind(function(child) {
+	        this.setParent(child);
+	      }, this));
+	      delete this._children[v];
+	    }
+	    _.each(_.keys(this._in[v]), removeEdge);
+	    delete this._in[v];
+	    delete this._preds[v];
+	    _.each(_.keys(this._out[v]), removeEdge);
+	    delete this._out[v];
+	    delete this._sucs[v];
+	    --this._nodeCount;
+	  }
+	  return this;
+	};
+
+	Graph.prototype.setParent = function(v, parent) {
+	  if (!this._isCompound) {
+	    throw new Error("Cannot set parent in a non-compound graph");
+	  }
+
+	  if (_.isUndefined(parent)) {
+	    parent = GRAPH_NODE;
+	  } else {
+	    // Coerce parent to string
+	    parent += "";
+	    for (var ancestor = parent;
+	         !_.isUndefined(ancestor);
+	         ancestor = this.parent(ancestor)) {
+	      if (ancestor === v) {
+	        throw new Error("Setting " + parent+ " as parent of " + v +
+	                        " would create create a cycle");
+	      }
+	    }
+
+	    this.setNode(parent);
+	  }
+
+	  this.setNode(v);
+	  this._removeFromParentsChildList(v);
+	  this._parent[v] = parent;
+	  this._children[parent][v] = true;
+	  return this;
+	};
+
+	Graph.prototype._removeFromParentsChildList = function(v) {
+	  delete this._children[this._parent[v]][v];
+	};
+
+	Graph.prototype.parent = function(v) {
+	  if (this._isCompound) {
+	    var parent = this._parent[v];
+	    if (parent !== GRAPH_NODE) {
+	      return parent;
+	    }
+	  }
+	};
+
+	Graph.prototype.children = function(v) {
+	  if (_.isUndefined(v)) {
+	    v = GRAPH_NODE;
+	  }
+
+	  if (this._isCompound) {
+	    var children = this._children[v];
+	    if (children) {
+	      return _.keys(children);
+	    }
+	  } else if (v === GRAPH_NODE) {
+	    return this.nodes();
+	  } else if (this.hasNode(v)) {
+	    return [];
+	  }
+	};
+
+	Graph.prototype.predecessors = function(v) {
+	  var predsV = this._preds[v];
+	  if (predsV) {
+	    return _.keys(predsV);
+	  }
+	};
+
+	Graph.prototype.successors = function(v) {
+	  var sucsV = this._sucs[v];
+	  if (sucsV) {
+	    return _.keys(sucsV);
+	  }
+	};
+
+	Graph.prototype.neighbors = function(v) {
+	  var preds = this.predecessors(v);
+	  if (preds) {
+	    return _.union(preds, this.successors(v));
+	  }
+	};
+
+	Graph.prototype.filterNodes = function(filter) {
+	  var copy = new this.constructor({
+	    directed: this._isDirected,
+	    multigraph: this._isMultigraph,
+	    compound: this._isCompound
+	  });
+
+	  copy.setGraph(this.graph());
+
+	  _.each(this._nodes, _.bind(function(value, v) {
+	    if (filter(v)) {
+	      copy.setNode(v, value);
+	    }
+	  }, this));
+
+	  _.each(this._edgeObjs, _.bind(function(e) {
+	    if (copy.hasNode(e.v) && copy.hasNode(e.w)) {
+	      copy.setEdge(e, this.edge(e));
+	    }
+	  }, this));
+
+	  var self = this;
+	  var parents = {};
+	  function findParent(v) {
+	    var parent = self.parent(v);
+	    if (parent === undefined || copy.hasNode(parent)) {
+	      parents[v] = parent;
+	      return parent;
+	    } else if (parent in parents) {
+	      return parents[parent];
+	    } else {
+	      return findParent(parent);
+	    }
+	  }
+
+	  if (this._isCompound) {
+	    _.each(copy.nodes(), function(v) {
+	      copy.setParent(v, findParent(v));
+	    });
+	  }
+
+	  return copy;
+	};
+
+	/* === Edge functions ========== */
+
+	Graph.prototype.setDefaultEdgeLabel = function(newDefault) {
+	  if (!_.isFunction(newDefault)) {
+	    newDefault = _.constant(newDefault);
+	  }
+	  this._defaultEdgeLabelFn = newDefault;
+	  return this;
+	};
+
+	Graph.prototype.edgeCount = function() {
+	  return this._edgeCount;
+	};
+
+	Graph.prototype.edges = function() {
+	  return _.values(this._edgeObjs);
+	};
+
+	Graph.prototype.setPath = function(vs, value) {
+	  var self = this,
+	      args = arguments;
+	  _.reduce(vs, function(v, w) {
+	    if (args.length > 1) {
+	      self.setEdge(v, w, value);
+	    } else {
+	      self.setEdge(v, w);
+	    }
+	    return w;
+	  });
+	  return this;
+	};
+
+	/*
+	 * setEdge(v, w, [value, [name]])
+	 * setEdge({ v, w, [name] }, [value])
+	 */
+	Graph.prototype.setEdge = function() {
+	  var v, w, name, value,
+	      valueSpecified = false,
+	      arg0 = arguments[0];
+
+	  if (typeof arg0 === "object" && arg0 !== null && "v" in arg0) {
+	    v = arg0.v;
+	    w = arg0.w;
+	    name = arg0.name;
+	    if (arguments.length === 2) {
+	      value = arguments[1];
+	      valueSpecified = true;
+	    }
+	  } else {
+	    v = arg0;
+	    w = arguments[1];
+	    name = arguments[3];
+	    if (arguments.length > 2) {
+	      value = arguments[2];
+	      valueSpecified = true;
+	    }
+	  }
+
+	  v = "" + v;
+	  w = "" + w;
+	  if (!_.isUndefined(name)) {
+	    name = "" + name;
+	  }
+
+	  var e = edgeArgsToId(this._isDirected, v, w, name);
+	  if (_.has(this._edgeLabels, e)) {
+	    if (valueSpecified) {
+	      this._edgeLabels[e] = value;
+	    }
+	    return this;
+	  }
+
+	  if (!_.isUndefined(name) && !this._isMultigraph) {
+	    throw new Error("Cannot set a named edge when isMultigraph = false");
+	  }
+
+	  // It didn't exist, so we need to create it.
+	  // First ensure the nodes exist.
+	  this.setNode(v);
+	  this.setNode(w);
+
+	  this._edgeLabels[e] = valueSpecified ? value : this._defaultEdgeLabelFn(v, w, name);
+
+	  var edgeObj = edgeArgsToObj(this._isDirected, v, w, name);
+	  // Ensure we add undirected edges in a consistent way.
+	  v = edgeObj.v;
+	  w = edgeObj.w;
+
+	  Object.freeze(edgeObj);
+	  this._edgeObjs[e] = edgeObj;
+	  incrementOrInitEntry(this._preds[w], v);
+	  incrementOrInitEntry(this._sucs[v], w);
+	  this._in[w][e] = edgeObj;
+	  this._out[v][e] = edgeObj;
+	  this._edgeCount++;
+	  return this;
+	};
+
+	Graph.prototype.edge = function(v, w, name) {
+	  var e = (arguments.length === 1
+	            ? edgeObjToId(this._isDirected, arguments[0])
+	            : edgeArgsToId(this._isDirected, v, w, name));
+	  return this._edgeLabels[e];
+	};
+
+	Graph.prototype.hasEdge = function(v, w, name) {
+	  var e = (arguments.length === 1
+	            ? edgeObjToId(this._isDirected, arguments[0])
+	            : edgeArgsToId(this._isDirected, v, w, name));
+	  return _.has(this._edgeLabels, e);
+	};
+
+	Graph.prototype.removeEdge = function(v, w, name) {
+	  var e = (arguments.length === 1
+	            ? edgeObjToId(this._isDirected, arguments[0])
+	            : edgeArgsToId(this._isDirected, v, w, name)),
+	      edge = this._edgeObjs[e];
+	  if (edge) {
+	    v = edge.v;
+	    w = edge.w;
+	    delete this._edgeLabels[e];
+	    delete this._edgeObjs[e];
+	    decrementOrRemoveEntry(this._preds[w], v);
+	    decrementOrRemoveEntry(this._sucs[v], w);
+	    delete this._in[w][e];
+	    delete this._out[v][e];
+	    this._edgeCount--;
+	  }
+	  return this;
+	};
+
+	Graph.prototype.inEdges = function(v, u) {
+	  var inV = this._in[v];
+	  if (inV) {
+	    var edges = _.values(inV);
+	    if (!u) {
+	      return edges;
+	    }
+	    return _.filter(edges, function(edge) { return edge.v === u; });
+	  }
+	};
+
+	Graph.prototype.outEdges = function(v, w) {
+	  var outV = this._out[v];
+	  if (outV) {
+	    var edges = _.values(outV);
+	    if (!w) {
+	      return edges;
+	    }
+	    return _.filter(edges, function(edge) { return edge.w === w; });
+	  }
+	};
+
+	Graph.prototype.nodeEdges = function(v, w) {
+	  var inEdges = this.inEdges(v, w);
+	  if (inEdges) {
+	    return inEdges.concat(this.outEdges(v, w));
+	  }
+	};
+
+	function incrementOrInitEntry(map, k) {
+	  if (map[k]) {
+	    map[k]++;
+	  } else {
+	    map[k] = 1;
+	  }
+	}
+
+	function decrementOrRemoveEntry(map, k) {
+	  if (!--map[k]) { delete map[k]; }
+	}
+
+	function edgeArgsToId(isDirected, v_, w_, name) {
+	  var v = "" + v_;
+	  var w = "" + w_;
+	  if (!isDirected && v > w) {
+	    var tmp = v;
+	    v = w;
+	    w = tmp;
+	  }
+	  return v + EDGE_KEY_DELIM + w + EDGE_KEY_DELIM +
+	             (_.isUndefined(name) ? DEFAULT_EDGE_NAME : name);
+	}
+
+	function edgeArgsToObj(isDirected, v_, w_, name) {
+	  var v = "" + v_;
+	  var w = "" + w_;
+	  if (!isDirected && v > w) {
+	    var tmp = v;
+	    v = w;
+	    w = tmp;
+	  }
+	  var edgeObj =  { v: v, w: w };
+	  if (name) {
+	    edgeObj.name = name;
+	  }
+	  return edgeObj;
+	}
+
+	function edgeObjToId(isDirected, edgeObj) {
+	  return edgeArgsToId(isDirected, edgeObj.v, edgeObj.w, edgeObj.name);
+	}
+
+
+/***/ }),
+/* 363 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* global window */
+
+	var lodash;
+
+	if (true) {
+	  try {
+	    lodash = __webpack_require__(357);
+	  } catch (e) {}
+	}
+
+	if (!lodash) {
+	  lodash = window._;
+	}
+
+	module.exports = lodash;
+
+
+/***/ }),
+/* 364 */
+/***/ (function(module, exports) {
+
+	module.exports = '2.1.1';
+
+
+/***/ }),
+/* 365 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(363),
+	    Graph = __webpack_require__(362);
 
 	module.exports = {
 	  write: write,
@@ -80917,29 +81460,29 @@
 
 
 /***/ }),
-/* 363 */
+/* 366 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  components: __webpack_require__(364),
-	  dijkstra: __webpack_require__(365),
-	  dijkstraAll: __webpack_require__(367),
-	  findCycles: __webpack_require__(368),
-	  floydWarshall: __webpack_require__(370),
-	  isAcyclic: __webpack_require__(371),
-	  postorder: __webpack_require__(373),
-	  preorder: __webpack_require__(375),
-	  prim: __webpack_require__(376),
-	  tarjan: __webpack_require__(369),
-	  topsort: __webpack_require__(372)
+	  components: __webpack_require__(367),
+	  dijkstra: __webpack_require__(368),
+	  dijkstraAll: __webpack_require__(370),
+	  findCycles: __webpack_require__(371),
+	  floydWarshall: __webpack_require__(373),
+	  isAcyclic: __webpack_require__(374),
+	  postorder: __webpack_require__(376),
+	  preorder: __webpack_require__(378),
+	  prim: __webpack_require__(379),
+	  tarjan: __webpack_require__(372),
+	  topsort: __webpack_require__(375)
 	};
 
 
 /***/ }),
-/* 364 */
+/* 367 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = components;
 
@@ -80969,11 +81512,11 @@
 
 
 /***/ }),
-/* 365 */
+/* 368 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359),
-	    PriorityQueue = __webpack_require__(366);
+	var _ = __webpack_require__(363),
+	    PriorityQueue = __webpack_require__(369);
 
 	module.exports = dijkstra;
 
@@ -81029,10 +81572,10 @@
 
 
 /***/ }),
-/* 366 */
+/* 369 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = PriorityQueue;
 
@@ -81187,11 +81730,11 @@
 
 
 /***/ }),
-/* 367 */
+/* 370 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var dijkstra = __webpack_require__(365),
-	    _ = __webpack_require__(359);
+	var dijkstra = __webpack_require__(368),
+	    _ = __webpack_require__(363);
 
 	module.exports = dijkstraAll;
 
@@ -81203,11 +81746,11 @@
 
 
 /***/ }),
-/* 368 */
+/* 371 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359),
-	    tarjan = __webpack_require__(369);
+	var _ = __webpack_require__(363),
+	    tarjan = __webpack_require__(372);
 
 	module.exports = findCycles;
 
@@ -81219,10 +81762,10 @@
 
 
 /***/ }),
-/* 369 */
+/* 372 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = tarjan;
 
@@ -81272,10 +81815,10 @@
 
 
 /***/ }),
-/* 370 */
+/* 373 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = floydWarshall;
 
@@ -81328,10 +81871,10 @@
 
 
 /***/ }),
-/* 371 */
+/* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var topsort = __webpack_require__(372);
+	var topsort = __webpack_require__(375);
 
 	module.exports = isAcyclic;
 
@@ -81349,10 +81892,10 @@
 
 
 /***/ }),
-/* 372 */
+/* 375 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = topsort;
 	topsort.CycleException = CycleException;
@@ -81389,10 +81932,10 @@
 
 
 /***/ }),
-/* 373 */
+/* 376 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(374);
+	var dfs = __webpack_require__(377);
 
 	module.exports = postorder;
 
@@ -81402,10 +81945,10 @@
 
 
 /***/ }),
-/* 374 */
+/* 377 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359);
+	var _ = __webpack_require__(363);
 
 	module.exports = dfs;
 
@@ -81450,10 +81993,10 @@
 
 
 /***/ }),
-/* 375 */
+/* 378 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var dfs = __webpack_require__(374);
+	var dfs = __webpack_require__(377);
 
 	module.exports = preorder;
 
@@ -81463,12 +82006,12 @@
 
 
 /***/ }),
-/* 376 */
+/* 379 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(359),
-	    Graph = __webpack_require__(358),
-	    PriorityQueue = __webpack_require__(366);
+	var _ = __webpack_require__(363),
+	    Graph = __webpack_require__(362),
+	    PriorityQueue = __webpack_require__(369);
 
 	module.exports = prim;
 
@@ -81521,7 +82064,7 @@
 
 
 /***/ }),
-/* 377 */
+/* 380 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*eslint global-require: 0*/
@@ -81533,67 +82076,67 @@
 	 * @module turf
 	 * @summary Geospatial analysis for JavaScript
 	 */
-	var helpers = __webpack_require__(378);
-	var invariant = __webpack_require__(379);
-	var meta = __webpack_require__(380);
+	var helpers = __webpack_require__(381);
+	var invariant = __webpack_require__(382);
+	var meta = __webpack_require__(383);
 
 	var turf = {
-	    isolines: __webpack_require__(381),
-	    convex: __webpack_require__(390),
-	    within: __webpack_require__(407),
-	    concave: __webpack_require__(408),
-	    difference: __webpack_require__(411),
-	    dissolve: __webpack_require__(412),
-	    collect: __webpack_require__(420),
-	    flip: __webpack_require__(421),
-	    simplify: __webpack_require__(422),
-	    bezier: __webpack_require__(424),
-	    tag: __webpack_require__(426),
-	    sample: __webpack_require__(427),
-	    envelope: __webpack_require__(428),
-	    square: __webpack_require__(388),
-	    circle: __webpack_require__(430),
-	    midpoint: __webpack_require__(432),
-	    buffer: __webpack_require__(434),
-	    center: __webpack_require__(436),
-	    centerOfMass: __webpack_require__(437),
-	    centroid: __webpack_require__(438),
-	    combine: __webpack_require__(440),
-	    distance: __webpack_require__(385),
-	    explode: __webpack_require__(439),
-	    bbox: __webpack_require__(386),
-	    tesselate: __webpack_require__(441),
-	    bboxPolygon: __webpack_require__(429),
-	    inside: __webpack_require__(383),
-	    intersect: __webpack_require__(443),
-	    nearest: __webpack_require__(444),
-	    planepoint: __webpack_require__(387),
-	    random: __webpack_require__(445),
-	    tin: __webpack_require__(382),
-	    union: __webpack_require__(409),
-	    bearing: __webpack_require__(433),
-	    destination: __webpack_require__(431),
-	    kinks: __webpack_require__(447),
-	    pointOnSurface: __webpack_require__(448),
-	    area: __webpack_require__(449),
-	    along: __webpack_require__(452),
-	    lineDistance: __webpack_require__(453),
-	    lineSlice: __webpack_require__(455),
-	    lineSliceAlong: __webpack_require__(457),
-	    pointOnLine: __webpack_require__(456),
-	    pointGrid: __webpack_require__(384),
-	    squareGrid: __webpack_require__(458),
-	    triangleGrid: __webpack_require__(459),
-	    hexGrid: __webpack_require__(460),
-	    idw: __webpack_require__(461),
-	    truncate: __webpack_require__(462),
-	    flatten: __webpack_require__(454),
-	    lineIntersect: __webpack_require__(463),
-	    mask: __webpack_require__(466),
-	    lineChunk: __webpack_require__(467),
-	    unkinkPolygon: __webpack_require__(468),
-	    greatCircle: __webpack_require__(474),
-	    lineSegment: __webpack_require__(464),
+	    isolines: __webpack_require__(384),
+	    convex: __webpack_require__(393),
+	    within: __webpack_require__(410),
+	    concave: __webpack_require__(411),
+	    difference: __webpack_require__(414),
+	    dissolve: __webpack_require__(415),
+	    collect: __webpack_require__(423),
+	    flip: __webpack_require__(424),
+	    simplify: __webpack_require__(425),
+	    bezier: __webpack_require__(427),
+	    tag: __webpack_require__(429),
+	    sample: __webpack_require__(430),
+	    envelope: __webpack_require__(431),
+	    square: __webpack_require__(391),
+	    circle: __webpack_require__(433),
+	    midpoint: __webpack_require__(435),
+	    buffer: __webpack_require__(437),
+	    center: __webpack_require__(439),
+	    centerOfMass: __webpack_require__(440),
+	    centroid: __webpack_require__(441),
+	    combine: __webpack_require__(443),
+	    distance: __webpack_require__(388),
+	    explode: __webpack_require__(442),
+	    bbox: __webpack_require__(389),
+	    tesselate: __webpack_require__(444),
+	    bboxPolygon: __webpack_require__(432),
+	    inside: __webpack_require__(386),
+	    intersect: __webpack_require__(446),
+	    nearest: __webpack_require__(447),
+	    planepoint: __webpack_require__(390),
+	    random: __webpack_require__(448),
+	    tin: __webpack_require__(385),
+	    union: __webpack_require__(412),
+	    bearing: __webpack_require__(436),
+	    destination: __webpack_require__(434),
+	    kinks: __webpack_require__(450),
+	    pointOnSurface: __webpack_require__(451),
+	    area: __webpack_require__(452),
+	    along: __webpack_require__(455),
+	    lineDistance: __webpack_require__(456),
+	    lineSlice: __webpack_require__(458),
+	    lineSliceAlong: __webpack_require__(460),
+	    pointOnLine: __webpack_require__(459),
+	    pointGrid: __webpack_require__(387),
+	    squareGrid: __webpack_require__(461),
+	    triangleGrid: __webpack_require__(462),
+	    hexGrid: __webpack_require__(463),
+	    idw: __webpack_require__(464),
+	    truncate: __webpack_require__(465),
+	    flatten: __webpack_require__(457),
+	    lineIntersect: __webpack_require__(466),
+	    mask: __webpack_require__(469),
+	    lineChunk: __webpack_require__(470),
+	    unkinkPolygon: __webpack_require__(471),
+	    greatCircle: __webpack_require__(477),
+	    lineSegment: __webpack_require__(467),
 	    point: helpers.point,
 	    polygon: helpers.polygon,
 	    lineString: helpers.lineString,
@@ -81623,7 +82166,7 @@
 
 
 /***/ }),
-/* 378 */
+/* 381 */
 /***/ (function(module, exports) {
 
 	/**
@@ -81953,7 +82496,7 @@
 
 
 /***/ }),
-/* 379 */
+/* 382 */
 /***/ (function(module, exports) {
 
 	/**
@@ -82099,7 +82642,7 @@
 
 
 /***/ }),
-/* 380 */
+/* 383 */
 /***/ (function(module, exports) {
 
 	/**
@@ -82755,22 +83298,22 @@
 
 
 /***/ }),
-/* 381 */
+/* 384 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//https://github.com/jasondavies/conrec.js
 	//http://stackoverflow.com/questions/263305/drawing-a-topographical-map
-	var tin = __webpack_require__(382);
-	var inside = __webpack_require__(383);
-	var grid = __webpack_require__(384);
-	var distance = __webpack_require__(385);
-	var bbox = __webpack_require__(386);
-	var planepoint = __webpack_require__(387);
-	var featurecollection = __webpack_require__(378).featureCollection;
-	var linestring = __webpack_require__(378).lineString;
-	var point = __webpack_require__(378).point;
-	var square = __webpack_require__(388);
-	var Conrec = __webpack_require__(389);
+	var tin = __webpack_require__(385);
+	var inside = __webpack_require__(386);
+	var grid = __webpack_require__(387);
+	var distance = __webpack_require__(388);
+	var bbox = __webpack_require__(389);
+	var planepoint = __webpack_require__(390);
+	var featurecollection = __webpack_require__(381).featureCollection;
+	var linestring = __webpack_require__(381).lineString;
+	var point = __webpack_require__(381).point;
+	var square = __webpack_require__(391);
+	var Conrec = __webpack_require__(392);
 
 	/**
 	 * Takes {@link Point|points} with z-values and an array of
@@ -82860,13 +83403,13 @@
 
 
 /***/ }),
-/* 382 */
+/* 385 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Delaunay_triangulation
 	//https://github.com/ironwallaby/delaunay
-	var polygon = __webpack_require__(378).polygon;
-	var featurecollection = __webpack_require__(378).featureCollection;
+	var polygon = __webpack_require__(381).polygon;
+	var featurecollection = __webpack_require__(381).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and the name of a z-value property and
@@ -83108,10 +83651,10 @@
 
 
 /***/ }),
-/* 383 */
+/* 386 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var invariant = __webpack_require__(379);
+	var invariant = __webpack_require__(382);
 
 	// http://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
 	// modified from: https://github.com/substack/point-in-polygon/blob/master/index.js
@@ -83183,13 +83726,13 @@
 
 
 /***/ }),
-/* 384 */
+/* 387 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(378).point;
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var distance = __webpack_require__(385);
-	var turfBBox = __webpack_require__(386);
+	var point = __webpack_require__(381).point;
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var distance = __webpack_require__(388);
+	var turfBBox = __webpack_require__(389);
 
 	/**
 	 * Creates a {@link Point} grid from a bounding box, {@link FeatureCollection} or {@link Feature}.
@@ -83241,11 +83784,11 @@
 
 
 /***/ }),
-/* 385 */
+/* 388 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(379).getCoord;
-	var radiansToDistance = __webpack_require__(378).radiansToDistance;
+	var getCoord = __webpack_require__(382).getCoord;
+	var radiansToDistance = __webpack_require__(381).radiansToDistance;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -83307,10 +83850,10 @@
 
 
 /***/ }),
-/* 386 */
+/* 389 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
+	var each = __webpack_require__(383).coordEach;
 
 	/**
 	 * Takes a set of features, calculates the bbox of all input features, and returns a bounding box.
@@ -83348,7 +83891,7 @@
 
 
 /***/ }),
-/* 387 */
+/* 390 */
 /***/ (function(module, exports) {
 
 	/**
@@ -83426,10 +83969,10 @@
 
 
 /***/ }),
-/* 388 */
+/* 391 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(385);
+	var distance = __webpack_require__(388);
 
 	/**
 	 * Takes a bounding box and calculates the minimum square bounding box that
@@ -83483,7 +84026,7 @@
 
 
 /***/ }),
-/* 389 */
+/* 392 */
 /***/ (function(module, exports) {
 
 	/* eslint-disable */
@@ -84006,12 +84549,12 @@
 
 
 /***/ }),
-/* 390 */
+/* 393 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    convexHull = __webpack_require__(391),
-	    polygon = __webpack_require__(378).polygon;
+	var each = __webpack_require__(383).coordEach,
+	    convexHull = __webpack_require__(394),
+	    polygon = __webpack_require__(381).polygon;
 
 	/**
 	 * Takes a {@link Feature} or a {@link FeatureCollection} and returns a convex hull {@link Polygon}.
@@ -84107,14 +84650,14 @@
 
 
 /***/ }),
-/* 391 */
+/* 394 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var convexHull1d = __webpack_require__(392)
-	var convexHull2d = __webpack_require__(393)
-	var convexHullnd = __webpack_require__(401)
+	var convexHull1d = __webpack_require__(395)
+	var convexHull2d = __webpack_require__(396)
+	var convexHullnd = __webpack_require__(404)
 
 	module.exports = convexHull
 
@@ -84137,7 +84680,7 @@
 	}
 
 /***/ }),
-/* 392 */
+/* 395 */
 /***/ (function(module, exports) {
 
 	"use strict"
@@ -84165,14 +84708,14 @@
 	}
 
 /***/ }),
-/* 393 */
+/* 396 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHull2D
 
-	var monotoneHull = __webpack_require__(394)
+	var monotoneHull = __webpack_require__(397)
 
 	function convexHull2D(points) {
 	  var hull = monotoneHull(points)
@@ -84192,14 +84735,14 @@
 
 
 /***/ }),
-/* 394 */
+/* 397 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = monotoneConvexHull2D
 
-	var orient = __webpack_require__(395)[3]
+	var orient = __webpack_require__(398)[3]
 
 	function monotoneConvexHull2D(points) {
 	  var n = points.length
@@ -84278,15 +84821,15 @@
 	}
 
 /***/ }),
-/* 395 */
+/* 398 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(396)
-	var robustSum = __webpack_require__(397)
-	var robustScale = __webpack_require__(398)
-	var robustSubtract = __webpack_require__(400)
+	var twoProduct = __webpack_require__(399)
+	var robustSum = __webpack_require__(400)
+	var robustScale = __webpack_require__(401)
+	var robustSubtract = __webpack_require__(403)
 
 	var NUM_EXPAND = 5
 
@@ -84473,7 +85016,7 @@
 	generateOrientationProc()
 
 /***/ }),
-/* 396 */
+/* 399 */
 /***/ (function(module, exports) {
 
 	"use strict"
@@ -84511,7 +85054,7 @@
 	}
 
 /***/ }),
-/* 397 */
+/* 400 */
 /***/ (function(module, exports) {
 
 	"use strict"
@@ -84672,13 +85215,13 @@
 	}
 
 /***/ }),
-/* 398 */
+/* 401 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
 
-	var twoProduct = __webpack_require__(396)
-	var twoSum = __webpack_require__(399)
+	var twoProduct = __webpack_require__(399)
+	var twoSum = __webpack_require__(402)
 
 	module.exports = scaleLinearExpansion
 
@@ -84727,7 +85270,7 @@
 	}
 
 /***/ }),
-/* 399 */
+/* 402 */
 /***/ (function(module, exports) {
 
 	"use strict"
@@ -84749,7 +85292,7 @@
 	}
 
 /***/ }),
-/* 400 */
+/* 403 */
 /***/ (function(module, exports) {
 
 	"use strict"
@@ -84910,15 +85453,15 @@
 	}
 
 /***/ }),
-/* 401 */
+/* 404 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = convexHullnD
 
-	var ich = __webpack_require__(402)
-	var aff = __webpack_require__(406)
+	var ich = __webpack_require__(405)
+	var aff = __webpack_require__(409)
 
 	function permute(points, front) {
 	  var n = points.length
@@ -84975,7 +85518,7 @@
 	}
 
 /***/ }),
-/* 402 */
+/* 405 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"
@@ -84986,8 +85529,8 @@
 
 	module.exports = incrementalConvexHull
 
-	var orient = __webpack_require__(395)
-	var compareCell = __webpack_require__(403).compareCells
+	var orient = __webpack_require__(398)
+	var compareCell = __webpack_require__(406).compareCells
 
 	function compareInt(a, b) {
 	  return a - b
@@ -85426,13 +85969,13 @@
 	}
 
 /***/ }),
-/* 403 */
+/* 406 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict"; "use restrict";
 
-	var bits      = __webpack_require__(404)
-	  , UnionFind = __webpack_require__(405)
+	var bits      = __webpack_require__(407)
+	  , UnionFind = __webpack_require__(408)
 
 	//Returns the dimension of a cell complex
 	function dimension(cells) {
@@ -85774,7 +86317,7 @@
 
 
 /***/ }),
-/* 404 */
+/* 407 */
 /***/ (function(module, exports) {
 
 	/**
@@ -85984,7 +86527,7 @@
 
 
 /***/ }),
-/* 405 */
+/* 408 */
 /***/ (function(module, exports) {
 
 	"use strict"; "use restrict";
@@ -86051,14 +86594,14 @@
 	}
 
 /***/ }),
-/* 406 */
+/* 409 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict'
 
 	module.exports = affineHull
 
-	var orient = __webpack_require__(395)
+	var orient = __webpack_require__(398)
 
 	function linearlyIndependent(points, d) {
 	  var nhull = new Array(d+1)
@@ -86107,11 +86650,11 @@
 	}
 
 /***/ }),
-/* 407 */
+/* 410 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(383);
-	var featureCollection = __webpack_require__(378).featureCollection;
+	var inside = __webpack_require__(386);
+	var featureCollection = __webpack_require__(381).featureCollection;
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and returns the points that fall within the polygons.
@@ -86207,7 +86750,7 @@
 
 
 /***/ }),
-/* 408 */
+/* 411 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// 1. run tin on points
@@ -86215,9 +86758,9 @@
 	// 3. remove triangles that fail the max length test
 	// 4. buffer the results slightly
 	// 5. merge the results
-	var tin = __webpack_require__(382);
-	var union = __webpack_require__(409);
-	var distance = __webpack_require__(385);
+	var tin = __webpack_require__(385);
+	var union = __webpack_require__(412);
+	var distance = __webpack_require__(388);
 
 	/**
 	 * Takes a set of {@link Point|points} and returns a concave hull polygon.
@@ -86330,10 +86873,10 @@
 
 
 /***/ }),
-/* 409 */
+/* 412 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var jsts = __webpack_require__(410);
+	var jsts = __webpack_require__(413);
 
 	/**
 	 * Takes two or more {@link Polygon|polygons} and returns a combined polygon. If the input polygons are not contiguous, this function returns a {@link MultiPolygon} feature.
@@ -86405,7 +86948,7 @@
 
 
 /***/ }),
-/* 410 */
+/* 413 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// JSTS. See https://github.com/bjornharrtell/jsts
@@ -86430,11 +86973,11 @@
 
 
 /***/ }),
-/* 411 */
+/* 414 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now https://github.com/bjornharrtell/jsts/blob/master/examples/overlay.html
-	var jsts = __webpack_require__(410);
+	var jsts = __webpack_require__(413);
 
 	/**
 	 * Finds the difference between two {@link Polygon|polygons} by clipping the second
@@ -86530,15 +87073,15 @@
 
 
 /***/ }),
-/* 412 */
+/* 415 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var turfUnion = __webpack_require__(409);
-	var turfOverlaps = __webpack_require__(413);
-	var turfbbox = __webpack_require__(386);
-	var Rbush = __webpack_require__(415);
-	var gju = __webpack_require__(417);
-	var getClosest = __webpack_require__(418);
+	var turfUnion = __webpack_require__(412);
+	var turfOverlaps = __webpack_require__(416);
+	var turfbbox = __webpack_require__(389);
+	var Rbush = __webpack_require__(418);
+	var gju = __webpack_require__(420);
+	var getClosest = __webpack_require__(421);
 
 	/**
 	 * Dissolves a FeatureCollection of polygons based on a property. Note that multipart features within the collection are not supported
@@ -86699,10 +87242,10 @@
 
 
 /***/ }),
-/* 413 */
+/* 416 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var clockwise = __webpack_require__(414);
+	var clockwise = __webpack_require__(417);
 
 	function doLinesIntersect(line1, line2) {
 	  var p1 = line1[0],
@@ -86779,7 +87322,7 @@
 
 
 /***/ }),
-/* 414 */
+/* 417 */
 /***/ (function(module, exports) {
 
 	module.exports = function(ring){
@@ -86797,14 +87340,14 @@
 	}
 
 /***/ }),
-/* 415 */
+/* 418 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	module.exports = rbush;
 
-	var quickselect = __webpack_require__(416);
+	var quickselect = __webpack_require__(419);
 
 	function rbush(maxEntries, format) {
 	    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
@@ -87364,7 +87907,7 @@
 
 
 /***/ }),
-/* 416 */
+/* 419 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -87430,7 +87973,7 @@
 
 
 /***/ }),
-/* 417 */
+/* 420 */
 /***/ (function(module, exports) {
 
 	(function () {
@@ -87844,7 +88387,7 @@
 
 
 /***/ }),
-/* 418 */
+/* 421 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -87856,7 +88399,7 @@
 	*/
 	"use strict";
 
-	var assert = __webpack_require__(419);
+	var assert = __webpack_require__(422);
 
 	/**
 	 * Get the closest number in an array
@@ -87949,7 +88492,7 @@
 
 
 /***/ }),
-/* 419 */
+/* 422 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -88446,12 +88989,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 420 */
+/* 423 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var turfbbox = __webpack_require__(386);
-	var inside = __webpack_require__(383);
-	var rbush = __webpack_require__(415);
+	var turfbbox = __webpack_require__(389);
+	var inside = __webpack_require__(386);
+	var rbush = __webpack_require__(418);
 
 	/**
 	 * Merges a specified property from a FeatureCollection of points into a
@@ -88519,10 +89062,10 @@
 
 
 /***/ }),
-/* 421 */
+/* 424 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var coordEach = __webpack_require__(380).coordEach;
+	var coordEach = __webpack_require__(383).coordEach;
 
 	/**
 	 * Takes input features and flips all of their coordinates
@@ -88561,10 +89104,10 @@
 
 
 /***/ }),
-/* 422 */
+/* 425 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var simplify = __webpack_require__(423);
+	var simplify = __webpack_require__(426);
 
 	// supported GeoJSON geometries, used to check whether to wrap in simpleFeature()
 	var supportedTypes = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
@@ -88748,7 +89291,7 @@
 
 
 /***/ }),
-/* 423 */
+/* 426 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -88885,11 +89428,11 @@
 
 
 /***/ }),
-/* 424 */
+/* 427 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(378).lineString;
-	var Spline = __webpack_require__(425);
+	var linestring = __webpack_require__(381).lineString;
+	var Spline = __webpack_require__(428);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a curved version
@@ -88953,7 +89496,7 @@
 
 
 /***/ }),
-/* 425 */
+/* 428 */
 /***/ (function(module, exports) {
 
 	/* eslint-disable */
@@ -89093,10 +89636,10 @@
 
 
 /***/ }),
-/* 426 */
+/* 429 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var inside = __webpack_require__(383);
+	var inside = __webpack_require__(386);
 
 	/**
 	 * Takes a set of {@link Point|points} and a set of {@link Polygon|polygons} and performs a spatial join.
@@ -89155,11 +89698,11 @@
 
 
 /***/ }),
-/* 427 */
+/* 430 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/11935175/sampling-a-random-subset-from-an-array
-	var featureCollection = __webpack_require__(378).featureCollection;
+	var featureCollection = __webpack_require__(381).featureCollection;
 
 	/**
 	 * Takes a {@link FeatureCollection} and returns a FeatureCollection with given number of {@link Feature|features} at random.
@@ -89195,11 +89738,11 @@
 
 
 /***/ }),
-/* 428 */
+/* 431 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(386);
-	var bboxPolygon = __webpack_require__(429);
+	var bbox = __webpack_require__(389);
+	var bboxPolygon = __webpack_require__(432);
 
 	/**
 	 * Takes any number of features and returns a rectangular {@link Polygon} that encompasses all vertices.
@@ -89259,10 +89802,10 @@
 
 
 /***/ }),
-/* 429 */
+/* 432 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(378).polygon;
+	var polygon = __webpack_require__(381).polygon;
 
 	/**
 	 * Takes a bbox and returns an equivalent {@link Polygon|polygon}.
@@ -89296,11 +89839,11 @@
 
 
 /***/ }),
-/* 430 */
+/* 433 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var destination = __webpack_require__(431);
-	var helpers = __webpack_require__(378);
+	var destination = __webpack_require__(434);
+	var helpers = __webpack_require__(381);
 	var polygon = helpers.polygon;
 
 	/**
@@ -89337,13 +89880,13 @@
 
 
 /***/ }),
-/* 431 */
+/* 434 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
-	var getCoord = __webpack_require__(379).getCoord;
-	var helpers = __webpack_require__(378);
+	var getCoord = __webpack_require__(382).getCoord;
+	var helpers = __webpack_require__(381);
 	var point = helpers.point;
 	var distanceToRadians = helpers.distanceToRadians;
 
@@ -89402,12 +89945,12 @@
 
 
 /***/ }),
-/* 432 */
+/* 435 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(433);
-	var destination = __webpack_require__(431);
-	var distance = __webpack_require__(385);
+	var bearing = __webpack_require__(436);
+	var destination = __webpack_require__(434);
+	var distance = __webpack_require__(388);
 
 	/**
 	 * Takes two {@link Point|points} and returns a point midway between them.
@@ -89456,10 +89999,10 @@
 
 
 /***/ }),
-/* 433 */
+/* 436 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var getCoord = __webpack_require__(379).getCoord;
+	var getCoord = __webpack_require__(382).getCoord;
 	//http://en.wikipedia.org/wiki/Haversine_formula
 	//http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -89537,17 +90080,17 @@
 
 
 /***/ }),
-/* 434 */
+/* 437 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// http://stackoverflow.com/questions/839899/how-do-i-calculate-a-point-on-a-circles-circumference
 	// radians = degrees * (pi/180)
 	// https://github.com/bjornharrtell/jsts/blob/master/examples/buffer.html
 
-	var helpers = __webpack_require__(378);
+	var helpers = __webpack_require__(381);
 	var featureCollection = helpers.featureCollection;
-	var jsts = __webpack_require__(410);
-	var normalize = __webpack_require__(435);
+	var jsts = __webpack_require__(413);
+	var normalize = __webpack_require__(438);
 
 	/**
 	 * Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.
@@ -89602,7 +90145,7 @@
 
 
 /***/ }),
-/* 435 */
+/* 438 */
 /***/ (function(module, exports) {
 
 	module.exports = normalize;
@@ -89651,11 +90194,11 @@
 
 
 /***/ }),
-/* 436 */
+/* 439 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var bbox = __webpack_require__(386),
-	    point = __webpack_require__(378).point;
+	var bbox = __webpack_require__(389),
+	    point = __webpack_require__(381).point;
 
 	/**
 	 * Takes a {@link Feature} or {@link FeatureCollection} and returns the absolute center point of all features.
@@ -89778,14 +90321,14 @@
 
 
 /***/ }),
-/* 437 */
+/* 440 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach,
-	    centroid = __webpack_require__(438),
-	    convex = __webpack_require__(390),
-	    explode = __webpack_require__(439),
-	    point = __webpack_require__(378).point;
+	var each = __webpack_require__(383).coordEach,
+	    centroid = __webpack_require__(441),
+	    convex = __webpack_require__(393),
+	    explode = __webpack_require__(442),
+	    point = __webpack_require__(381).point;
 
 	/**
 	 * Takes a [feature](http://geojson.org/geojson-spec.html#feature-objects)
@@ -89968,11 +90511,11 @@
 
 
 /***/ }),
-/* 438 */
+/* 441 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var each = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(378).point;
+	var each = __webpack_require__(383).coordEach;
+	var point = __webpack_require__(381).point;
 
 	/**
 	 * Takes one or more features and calculates the centroid using
@@ -90020,13 +90563,13 @@
 
 
 /***/ }),
-/* 439 */
+/* 442 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var featureEach = __webpack_require__(380).featureEach;
-	var coordEach = __webpack_require__(380).coordEach;
-	var point = __webpack_require__(378).point;
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var featureEach = __webpack_require__(383).featureEach;
+	var coordEach = __webpack_require__(383).coordEach;
+	var point = __webpack_require__(381).point;
 
 	/**
 	 * Takes a feature or set of features and returns all positions as
@@ -90078,10 +90621,10 @@
 
 
 /***/ }),
-/* 440 */
+/* 443 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var meta = __webpack_require__(380);
+	var meta = __webpack_require__(383);
 
 	/**
 	 * Combines a {@link FeatureCollection} of {@link Point},
@@ -90173,11 +90716,11 @@
 
 
 /***/ }),
-/* 441 */
+/* 444 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var polygon = __webpack_require__(378).polygon;
-	var earcut = __webpack_require__(442);
+	var polygon = __webpack_require__(381).polygon;
+	var earcut = __webpack_require__(445);
 
 
 	/**
@@ -90254,7 +90797,7 @@
 
 
 /***/ }),
-/* 442 */
+/* 445 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -90904,11 +91447,11 @@
 
 
 /***/ }),
-/* 443 */
+/* 446 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// depend on jsts for now http://bjornharrtell.github.io/jsts/
-	var jsts = __webpack_require__(410);
+	var jsts = __webpack_require__(413);
 
 	/**
 	 * Takes two {@link Polygon|polygons} and finds their intersection. If they share a border, returns the border; if they don't intersect, returns undefined.
@@ -90968,10 +91511,10 @@
 
 
 /***/ }),
-/* 444 */
+/* 447 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(385);
+	var distance = __webpack_require__(388);
 
 	/**
 	 * Takes a reference {@link Point|point} and a FeatureCollection of Features
@@ -91047,10 +91590,10 @@
 
 
 /***/ }),
-/* 445 */
+/* 448 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var random = __webpack_require__(446);
+	var random = __webpack_require__(449);
 
 	/**
 	 * Generates random {@link GeoJSON} data, including {@link Point|Points} and {@link Polygon|Polygons}, for testing
@@ -91104,7 +91647,7 @@
 
 
 /***/ }),
-/* 446 */
+/* 449 */
 /***/ (function(module, exports) {
 
 	module.exports = function() {
@@ -91213,10 +91756,10 @@
 
 
 /***/ }),
-/* 447 */
+/* 450 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(378).point;
+	var point = __webpack_require__(381).point;
 
 	/**
 	 * Takes a {@link LineString|linestring}, {@link MultiLineString|multi-linestring}, {@link MultiPolygon|multi-polygon}, or {@link Polygon|polygon} and returns {@link Point|points} at all self-intersections.
@@ -91343,14 +91886,14 @@
 
 
 /***/ }),
-/* 448 */
+/* 451 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var centroid = __webpack_require__(436);
-	var distance = __webpack_require__(385);
-	var inside = __webpack_require__(383);
-	var explode = __webpack_require__(439);
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var centroid = __webpack_require__(439);
+	var distance = __webpack_require__(388);
+	var inside = __webpack_require__(386);
+	var explode = __webpack_require__(442);
 
 	/**
 	 * Takes a feature and returns a {@link Point} guaranteed to be on the surface of the feature.
@@ -91497,11 +92040,11 @@
 
 
 /***/ }),
-/* 449 */
+/* 452 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var area = __webpack_require__(450).geometry;
-	var geomReduce = __webpack_require__(380).geomReduce;
+	var area = __webpack_require__(453).geometry;
+	var geomReduce = __webpack_require__(383).geomReduce;
 
 	/**
 	 * Takes one or more features and returns their area in square meters.
@@ -91542,10 +92085,10 @@
 
 
 /***/ }),
-/* 450 */
+/* 453 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var wgs84 = __webpack_require__(451);
+	var wgs84 = __webpack_require__(454);
 
 	module.exports.geometry = geometry;
 	module.exports.ring = ringArea;
@@ -91636,7 +92179,7 @@
 	}
 
 /***/ }),
-/* 451 */
+/* 454 */
 /***/ (function(module, exports) {
 
 	module.exports.RADIUS = 6378137;
@@ -91645,13 +92188,13 @@
 
 
 /***/ }),
-/* 452 */
+/* 455 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var measureDistance = __webpack_require__(385);
-	var point = __webpack_require__(378).point;
-	var bearing = __webpack_require__(433);
-	var destination = __webpack_require__(431);
+	var measureDistance = __webpack_require__(388);
+	var point = __webpack_require__(381).point;
+	var bearing = __webpack_require__(436);
+	var destination = __webpack_require__(434);
 
 	/**
 	 * Takes a {@link LineString|line} and returns a {@link Point|point} at a specified distance along the line.
@@ -91708,16 +92251,16 @@
 
 
 /***/ }),
-/* 453 */
+/* 456 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(385);
-	var featureEach = __webpack_require__(380).featureEach;
-	var coordReduce = __webpack_require__(380).coordReduce;
-	var geomEach = __webpack_require__(380).geomEach;
-	var flatten = __webpack_require__(454);
-	var lineString = __webpack_require__(378).lineString;
-	var point = __webpack_require__(378).point;
+	var distance = __webpack_require__(388);
+	var featureEach = __webpack_require__(383).featureEach;
+	var coordReduce = __webpack_require__(383).coordReduce;
+	var geomEach = __webpack_require__(383).geomEach;
+	var flatten = __webpack_require__(457);
+	var lineString = __webpack_require__(381).lineString;
+	var point = __webpack_require__(381).point;
 
 	/**
 	 * Takes a {@link LineString} or {@link Polygon} and measures its length in the specified units.
@@ -91823,13 +92366,13 @@
 
 
 /***/ }),
-/* 454 */
+/* 457 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featureEach = __webpack_require__(380).featureEach;
-	var geomEach = __webpack_require__(380).geomEach;
-	var getCoords = __webpack_require__(379).getCoords;
-	var helpers = __webpack_require__(378);
+	var featureEach = __webpack_require__(383).featureEach;
+	var geomEach = __webpack_require__(383).geomEach;
+	var getCoords = __webpack_require__(382).getCoords;
+	var helpers = __webpack_require__(381);
 	var point = helpers.point;
 	var lineString = helpers.lineString;
 	var polygon = helpers.polygon;
@@ -91979,11 +92522,11 @@
 
 
 /***/ }),
-/* 455 */
+/* 458 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var linestring = __webpack_require__(378).lineString;
-	var pointOnLine = __webpack_require__(456);
+	var linestring = __webpack_require__(381).lineString;
+	var pointOnLine = __webpack_require__(459);
 
 	/**
 	 * Takes a {@link LineString|line}, a start {@link Point}, and a stop point
@@ -92065,13 +92608,13 @@
 
 
 /***/ }),
-/* 456 */
+/* 459 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(385);
-	var point = __webpack_require__(378).point;
-	var bearing = __webpack_require__(433);
-	var destination = __webpack_require__(431);
+	var distance = __webpack_require__(388);
+	var point = __webpack_require__(381).point;
+	var bearing = __webpack_require__(436);
+	var destination = __webpack_require__(434);
 
 	/**
 	 * Takes a {@link Point} and a {@link LineString} and calculates the closest Point on the LineString.
@@ -92230,13 +92773,13 @@
 
 
 /***/ }),
-/* 457 */
+/* 460 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var bearing = __webpack_require__(433);
-	var distance = __webpack_require__(385);
-	var destination = __webpack_require__(431);
-	var lineString = __webpack_require__(378).lineString;
+	var bearing = __webpack_require__(436);
+	var distance = __webpack_require__(388);
+	var destination = __webpack_require__(434);
+	var lineString = __webpack_require__(381).lineString;
 
 	/**
 	 * Takes a {@link LineString|line}, a specified distance along the line to a start {@link Point},
@@ -92330,14 +92873,14 @@
 
 
 /***/ }),
-/* 458 */
+/* 461 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var point = __webpack_require__(378).point;
-	var polygon = __webpack_require__(378).polygon;
-	var distance = __webpack_require__(385);
-	var turfBBox = __webpack_require__(386);
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var point = __webpack_require__(381).point;
+	var polygon = __webpack_require__(381).polygon;
+	var distance = __webpack_require__(388);
+	var turfBBox = __webpack_require__(389);
 
 	/**
 	 * Creates a square grid from a bounding box, {@link Feature} or {@link FeatureCollection}.
@@ -92410,12 +92953,12 @@
 
 
 /***/ }),
-/* 459 */
+/* 462 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featurecollection = __webpack_require__(378).featureCollection;
-	var polygon = __webpack_require__(378).polygon;
-	var distance = __webpack_require__(385);
+	var featurecollection = __webpack_require__(381).featureCollection;
+	var polygon = __webpack_require__(381).polygon;
+	var distance = __webpack_require__(388);
 
 	/**
 	 * Takes a bounding box and a cell depth and returns a set of triangular {@link Polygon|polygons} in a grid.
@@ -92508,13 +93051,13 @@
 
 
 /***/ }),
-/* 460 */
+/* 463 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var point = __webpack_require__(378).point;
-	var polygon = __webpack_require__(378).polygon;
-	var distance = __webpack_require__(385);
-	var featurecollection = __webpack_require__(378).featureCollection;
+	var point = __webpack_require__(381).point;
+	var polygon = __webpack_require__(381).polygon;
+	var distance = __webpack_require__(388);
+	var featurecollection = __webpack_require__(381).featureCollection;
 
 	//Precompute cosines and sines of angles used in hexagon creation
 	// for performance gain
@@ -92644,13 +93187,13 @@
 
 
 /***/ }),
-/* 461 */
+/* 464 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var distance = __webpack_require__(385);
-	var squareGrid = __webpack_require__(458);
-	var centroid = __webpack_require__(438);
-	var bbox = __webpack_require__(386);
+	var distance = __webpack_require__(388);
+	var squareGrid = __webpack_require__(461);
+	var centroid = __webpack_require__(441);
+	var bbox = __webpack_require__(389);
 
 	/**
 	 *
@@ -92702,7 +93245,7 @@
 
 
 /***/ }),
-/* 462 */
+/* 465 */
 /***/ (function(module, exports) {
 
 	/**
@@ -92786,14 +93329,14 @@
 
 
 /***/ }),
-/* 463 */
+/* 466 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var helpers = __webpack_require__(378);
-	var meta = __webpack_require__(380);
-	var lineSegment = __webpack_require__(464);
-	var getCoords = __webpack_require__(379).getCoords;
-	var rbush = __webpack_require__(465);
+	var helpers = __webpack_require__(381);
+	var meta = __webpack_require__(383);
+	var lineSegment = __webpack_require__(467);
+	var getCoords = __webpack_require__(382).getCoords;
+	var rbush = __webpack_require__(468);
 	var point = helpers.point;
 	var featureCollection = helpers.featureCollection;
 	var featureEach = meta.featureEach;
@@ -92897,14 +93440,14 @@
 
 
 /***/ }),
-/* 464 */
+/* 467 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var flatten = __webpack_require__(454);
-	var featureEach = __webpack_require__(380).featureEach;
-	var lineString = __webpack_require__(378).lineString;
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var getCoords = __webpack_require__(379).getCoords;
+	var flatten = __webpack_require__(457);
+	var featureEach = __webpack_require__(383).featureEach;
+	var lineString = __webpack_require__(381).lineString;
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var getCoords = __webpack_require__(382).getCoords;
 
 	/**
 	 * Creates a {@link FeatureCollection} of 2-vertex {@link LineString} segments from a {@link LineString}, {@link MultiLineString}, {@link MultiPolygon} or {@link Polygon}.
@@ -92992,13 +93535,13 @@
 
 
 /***/ }),
-/* 465 */
+/* 468 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var turfBBox = __webpack_require__(386);
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var featureEach = __webpack_require__(380).featureEach;
-	var rbush = __webpack_require__(415);
+	var turfBBox = __webpack_require__(389);
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var featureEach = __webpack_require__(383).featureEach;
+	var rbush = __webpack_require__(418);
 
 	/**
 	 * GeoJSON implementation of [RBush](https://github.com/mourner/rbush#rbush) spatial index.
@@ -93221,14 +93764,14 @@
 
 
 /***/ }),
-/* 466 */
+/* 469 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var featureEach = __webpack_require__(380).featureEach;
-	var rbush = __webpack_require__(415);
-	var turfBBox = __webpack_require__(386);
-	var helpers = __webpack_require__(378);
-	var union = __webpack_require__(409);
+	var featureEach = __webpack_require__(383).featureEach;
+	var rbush = __webpack_require__(418);
+	var turfBBox = __webpack_require__(389);
+	var helpers = __webpack_require__(381);
+	var union = __webpack_require__(412);
 
 	/**
 	 * Takes any type of {@link Polygon|polygon} and an optional mask and returns a {@link Polygon|polygon} exterior ring with holes.
@@ -93442,14 +93985,14 @@
 
 
 /***/ }),
-/* 467 */
+/* 470 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var lineSliceAlong = __webpack_require__(457);
-	var lineDistance = __webpack_require__(453);
-	var featureCollection = __webpack_require__(378).featureCollection;
-	var featureEach = __webpack_require__(380).featureEach;
-	var flatten = __webpack_require__(454);
+	var lineSliceAlong = __webpack_require__(460);
+	var lineDistance = __webpack_require__(456);
+	var featureCollection = __webpack_require__(381).featureCollection;
+	var featureEach = __webpack_require__(383).featureEach;
+	var flatten = __webpack_require__(457);
 
 	/**
 	 * Divides a {@link LineString} into chunks of a specified length.
@@ -93539,13 +94082,13 @@
 
 
 /***/ }),
-/* 468 */
+/* 471 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var simplepolygon = __webpack_require__(469);
-	var flatten = __webpack_require__(454);
-	var featureEach = __webpack_require__(380).featureEach;
-	var featureCollection = __webpack_require__(378).featureCollection;
+	var simplepolygon = __webpack_require__(472);
+	var flatten = __webpack_require__(457);
+	var featureEach = __webpack_require__(383).featureEach;
+	var featureCollection = __webpack_require__(381).featureCollection;
 
 	/**
 	 * Takes a kinked polygon and returns a feature collection of polygons that have no kinks.
@@ -93591,16 +94134,16 @@
 
 
 /***/ }),
-/* 469 */
+/* 472 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var isects = __webpack_require__(470);
-	var helpers = __webpack_require__(378);
-	var within = __webpack_require__(407);
-	var area = __webpack_require__(449);
-	var rbush = __webpack_require__(415);
-	var debug = __webpack_require__(471)('simplepolygon');
-	var debugAll = __webpack_require__(471)('simplepolygon:all');
+	var isects = __webpack_require__(473);
+	var helpers = __webpack_require__(381);
+	var within = __webpack_require__(410);
+	var area = __webpack_require__(452);
+	var rbush = __webpack_require__(418);
+	var debug = __webpack_require__(474)('simplepolygon');
+	var debugAll = __webpack_require__(474)('simplepolygon:all');
 
 	/**
 	* Takes a complex (i.e. self-intersecting) geojson polygon, and breaks it down into its composite simple, non-self-intersecting one-ring polygons.
@@ -94028,11 +94571,11 @@
 
 
 /***/ }),
-/* 470 */
+/* 473 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Find self-intersections in geojson polygon (possibly with interior rings)
-	var rbush = __webpack_require__(415);
+	var rbush = __webpack_require__(418);
 
 	module.exports = function(feature, filterFn, useSpatialIndex) {
 	  if (feature.geometry.type != "Polygon") throw new Error("The input feature must be a Polygon");
@@ -94171,7 +94714,7 @@
 
 
 /***/ }),
-/* 471 */
+/* 474 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -94180,7 +94723,7 @@
 	 * Expose `debug()` as the module.
 	 */
 
-	exports = module.exports = __webpack_require__(472);
+	exports = module.exports = __webpack_require__(475);
 	exports.log = log;
 	exports.formatArgs = formatArgs;
 	exports.save = save;
@@ -94363,7 +94906,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 472 */
+/* 475 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	
@@ -94379,7 +94922,7 @@
 	exports.disable = disable;
 	exports.enable = enable;
 	exports.enabled = enabled;
-	exports.humanize = __webpack_require__(473);
+	exports.humanize = __webpack_require__(476);
 
 	/**
 	 * The currently active debug mode names, and names to skip.
@@ -94571,7 +95114,7 @@
 
 
 /***/ }),
-/* 473 */
+/* 476 */
 /***/ (function(module, exports) {
 
 	/**
@@ -94726,11 +95269,11 @@
 
 
 /***/ }),
-/* 474 */
+/* 477 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var arc = __webpack_require__(475);
-	var getCoord = __webpack_require__(379).getCoord;
+	var arc = __webpack_require__(478);
+	var getCoord = __webpack_require__(382).getCoord;
 
 	/**
 	 * Calculate great circles routes as {@link LineString}
@@ -94781,7 +95324,7 @@
 
 
 /***/ }),
-/* 475 */
+/* 478 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -95029,523 +95572,6 @@
 	module.exports.Arc = Arc;
 	module.exports.GreatCircle = GreatCircle;
 
-
-/***/ }),
-/* 476 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.UploadFile = UploadFile;
-	exports.AlertPopUp = AlertPopUp;
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _lodash = __webpack_require__(360);
-
-	var _lodash2 = _interopRequireDefault(_lodash);
-
-	var _dhisAPIHelper = __webpack_require__(477);
-
-	var _dhisAPIHelper2 = _interopRequireDefault(_dhisAPIHelper);
-
-	var _nieConstants = __webpack_require__(478);
-
-	var NIE = _interopRequireWildcard(_nieConstants);
-
-	var _utilityFunctions = __webpack_require__(185);
-
-	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function UploadFile(props) {
-	    return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	            'label',
-	            null,
-	            'Upload .json file'
-	        ),
-	        _react2.default.createElement('input', { type: 'file', id: 'fileInput' }),
-	        _react2.default.createElement(
-	            'button',
-	            { onClick: props.onClick },
-	            'Import'
-	        )
-	    );
-	} /**
-	   * Created by harsh on 21/12/16.
-	   */
-
-	function AlertPopUp(props) {
-
-	    var instance = Object.create(_react2.default.Component.prototype);
-
-	    instance.props = props;
-	    instance.state = { data: props.data, cases: [] };
-
-	    instance.componentDidMount = function () {
-
-	        _dhisAPIHelper2.default.getCluster(props.data.uid, function (error, response, body) {
-	            if (error) {
-	                console.log("Get Cluster Error");
-	            }
-	            instance.state.data.cluster = response;
-	            instance.setState({ data: instance.state.data });
-	        });
-
-	        _dhisAPIHelper2.default.getClusterCases(props.data.keys, function (cases) {
-	            instance.setState({ cases: cases, deMap: props.deMap, componentDidMount: instance.componentDidMount });
-	        });
-	    };
-
-	    instance.getClusterID = function () {
-
-	        if (!this.state.data.cluster) {
-	            return "";
-	        }
-
-	        var id = _utilityFunctions2.default.findValueAgainstId(this.state.data.cluster.attributes, "attribute", NIE.CLUSTER_TEA_CLUSTERID, "value");
-	        return "ClusterID :" + id;
-	    };
-
-	    instance.approveAndSave = function (state) {
-	        var _this = this;
-
-	        _dhisAPIHelper2.default.saveCluster(state, function (message, cluster) {
-	            alert(message);
-	            _this.state.data.cluster = cluster;
-	            _this.setState({ data: _this.state.data });
-	            debugger;
-	        });
-	    };
-
-	    var isClusterActive = false;
-	    instance.render = function () {
-	        var _this2 = this;
-
-	        return _react2.default.createElement(
-	            'div',
-	            { className: 'linelist ' },
-	            ' ',
-	            _react2.default.createElement('input', { key: "input_save", type: 'button', value: 'Approve and Save', onClick: function onClick() {
-	                    return _this2.approveAndSave(_this2.state);
-	                } }),
-	            this.getClusterID(),
-	            _react2.default.createElement('br', null),
-	            _react2.default.createElement(AlertTable, { data: this.state })
-	        );
-	    };
-
-	    return instance;
-	}
-
-	function AlertTable(props) {
-
-	    function getHeaderRows() {
-
-	        if (!props.data.deMap) {
-	            return;
-	        }
-
-	        var tableHeaders = [];
-	        tableHeaders.push(_react2.default.createElement(
-	            'th',
-	            { key: _lodash2.default.uniqueId("th_") },
-	            'isDuplicate'
-	        ));
-
-	        for (var key in props.data.deMap) {
-	            tableHeaders.push(_react2.default.createElement(
-	                'th',
-	                { key: _lodash2.default.uniqueId("th_") },
-	                props.data.deMap[key].name
-	            ));
-	        }
-
-	        return tableHeaders;
-	    }
-
-	    function toggleDuplicate(eventUID, currentValue) {
-
-	        var _currentValue = !currentValue;
-
-	        _dhisAPIHelper2.default.saveEventWithDataValue(eventUID, NIE.DE_isDuplicate, _currentValue, function () {
-	            props.data.componentDidMount();
-	        });
-
-	        return currentValue;
-	    }
-
-	    function getRows(cases, clusterDeIdToNameMap) {
-	        var rows = [];
-	        cases.map(function (eventCase) {
-	            var isDuplicate = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", NIE.DE_isDuplicate, "value");
-	            if (isDuplicate == null || isDuplicate == undefined) {
-	                isDuplicate = false;
-	            }
-	            isDuplicate = JSON.parse(isDuplicate);
-
-	            var duplicateRowClass = '';
-	            var cells = [];
-	            var eventUID = eventCase.event;
-	            cells.push(_react2.default.createElement(
-	                'td',
-	                { key: eventCase.event + "-" + NIE.DE_isDuplicate },
-	                _react2.default.createElement('input', { key: "input_" + eventCase.event + "-" + NIE.DE_isDuplicate, type: 'checkbox', value: 'duplicate', onChange: function onChange() {
-	                        return toggleDuplicate(eventUID, isDuplicate);
-	                    }, checked: isDuplicate })
-	            ));
-
-	            for (var key in clusterDeIdToNameMap) {
-	                var value = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", key, "value");
-	                if (!value) {
-	                    value = "";
-	                };
-	                cells.push(_react2.default.createElement(
-	                    'td',
-	                    { key: eventCase.event + "-" + key },
-	                    value
-	                ));
-	            }
-	            if (isDuplicate) {
-	                duplicateRowClass = 'violet';
-	            }
-	            rows.push(_react2.default.createElement(
-	                'tr',
-	                { className: duplicateRowClass, key: eventCase.event },
-	                cells
-	            ));
-	        });
-
-	        return rows;
-	    }
-
-	    return _react2.default.createElement(
-	        'table',
-	        { className: 'alertsTable' },
-	        _react2.default.createElement(
-	            'thead',
-	            null,
-	            _react2.default.createElement(
-	                'tr',
-	                null,
-	                getHeaderRows()
-	            )
-	        ),
-	        _react2.default.createElement(
-	            'tbody',
-	            null,
-	            getRows(props.data.cases, props.data.deMap)
-	        )
-	    );
-	}
-
-/***/ }),
-/* 477 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _dhis2API = __webpack_require__(184);
-
-	var _dhis2API2 = _interopRequireDefault(_dhis2API);
-
-	var _ajaxWrapper = __webpack_require__(182);
-
-	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
-
-	var _nieConstants = __webpack_require__(478);
-
-	var NIE = _interopRequireWildcard(_nieConstants);
-
-	var _moment = __webpack_require__(251);
-
-	var _moment2 = _interopRequireDefault(_moment);
-
-	var _utilityFunctions = __webpack_require__(185);
-
-	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	module.exports = new dhisAPIHelper();
-
-	var api = new _dhis2API2.default();
-
-
-	function dhisAPIHelper() {
-
-	    this.getClusterCases = function (cases, callback) {
-
-	        //   cases = cases.split(";");
-	        var clusterCases = [];
-	        getEvent(0, cases);
-	        function getEvent(index, cases) {
-	            if (index == cases.length) {
-	                callback(clusterCases);
-	                return;
-	            }
-
-	            _ajaxWrapper2.default.request({
-	                type: "GET",
-	                async: true,
-	                contentType: "application/json",
-	                url: "../../events/" + cases[index]
-	            }, function (error, response, body) {
-	                if (error) {
-	                    console.log("Error Fetch Event");
-	                }
-	                clusterCases.push(response);
-	                getEvent(index + 1, cases);
-	            });
-	        }
-	    };
-
-	    this.saveCluster = function (state, callback) {
-
-	        makeNewCluster(state, callback);
-
-	        function makeNewCluster(state, callback) {
-	            api.get("organisationUnits", state.cases[0].orgUnit + "?fields=parent[id]", function (error, response, body) {
-	                if (error) {
-	                    callback("Orgnisation Unit Fetch error");
-	                    return;
-	                }
-
-	                getClusterID(function (totalTEI) {
-	                    var clusterDate = new Date();
-
-	                    var cluster_tei = {
-	                        "trackedEntityInstance": state.data.uid,
-	                        "trackedEntity": NIE.CLUSTER_TRACKED_ENTITY,
-	                        "orgUnit": response.parent.id,
-	                        "attributes": [],
-	                        "enrollments": [{
-	                            "orgUnit": state.cases[0].orgUnit,
-	                            "program": NIE.CLUSTER_PROGRAM,
-	                            "enrollmentDate": clusterDate,
-	                            "incidentDate": clusterDate
-	                        }]
-
-	                    };
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_CLUSTERID,
-	                        "value": "CLUSTER" + (totalTEI + 1) + "_" + (0, _moment2.default)(clusterDate).format("YYYY-MM-DD")
-	                    });
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TYPE,
-	                        "value": "MANUAL"
-	                    });
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_COORDINATE,
-	                        "value": JSON.stringify(state.cases[0].coordinate)
-	                    });
-
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_FEATURETYPE,
-	                        "value": "POINT"
-	                    });
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_IS_ACTIVE,
-	                        "value": "true"
-	                    });
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_METHOD,
-	                        "value": "MANUAL"
-	                    });
-
-	                    cluster_tei.attributes.push({
-	                        "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
-	                        "value": _utilityFunctions2.default.reduce(state.cases, "event", ";")
-	                    });
-
-	                    saveCluster(cluster_tei, callback);
-	                });
-	            });
-	        }
-
-	        function saveCluster(cluster_tei, callback) {
-
-	            api.get("trackedEntityInstances", cluster_tei.trackedEntityInstance, function (error, response, body) {
-	                if (error) {
-	                    console.log("Custer Fetch error");
-	                }
-
-	                if (response.statusText == "Not Found") {
-	                    api.save("trackedEntityInstance", cluster_tei, function (error, response, body) {
-	                        if (error) {
-	                            console.log("Error : save tei");
-	                            callback("Some Error Occured");
-	                            return;
-	                        }
-	                        callback("Cluster Saved", cluster_tei);
-	                    });
-	                } else {
-	                    api.update("trackedEntityInstance", cluster_tei.trackedEntityInstance, cluster_tei, function (error, response, body) {
-	                        if (error) {
-	                            console.log("Error : update tei");
-	                            callback("Some Error Occured");
-	                            return;
-	                        }
-	                        callback("Cluster Updated", cluster_tei);
-	                    });
-	                    //callback("Already Exists!",response)
-	                }
-	            });
-	        }
-	    };
-
-	    function getClusterID(callback) {
-	        api.getTotalTEICount(NIE.CLUSTER_PROGRAM, function (error, response, body) {
-	            if (error) {
-	                __logger.error("Get Cluster ID");
-	            }
-	            var body = response;
-
-	            callback(body.pager.total);
-	        });
-	    }
-
-	    this.saveEventWithDataValue = function (eventUID, deUID, deValue, callback) {
-
-	        api.get("events", eventUID, function (error, response, body) {
-
-	            if (error) {
-	                console.log("Error : Fetch event");
-	                return;
-	            }
-	            var event = response;
-	            event = addUpdateEvent(event, deUID, deValue);
-
-	            api.update("event", eventUID, event, function (error, response, body) {
-	                if (error) {
-	                    console.log("Error : update event");
-	                    return;
-	                }
-	                callback();
-	            });
-	        });
-	    };
-
-	    this.saveTEIWithDataValue = function (teiUID, attrUID, attrValue, callback) {
-
-	        api.get("trackedEntityInstances", teiUID, function (error, response, body) {
-
-	            if (error) {
-	                console.log("Error : Fetch tei");
-	                return;
-	            }
-	            var tei = response;
-	            tei = addUpdateTEI(tei, attrUID, attrValue);
-
-	            api.update("trackedEntityInstance", teiUID, tei, function (error, response, body) {
-	                if (error) {
-	                    console.log("Error : update tei");
-	                    return;
-	                }
-	                callback(tei.attributes);
-	            });
-	        });
-	    };
-
-	    this.getCluster = function (teiUID, callback) {
-	        api.get("trackedEntityInstances", teiUID, callback);
-	    };
-
-	    function addUpdateTEI(tei, attrUID, deValue) {
-
-	        for (var key in tei.attributes) {
-	            if (tei.attributes[key].attribute == attrUID) {
-	                tei.attributes[key].value = deValue;
-	                return tei;
-	            }
-	        }
-	        tei.attributes.push({ attribute: attrUID, value: attrValue });
-	        return tei;
-	    }
-
-	    function addUpdateEvent(event, deUID, deValue) {
-
-	        for (var key in event.dataValues) {
-	            if (event.dataValues[key].dataElement == deUID) {
-	                event.dataValues[key].value = deValue;
-	                return event;
-	            }
-	        }
-	        event.dataValues.push({ dataElement: deUID, value: deValue });
-	        return event;
-	    }
-	}
-
-/***/ }),
-/* 478 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.DHIS_ROOT_OU_UID = exports.CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTERID = exports.CLUSTER_PROGRAM = exports.CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_COORDINATE = exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
-
-	var _utilityFunctions = __webpack_require__(185);
-
-	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "a1x2Z6M4jSt";
-	var TrackedEntity = exports.TrackedEntity = "MCPQUTHX1Ze";
-	var Cluster_Relationship = exports.Cluster_Relationship = "HJFIaMLUr7v";
-
-	var PROGRAM_ODK_DATA = exports.PROGRAM_ODK_DATA = "Ml0ZNj9APN0";
-	var DEGROUP_CLUSTERTOBESHOWN = exports.DEGROUP_CLUSTERTOBESHOWN = "sXzZ0Xl2F0j";
-	var DE_isDuplicate = exports.DE_isDuplicate = "DqQoNAJ3jwl";
-
-	var DE_NAMES_VALUES = exports.DE_NAMES_VALUES = [{ id: "id", value: "eDFSS_IPD_V3" }, { id: "id", value: "eDFSS_OPD_V3" }, { id: "id", value: "DPHL_Lab_V1" }, { id: "Dengue", value: "Dengue_Positive_IgM" }, { id: "Scrub_typhus", value: "true" }, { id: "Leptosprirosis", value: "true" }, { id: "Malaria", value: "true" }];
-
-	var IPD_FORM_VAL = exports.IPD_FORM_VAL = "eDFSS_IPD_V3";
-	var OPD_FORM_VAL = exports.OPD_FORM_VAL = "eDFSS_OPD_V3";
-	var LAB_FORM_VAL = exports.LAB_FORM_VAL = "DPHL_Lab_V1";
-
-	var AFI_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = "AFI";
-	var ADD_DIAGNOSIS_VAL = exports.ADD_DIAGNOSIS_VAL = "ADD";
-
-	var DENGUE_VAL = exports.DENGUE_VAL = "Dengue_Positive_IgM";
-	var SCRUB_VAL = exports.SCRUB_VAL = "Scrub_typhus";
-	var LEPTO_VAL = exports.LEPTO_VAL = "Leptosprirosis";
-	var MALARIA_VAL = exports.MALARIA_VAL = "Malaria";
-
-	var DENGUE_NAME = exports.DENGUE_NAME = "Dengue";
-	var SCRUB_NAME = exports.SCRUB_NAME = "Scrub_typhus";
-	var LEPTO_NAME = exports.LEPTO_NAME = "Leptosprirosis";
-	var MALARIA_NAME = exports.MALARIA_NAME = "Malaria";
-
-	var CLUSTER_TEA_COORDINATE = exports.CLUSTER_TEA_COORDINATE = "sanq4S5uYdb";
-	var CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_FEATURETYPE = "Dh0HlV2bqh2";
-	var CLUSTER_PROGRAM = exports.CLUSTER_PROGRAM = "mcnt7nqNrNw";
-
-	var CLUSTER_TEA_CLUSTERID = exports.CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
-	var CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTER_TYPE = "sBmb7HfvAau";
-	var CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CASES_UIDS = "I2eCWfhryZH";
-	var CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CLUSTER_METHOD = "nifrYIceHDu";
-	var CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_IS_ACTIVE = "DyjpKLdKmoD";
-
-	var CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TRACKED_ENTITY = "q0NbkqzMUF8";
-
-	var DHIS_ROOT_OU_UID = exports.DHIS_ROOT_OU_UID = "mnbTnDyJ37p";
 
 /***/ })
 /******/ ]);
