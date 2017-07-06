@@ -209,10 +209,22 @@ APIx.dhis2API = function(){
                 args.afterThat(null,uid,response.events);
             }
         }
+ }
+    
+    this.getTotalTEICount = function(program,callback){
+        
+        ajax.request({
+            type : "GET",
+            contentType: "application/json",
+            url : this.getEndPointByDomain("trackedEntityInstance")+"?&page=1&totalPages=true&pageSize=1&program="+program+"&ouMode=DESCENDANTS&ou="+ROOT_OU_UID
+        },function(error,reponse,body){
+                
+            callback( error,reponse,body)
+        })
     }
-
+    
     this.getObjByField = function(args,domain,fieldName,fieldValue){
-
+        
         ajax.request({
             type: "GET",
             async: true,

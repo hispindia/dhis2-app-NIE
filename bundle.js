@@ -640,9 +640,14 @@
 	            popup.setLatLng(layer.getLatLng());
 
 	            layer.bindPopup(popup, {
-	                maxWidth: 600
+	                maxWidth: 600,
+	                autoPan: true,
+	                keepInView: true
 	            });
 
+	            //  var px = map.project(popup._latlng); // find the pixel location on the map where the popup anchor is
+	            //  px.y -= popup._container.clientHeight/2 // find the height of the popup container, divide by 2, subtract from the Y axis of marker location
+	            // map.panTo(map.unproject(px),{animate: true}); // pan to new center
 	            layer.on({
 	                // mouseover: highlightFeature,
 	                //  mouseout: resetHighlight,
@@ -33028,6 +33033,18 @@
 	        }
 	    };
 
+	    this.getTotalTEICount = function (program, callback) {
+
+	        ajax.request({
+	            type: "GET",
+	            contentType: "application/json",
+	            url: this.getEndPointByDomain("trackedEntityInstance") + "?&page=1&totalPages=true&pageSize=1&program=" + program + "&ouMode=DESCENDANTS&ou=" + ROOT_OU_UID
+	        }, function (error, reponse, body) {
+
+	            callback(error, reponse, body);
+	        });
+	    };
+
 	    this.getObjByField = function (args, domain, fieldName, fieldValue) {
 
 	        ajax.request({
@@ -33162,9 +33179,11 @@
 	_.prepareUID = function (options, ids) {
 
 	    var sha1 = __webpack_require__(187);
-	    var uid = sha1(ids.sort());
+	    var sortedIds = ids.sort();
+	    var uid = sha1(sortedIds.join(";"));
 
-	    return "CL" + uid.substr(0, 9);
+	    //   console.log("uid="+uid+","+ids.toString());
+	    return "C" + uid.substr(0, 10);
 	};
 
 	//http://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
@@ -33210,6 +33229,14 @@
 	        }
 	    }
 	    return null;
+	};
+
+	_.reduce = function (list, id, seperator) {
+	    var accumlator = "";
+	    for (var key in list) {
+	        accumlator = accumlator + list[key][id] + seperator;
+	    }
+	    return accumlator;
 	};
 
 	module.exports = _;
@@ -63048,10 +63075,7 @@
 	            centroid.properties.uid = mergedCircle.properties.uid;
 
 	            var circle = _turf2.default.circle(centroid, radius, steps, units);
-	            // points.features = points.features.concat(hull);
-	            // points.features = points.features.concat(circle);
-	            //  points.features = points.features.concat(mergedCircle);      
-	            // points.features = points.features.concat(centroid);
+
 	            geoJsonPolygonFeatures.features.push(mergedCircle);
 	            geoJsonPolygonFeatures.features.push(centroid);
 	        }
@@ -95068,19 +95092,38 @@
 
 	    instance.props = props;
 	    instance.state = { data: props.data, cases: [] };
-	    debugger;
+
 	    instance.componentDidMount = function () {
+
+	        _dhisAPIHelper2.default.getCluster(props.data.uid, function (error, response, body) {
+	            if (error) {
+	                console.log("Get Cluster Error");
+	            }
+	            instance.state.data.cluster = response;
+	            instance.setState({ data: instance.state.data });
+	        });
+
 	        _dhisAPIHelper2.default.getClusterCases(props.data.keys, function (cases) {
 	            instance.setState({ cases: cases, deMap: props.deMap, componentDidMount: instance.componentDidMount });
 	        });
 	    };
 
-	    instance.clusterActivationToggle = function (data, isActive) {
+	    instance.getClusterID = function () {
+
+	        if (!this.state.data.cluster) {
+	            return "";
+	        }
+
+	        var id = _utilityFunctions2.default.findValueAgainstId(this.state.data.cluster.attributes, "attribute", NIE.CLUSTER_TEA_CLUSTERID, "value");
+	        return "ClusterID :" + id;
+	    };
+
+	    instance.approveAndSave = function (state) {
 	        var _this = this;
 
-	        isActive = !isActive;
-	        _dhisAPIHelper2.default.saveTEIWithDataValue(data.trackedEntityInstance, NIE.TEA_IS_ACTIVE, isActive, function (attributes) {
-	            _this.state.data.attributes = attributes;
+	        _dhisAPIHelper2.default.saveCluster(state, function (message, cluster) {
+	            alert(message);
+	            _this.state.data.cluster = cluster;
 	            _this.setState({ data: _this.state.data });
 	            debugger;
 	        });
@@ -95088,14 +95131,16 @@
 
 	    var isClusterActive = false;
 	    instance.render = function () {
+	        var _this2 = this;
 
 	        return _react2.default.createElement(
 	            'div',
 	            { className: 'linelist ' },
-	            ' isActive ',
-	            _react2.default.createElement('input', { key: "input_", type: 'checkbox', value: 'duplicate', onChange: function onChange() {
-	                    return toggleDuplicate(eventUID, isDuplicate);
-	                }, checked: true }),
+	            ' ',
+	            _react2.default.createElement('input', { key: "input_save", type: 'button', value: 'Approve and Save', onClick: function onClick() {
+	                    return _this2.approveAndSave(_this2.state);
+	                } }),
+	            this.getClusterID(),
 	            _react2.default.createElement('br', null),
 	            _react2.default.createElement(AlertTable, { data: this.state })
 	        );
@@ -95219,6 +95264,20 @@
 
 	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
 
+	var _nieConstants = __webpack_require__(478);
+
+	var NIE = _interopRequireWildcard(_nieConstants);
+
+	var _moment = __webpack_require__(251);
+
+	var _moment2 = _interopRequireDefault(_moment);
+
+	var _utilityFunctions = __webpack_require__(185);
+
+	var _utilityFunctions2 = _interopRequireDefault(_utilityFunctions);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	module.exports = new dhisAPIHelper();
@@ -95253,6 +95312,111 @@
 	            });
 	        }
 	    };
+
+	    this.saveCluster = function (state, callback) {
+
+	        makeNewCluster(state, callback);
+
+	        function makeNewCluster(state, callback) {
+	            api.get("organisationUnits", state.cases[0].orgUnit + "?fields=parent[id]", function (error, response, body) {
+	                if (error) {
+	                    callback("Orgnisation Unit Fetch error");
+	                    return;
+	                }
+
+	                getClusterID(function (totalTEI) {
+	                    var clusterDate = new Date();
+
+	                    var cluster_tei = {
+	                        "trackedEntityInstance": state.data.uid,
+	                        "trackedEntity": NIE.CLUSTER_TRACKED_ENTITY,
+	                        "orgUnit": response.parent.id,
+	                        "attributes": [],
+	                        "enrollments": [{
+	                            "orgUnit": state.cases[0].orgUnit,
+	                            "program": NIE.CLUSTER_PROGRAM,
+	                            "enrollmentDate": clusterDate,
+	                            "incidentDate": clusterDate
+	                        }]
+
+	                    };
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTERID,
+	                        "value": "CLUSTER" + (totalTEI + 1) + "_" + (0, _moment2.default)(clusterDate).format("YYYY-MM-DD")
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TYPE,
+	                        "value": "MANUAL"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_COORDINATE,
+	                        "value": JSON.stringify(state.cases[0].coordinate)
+	                    });
+
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_FEATURETYPE,
+	                        "value": "POINT"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_IS_ACTIVE,
+	                        "value": "true"
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_METHOD,
+	                        "value": "MANUAL"
+	                    });
+
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
+	                        "value": _utilityFunctions2.default.reduce(state.cases, "event", ";")
+	                    });
+
+	                    saveCluster(cluster_tei, callback);
+	                });
+	            });
+	        }
+
+	        function saveCluster(cluster_tei, callback) {
+
+	            api.get("trackedEntityInstances", cluster_tei.trackedEntityInstance, function (error, response, body) {
+	                if (error) {
+	                    console.log("Custer Fetch error");
+	                }
+
+	                if (response.statusText == "Not Found") {
+	                    api.save("trackedEntityInstance", cluster_tei, function (error, response, body) {
+	                        if (error) {
+	                            console.log("Error : save tei");
+	                            callback("Some Error Occured");
+	                            return;
+	                        }
+	                        callback("Cluster Saved", cluster_tei);
+	                    });
+	                } else {
+	                    api.update("trackedEntityInstance", cluster_tei.trackedEntityInstance, cluster_tei, function (error, response, body) {
+	                        if (error) {
+	                            console.log("Error : update tei");
+	                            callback("Some Error Occured");
+	                            return;
+	                        }
+	                        callback("Cluster Updated", cluster_tei);
+	                    });
+	                    //callback("Already Exists!",response)
+	                }
+	            });
+	        }
+	    };
+
+	    function getClusterID(callback) {
+	        api.getTotalTEICount(NIE.CLUSTER_PROGRAM, function (error, response, body) {
+	            if (error) {
+	                __logger.error("Get Cluster ID");
+	            }
+	            var body = response;
+
+	            callback(body.pager.total);
+	        });
+	    }
 
 	    this.saveEventWithDataValue = function (eventUID, deUID, deValue, callback) {
 
@@ -95296,6 +95460,10 @@
 	        });
 	    };
 
+	    this.getCluster = function (teiUID, callback) {
+	        api.get("trackedEntityInstances", teiUID, callback);
+	    };
+
 	    function addUpdateTEI(tei, attrUID, deValue) {
 
 	        for (var key in tei.attributes) {
@@ -95330,7 +95498,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
+	exports.DHIS_ROOT_OU_UID = exports.CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTERID = exports.CLUSTER_PROGRAM = exports.CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_COORDINATE = exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = undefined;
 
 	var _utilityFunctions = __webpack_require__(185);
 
@@ -95364,6 +95532,20 @@
 	var SCRUB_NAME = exports.SCRUB_NAME = "Scrub_typhus";
 	var LEPTO_NAME = exports.LEPTO_NAME = "Leptosprirosis";
 	var MALARIA_NAME = exports.MALARIA_NAME = "Malaria";
+
+	var CLUSTER_TEA_COORDINATE = exports.CLUSTER_TEA_COORDINATE = "sanq4S5uYdb";
+	var CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_FEATURETYPE = "Dh0HlV2bqh2";
+	var CLUSTER_PROGRAM = exports.CLUSTER_PROGRAM = "mcnt7nqNrNw";
+
+	var CLUSTER_TEA_CLUSTERID = exports.CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
+	var CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTER_TYPE = "sBmb7HfvAau";
+	var CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CASES_UIDS = "I2eCWfhryZH";
+	var CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CLUSTER_METHOD = "nifrYIceHDu";
+	var CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_IS_ACTIVE = "DyjpKLdKmoD";
+
+	var CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TRACKED_ENTITY = "q0NbkqzMUF8";
+
+	var DHIS_ROOT_OU_UID = exports.DHIS_ROOT_OU_UID = "mnbTnDyJ37p";
 
 /***/ })
 /******/ ]);

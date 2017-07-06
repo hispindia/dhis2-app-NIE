@@ -3,7 +3,9 @@ module.exports = new dhisAPIHelper();
 import dhis2API from './dhis2API/dhis2API';
 var api = new dhis2API();
 import ajax from './ajax-wrapper'
-
+import * as NIE from './nie-constants';
+import moment from 'moment';
+import utility from './utility-functions';
 
 
 function dhisAPIHelper(){
@@ -34,6 +36,119 @@ function dhisAPIHelper(){
         }   
         
     }
+
+
+    this.saveCluster = function(state,callback){
+            
+      
+        makeNewCluster(state,callback);
+
+        function makeNewCluster(state,callback){
+            api.get("organisationUnits",state.cases[0].orgUnit+"?fields=parent[id]",function(error,response,body){
+                if (error){
+                    callback("Orgnisation Unit Fetch error")
+                    return;
+                }
+                
+                getClusterID(function(totalTEI){
+                    var clusterDate = new Date();
+
+                    var cluster_tei = {
+                        "trackedEntityInstance" : state.data.uid,
+                        "trackedEntity" : NIE.CLUSTER_TRACKED_ENTITY,
+                        "orgUnit": response.parent.id,
+                        "attributes": [ ],
+                        "enrollments": [ {
+                            "orgUnit": state.cases[0].orgUnit,
+                            "program": NIE.CLUSTER_PROGRAM,
+                            "enrollmentDate":clusterDate,
+                            "incidentDate": clusterDate
+                        } ]
+                        
+                    };
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTERID,
+                        "value": "CLUSTER"+(totalTEI+1)+ "_"+moment(clusterDate).format("YYYY-MM-DD")
+                    })
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TYPE,
+                        "value": "MANUAL"
+                    })
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_COORDINATE,
+                        "value": JSON.stringify(state.cases[0].coordinate)
+                    })
+                    
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_FEATURETYPE,
+                        "value": "POINT"
+                    })
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_IS_ACTIVE,
+                        "value": "true"
+                    })
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTER_METHOD,
+                        "value": "MANUAL"
+                    })
+                    
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
+                        "value": utility.reduce(state.cases,"event",";")
+                    })
+                    
+                    saveCluster(cluster_tei,callback);
+                })
+                
+            })
+            
+        }
+        
+        function saveCluster(cluster_tei,callback){
+     
+           api.get("trackedEntityInstances",cluster_tei.trackedEntityInstance,
+                function(error,response,body){
+                    if (error){
+                        console.log("Custer Fetch error")
+                    }
+                    
+                    if (response.statusText == "Not Found"){
+                        api.save("trackedEntityInstance",cluster_tei,function(error,response,body){
+                            if (error){
+                                console.log("Error : save tei");
+                                callback("Some Error Occured")
+                                return
+                            }
+                            callback("Cluster Saved",cluster_tei);
+                        })
+                    }else{
+                        api.update("trackedEntityInstance",cluster_tei.trackedEntityInstance,cluster_tei,function(error,response,body){
+                            if (error){
+                                console.log("Error : update tei");
+                                callback("Some Error Occured")
+                                return
+                            }
+                            callback("Cluster Updated",cluster_tei);
+                        })
+                        //callback("Already Exists!",response)
+                    }  
+                })    
+        }
+        
+    }
+
+
+    function getClusterID(callback){
+        api.getTotalTEICount(NIE.CLUSTER_PROGRAM,function(error,response,body){
+            if (error){
+                __logger.error("Get Cluster ID");
+            }
+            var body = response;
+          
+            callback( body.pager.total)
+        })
+    }
+   
 
     this.saveEventWithDataValue = function(eventUID,deUID,deValue,callback){
 
@@ -76,6 +191,10 @@ function dhisAPIHelper(){
                 callback(tei.attributes);
             })
         })
+    }
+
+    this.getCluster = function(teiUID,callback){
+        api.get("trackedEntityInstances",teiUID,callback)
     }
 
     function addUpdateTEI(tei,attrUID,deValue){

@@ -35,9 +35,11 @@ _.prepareMapGroupedById= function(object,id){
 _.prepareUID = function(options,ids){
     
     var sha1 = require('js-sha1');
-    var uid = sha1(ids.sort());
+    var sortedIds = ids.sort();
+    var uid = sha1(sortedIds.join(";"));
 
-    return "CL"+uid.substr(0,9);
+ //   console.log("uid="+uid+","+ids.toString());
+    return "C"+uid.substr(0,10);
 }
 
 //http://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
@@ -88,5 +90,13 @@ _.findValueAgainstId = function (data,idKey,id,valKey){
     
 }
 
+
+_.reduce = function(list,id,seperator){
+    var accumlator = "";
+    for (var key in list){
+        accumlator = accumlator + list[key][id] + seperator;
+    }
+    return accumlator;
+}
 
 module.exports = _;

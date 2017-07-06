@@ -24,18 +24,35 @@ export function AlertPopUp(props){
 
     instance.props = props
     instance.state = { data: props.data , cases : [] };
-debugger
-    instance.componentDidMount =  function() {        
+
+    instance.componentDidMount =  function() {       
+        
+        dhisAPIHelper.getCluster(props.data.uid,function(error,response,body){
+            if (error){
+                console.log("Get Cluster Error")
+            }
+            instance.state.data.cluster = response;
+            instance.setState({data:instance.state.data})
+        });
+        
         dhisAPIHelper.getClusterCases(props.data.keys,(cases) => {
             instance.setState({cases : cases , deMap : props.deMap, componentDidMount: instance.componentDidMount});
         })
     }
   
-    instance.clusterActivationToggle = function(data,isActive){    
-      
-        isActive = !isActive;
-        dhisAPIHelper.saveTEIWithDataValue(data.trackedEntityInstance,NIE.TEA_IS_ACTIVE,isActive,(attributes) => {
-            this.state.data.attributes = attributes;
+    instance.getClusterID = function(){
+        
+        if (!this.state.data.cluster){return ""}
+
+        var id = utility.findValueAgainstId(this.state.data.cluster.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value")
+        return "ClusterID :"+id;
+    }
+    
+    instance.approveAndSave = function(state){    
+       
+        dhisAPIHelper.saveCluster(state,(message,cluster) => {
+            alert(message);
+            this.state.data.cluster = cluster;
             this.setState({data:this.state.data})
            debugger
         });                
@@ -44,7 +61,8 @@ debugger
     var isClusterActive = false;
     instance.render = function() {       
       
-        return  <div className='linelist '> isActive <input key = {"input_"} type='checkbox' value='duplicate' onChange={ () => toggleDuplicate(eventUID,isDuplicate)} checked = {true} />
+        return  <div className='linelist '> <input key = {"input_save"} type='button' value='Approve and Save' onClick={ () => this.approveAndSave(this.state)}  />
+            {this.getClusterID()}
             <br></br>
             <AlertTable data={this.state} />
             </div>            

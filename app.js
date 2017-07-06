@@ -577,9 +577,14 @@ function addClustergons(map,gjson){
             popup.setLatLng(layer.getLatLng());
             
             layer.bindPopup(popup,{
-                maxWidth : 600
+                maxWidth : 600,
+                autoPan : true,
+                keepInView : true
             });
             
+          //  var px = map.project(popup._latlng); // find the pixel location on the map where the popup anchor is
+          //  px.y -= popup._container.clientHeight/2 // find the height of the popup container, divide by 2, subtract from the Y axis of marker location
+           // map.panTo(map.unproject(px),{animate: true}); // pan to new center
             layer.on({
 	        // mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,

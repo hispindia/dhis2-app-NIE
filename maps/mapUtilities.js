@@ -140,10 +140,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
 
 
             var circle = turf.circle(centroid, radius, steps, units);
-           // points.features = points.features.concat(hull);
-           // points.features = points.features.concat(circle);
-          //  points.features = points.features.concat(mergedCircle);      
-           // points.features = points.features.concat(centroid);
+          
             geoJsonPolygonFeatures.features.push(mergedCircle);
             geoJsonPolygonFeatures.features.push(centroid);
         }
