@@ -177,12 +177,12 @@
 	window.refresh = function () {
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
-
+	    var excludeInactive = document.getElementById('excludeInactive').checked;
 	    startDate = new Date(endDate);
 	    startDate = startDate.setDate(startDate.getDate() - 7);
 	    startDate = (0, _moment2.default)(startDate).format("YYYY-MM-DD");
 	    getTEI(startDate, endDate).then(function (teis) {
-	        var coords = extractCoordsFromTEI(teis);
+	        var coords = extractCoordsFromTEI(teis, excludeInactive);
 	        buildMap(coords, 5, 3);
 	    });
 	};
@@ -234,12 +234,13 @@
 
 	    getTEI(startDate, endDate).then(function (teis) {
 	        var coords = extractCoordsFromTEI(teis);
-	        buildMap(coords, 5, 3);
+	        buildMap(coords, 5, 3, excludeInactive);
 	    });
 
 	    map.getMap().on('popupopen', function (e) {
 
 	        var data = e.popup.data;
+
 	        _reactDom2.default.render(_react2.default.createElement(_components.AlertPopUp, { data: data, deMap: clusterDeIdToNameMap }), document.getElementById('hello'));
 	        //var marker = e.popup._source;
 	    });
@@ -280,7 +281,7 @@
 	    return def.promise();
 	}
 
-	function extractCoordsFromTEI(teis) {
+	function extractCoordsFromTEI(teis, excludeInactive) {
 
 	    var result = [];
 
@@ -289,9 +290,13 @@
 
 	        var coord = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_COORDS, "value");
 
-	        var isActive = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
+	        var active = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
 
-	        if (coord && isActive) {
+	        if (active == "false" && excludeInactive) {
+	            continue;
+	        }
+
+	        if (coord) {
 
 	            coord = JSON.parse(coord);
 
@@ -300,7 +305,6 @@
 	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_3_5, "value");
 	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_5_7, "value");
 	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_LAB, "value");
-	            var active = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
 
 	            if (clusterType == "ADD") {
 	                type = "ADD2";
@@ -460,7 +464,8 @@
 	        popup.data = marker.feature.properties;
 	        popup.setContent("<div class='linelist' id='hello'></div>");
 	        popup.setLatLng(marker.getLatLng());
-	        map.getMap().openPopup(popup);
+	        marker.bindPopup(popup);
+	        marker.openPopup();
 	    });
 
 	    var data = featureCollection.geoJsonPointFeatures;
@@ -93427,9 +93432,9 @@
 
 	        isActive = !isActive;
 	        _dhisAPIHelper2.default.saveTEIWithDataValue(data.trackedEntityInstance, NIE.TEA_IS_ACTIVE, isActive, function (attributes) {
+
 	            _this.state.data.attributes = attributes;
 	            _this.setState({ data: _this.state.data });
-	            debugger;
 	        });
 	    };
 
@@ -93442,6 +93447,7 @@
 	            isActive = false;
 	        }
 	        isActive = JSON.parse(isActive);
+
 	        return _react2.default.createElement(
 	            'div',
 	            { className: 'linelist ' },
@@ -93449,7 +93455,8 @@
 	            _react2.default.createElement('input', { type: 'checkbox', value: 'Activate/Deactivate', onChange: function onChange() {
 	                    return _this2.clusterActivationToggle(_this2.props.data, isActive);
 	                }, checked: isActive }),
-	            ' ',
+	            'Total Cases : ',
+	            this.state.cases.length,
 	            _react2.default.createElement('br', null),
 	            _react2.default.createElement(AlertTable, { data: this.state })
 	        );

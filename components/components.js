@@ -35,9 +35,10 @@ export function AlertPopUp(props){
       
         isActive = !isActive;
         dhisAPIHelper.saveTEIWithDataValue(data.trackedEntityInstance,NIE.TEA_IS_ACTIVE,isActive,(attributes) => {
+          
             this.state.data.attributes = attributes;
             this.setState({data:this.state.data})
-           debugger
+           
         });                
     }
 
@@ -48,8 +49,11 @@ export function AlertPopUp(props){
             isActive = false;
         }
         isActive = JSON.parse(isActive);
+        
         return  <div className='linelist '>
-            is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} /> <br></br>
+            is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} /> 
+            Total Cases : {this.state.cases.length}
+            <br></br>
             <AlertTable data={this.state} />
             </div>            
     }
