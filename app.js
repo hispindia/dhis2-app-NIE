@@ -26,6 +26,8 @@ const imgpath_red_circle = "images/lab_1.png";
 const imgpath_star = "images/afi_5.png";
 const imgpath_cluster = "images/marker-icon-red.png";
 const imgpath_yellow_triangle = "images/yellow-triangle.PNG";
+const imgpath_marker_icon_blue = "images/marker-icon-blue.png";
+const imgpath_marker_icon_inactive = "images/marker-icon-inactive.png";
 
 var deIdToNameMap = [];
 var clusterDeIdToNameMap = [];
@@ -151,14 +153,10 @@ $('document').ready(function(){
     style.color = "black";
     style.opacity = 0.25;
     //addOrgUnitLayer(8,Object.assign({},style));
-
-    // coordinates to be filtered here.
-    var startDate = $('#sdate').val();
-    var endDate = $('#edate').val();
-  
+   
     getTEI(startDate,endDate).then(function(teis){
         var coords =  extractCoordsFromTEI(teis);
-        //  buildMap(coords,5,3);
+          buildMap(coords,5,3);
     });
 
     map.getMap().on('popupopen', function(e) {
@@ -228,6 +226,8 @@ function extractCoordsFromTEI(teis){
             var afi3_5 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_3_5,"value");
             var afi5_7 = findValueAgainstId(teis[i].attributes,"attribute",NIE.AFI_TEA_5_7,"value");
             var lab = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_LAB,"value");
+            var active = findValueAgainstId(teis[i].attributes,"attribute",NIE.TEA_IS_ACTIVE,"value");
+
             
             if (clusterType == "ADD"){
                 type = "ADD2";
@@ -241,7 +241,13 @@ function extractCoordsFromTEI(teis){
             if (lab){
                 type = "LAB"
             }
-            
+            if (clusterType == "MANUAL"){
+                type="MANUAL";
+            }
+            if (active == "false"){
+                type = "INACTIVE"
+            }
+
             result.push({
                 id : teis[i].trackedEntityInstance+clusterType , 
                 coordinates : coord, 
@@ -350,13 +356,20 @@ function buildMap(coords,c_dist,threshold){
             });
             case 'AFI5' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_star,[25,25],[0,0])
+                    icon : getCustomIcon2(imgpath_star,[20,20],[0,0])
                 });
             case 'ADD2' :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_yellow_triangle,[17,17],[0,15])
                 });
-                
+            case 'MANUAL' :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_marker_icon_blue,[25,41],[5,15])
+                });
+            case 'INACTIVE' :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_marker_icon_inactive,[25,41],[10,10])
+                });
             }
         }
         
@@ -368,7 +381,12 @@ function buildMap(coords,c_dist,threshold){
     });
     
     oms.addListener('click', function(marker) {
-        var popup = new L.Popup(AlertPopUp);
+        var popup = new L.Popup({
+            maxWidth : 600,
+            autoPan : true,
+            keepInView : true
+        },AlertPopUp);
+
         popup.data = marker.feature.properties; 
         popup.setContent("<div class='linelist' id='hello'></div>");
         popup.setLatLng(marker.getLatLng());
@@ -379,7 +397,8 @@ function buildMap(coords,c_dist,threshold){
     for (let i=0;i<data.features.length;i++){
         var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
         var marker = pointToLayer(data.features[i],loc);
-
+       
+        marker._leaflet_id = data.features[i].properties.trackedEntityInstance;
         marker.desc = data.features[i].properties.label;
         marker.feature = {properties : data.features[i].properties}
         map.getMap().addLayer(marker);
@@ -424,7 +443,9 @@ function addLegend(map){
         var html = '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
             '<img src="'+imgpath_star+'"  height="'+height+'" width="'+width+'">  AFI 5 cases in 7 days<br>'+
 	    '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
-	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>';
+	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Manual<br>'+
+	    '<img src="'+imgpath_marker_icon_inactive+'"  height="'+height+'" width="'+width+'">  Inactive<br>';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
             "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+

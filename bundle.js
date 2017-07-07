@@ -111,6 +111,8 @@
 	var imgpath_star = "images/afi_5.png";
 	var imgpath_cluster = "images/marker-icon-red.png";
 	var imgpath_yellow_triangle = "images/yellow-triangle.PNG";
+	var imgpath_marker_icon_blue = "images/marker-icon-blue.png";
+	var imgpath_marker_icon_inactive = "images/marker-icon-inactive.png";
 
 	var deIdToNameMap = [];
 	var clusterDeIdToNameMap = [];
@@ -230,13 +232,9 @@
 	    style.opacity = 0.25;
 	    //addOrgUnitLayer(8,Object.assign({},style));
 
-	    // coordinates to be filtered here.
-	    var startDate = (0, _jquery2.default)('#sdate').val();
-	    var endDate = (0, _jquery2.default)('#edate').val();
-
 	    getTEI(startDate, endDate).then(function (teis) {
 	        var coords = extractCoordsFromTEI(teis);
-	        //  buildMap(coords,5,3);
+	        buildMap(coords, 5, 3);
 	    });
 
 	    map.getMap().on('popupopen', function (e) {
@@ -302,6 +300,7 @@
 	            var afi3_5 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_3_5, "value");
 	            var afi5_7 = findValueAgainstId(teis[i].attributes, "attribute", NIE.AFI_TEA_5_7, "value");
 	            var lab = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_LAB, "value");
+	            var active = findValueAgainstId(teis[i].attributes, "attribute", NIE.TEA_IS_ACTIVE, "value");
 
 	            if (clusterType == "ADD") {
 	                type = "ADD2";
@@ -314,6 +313,12 @@
 	            }
 	            if (lab) {
 	                type = "LAB";
+	            }
+	            if (clusterType == "MANUAL") {
+	                type = "MANUAL";
+	            }
+	            if (active == "false") {
+	                type = "INACTIVE";
 	            }
 
 	            result.push({
@@ -421,13 +426,20 @@
 	                    });
 	                case 'AFI5':
 	                    return L.marker(latlng, {
-	                        icon: getCustomIcon2(imgpath_star, [25, 25], [0, 0])
+	                        icon: getCustomIcon2(imgpath_star, [20, 20], [0, 0])
 	                    });
 	                case 'ADD2':
 	                    return L.marker(latlng, {
 	                        icon: getCustomIcon2(imgpath_yellow_triangle, [17, 17], [0, 15])
 	                    });
-
+	                case 'MANUAL':
+	                    return L.marker(latlng, {
+	                        icon: getCustomIcon2(imgpath_marker_icon_blue, [25, 41], [5, 15])
+	                    });
+	                case 'INACTIVE':
+	                    return L.marker(latlng, {
+	                        icon: getCustomIcon2(imgpath_marker_icon_inactive, [25, 41], [10, 10])
+	                    });
 	            }
 	        }
 
@@ -439,7 +451,12 @@
 	    });
 
 	    oms.addListener('click', function (marker) {
-	        var popup = new L.Popup(_components.AlertPopUp);
+	        var popup = new L.Popup({
+	            maxWidth: 600,
+	            autoPan: true,
+	            keepInView: true
+	        }, _components.AlertPopUp);
+
 	        popup.data = marker.feature.properties;
 	        popup.setContent("<div class='linelist' id='hello'></div>");
 	        popup.setLatLng(marker.getLatLng());
@@ -451,6 +468,7 @@
 	        var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
 	        var marker = pointToLayer(data.features[i], loc);
 
+	        marker._leaflet_id = data.features[i].properties.trackedEntityInstance;
 	        marker.desc = data.features[i].properties.label;
 	        marker.feature = { properties: data.features[i].properties };
 	        map.getMap().addLayer(marker);
@@ -492,7 +510,7 @@
 	        var div = L.DomUtil.create('div', 'info legend');
 	        var height = 15,
 	            width = 15;
-	        var html = '<img src="' + imgpath_polygon_5_sided + '"  height="' + height + '" width="' + width + '">  AFI 3 cases in 5 days<br>' + '<img src="' + imgpath_star + '"  height="' + height + '" width="' + width + '">  AFI 5 cases in 7 days<br>' + '<img src="' + imgpath_yellow_triangle + '"  height="' + height + '" width="' + width + '">  ADD 2 cases in 3 days<br>' + '<img src="' + imgpath_red_circle + '"  height="' + height + '" width="' + width + '">  LAB<br>';
+	        var html = '<img src="' + imgpath_polygon_5_sided + '"  height="' + height + '" width="' + width + '">  AFI 3 cases in 5 days<br>' + '<img src="' + imgpath_star + '"  height="' + height + '" width="' + width + '">  AFI 5 cases in 7 days<br>' + '<img src="' + imgpath_yellow_triangle + '"  height="' + height + '" width="' + width + '">  ADD 2 cases in 3 days<br>' + '<img src="' + imgpath_red_circle + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_marker_icon_blue + '"  height="' + height + '" width="' + width + '">  Manual<br>' + '<img src="' + imgpath_marker_icon_inactive + '"  height="' + height + '" width="' + width + '">  Inactive<br>';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
 	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
