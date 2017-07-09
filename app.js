@@ -195,7 +195,10 @@ function getTEI(startDate,endDate){
         type: "GET",
         async: true,
         contentType: "application/json",
-        url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
+     //   url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
+        url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&filter="+NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE+":ge:"+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
+        //All Cases
+        //url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
     },function(error,response){
         if (error){
             def.resolve(null);
@@ -383,7 +386,7 @@ function buildMap(coords,c_dist,threshold){
         nearbyDistance : 1 , keepSpiderfied : true
     });
     
-    oms.addListener('click', function(marker) {
+  /*  oms.addListener('click', function(marker) {
         var popup = new L.Popup({
             maxWidth : 600,
             autoPan : true,
@@ -396,7 +399,7 @@ function buildMap(coords,c_dist,threshold){
         marker.bindPopup(popup);
         marker.openPopup();
     });
-
+*/
     var data = featureCollection.geoJsonPointFeatures;
     for (let i=0;i<data.features.length;i++){
         var loc = new L.LatLng(data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]);
@@ -405,6 +408,18 @@ function buildMap(coords,c_dist,threshold){
         marker._leaflet_id = data.features[i].properties.trackedEntityInstance;
         marker.desc = data.features[i].properties.label;
         marker.feature = {properties : data.features[i].properties}
+
+        var popup = new L.Popup({
+            maxWidth : 600,
+            autoPan : true,
+            keepInView : true
+        },AlertPopUp);
+        
+        popup.data = marker.feature.properties; 
+        popup.setContent("<div class='linelist' id='hello'></div>");
+        popup.setLatLng(marker.getLatLng());
+        marker.bindPopup(popup);
+        //marker.openPopup();
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
@@ -624,7 +639,7 @@ function getCustomIcon2(iconUrl,iconSize,iconAnchor){
         //        iconAnchor: [12, 41],
         iconAnchor:iconAnchor,
 
-        popupAnchor: [1, -34],
+        popupAnchor: [1, 0],
         shadowSize: [16, 20]
     });
 

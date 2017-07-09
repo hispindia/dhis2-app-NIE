@@ -15,7 +15,6 @@ export const TEA_CLUSTER_CASES =  "I2eCWfhryZH";
 export const DE_isDuplicate =  "DqQoNAJ3jwl";
 export const DEGROUP_CLUSTERTOBESHOWN =  "sXzZ0Xl2F0j";
 
-
-
-
-
+export const CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
+export const CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
+export const CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";

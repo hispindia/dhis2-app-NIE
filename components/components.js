@@ -27,10 +27,21 @@ export function AlertPopUp(props){
 
     instance.componentDidMount =  function() {        
         dhisAPIHelper.getClusterCases(props.data.cases,(cases) => {
+            cases = utility.sortBy(cases,function(event){
+                return event.eventDate;
+            });
             instance.setState({cases : cases , deMap : props.deMap, componentDidMount: instance.componentDidMount});
         })
     }
   
+    instance.getClusterID = function(){
+        if (!this.state.data.attributes){return ""}
+        
+        var id = utility.findValueAgainstId(this.state.data.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value");
+        
+        return id;
+    }
+    
     instance.clusterActivationToggle = function(data,isActive){    
       
         isActive = !isActive;
@@ -52,7 +63,7 @@ export function AlertPopUp(props){
         
         return  <div className='linelist '>
             is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} /> 
-            Total Cases : {this.state.cases.length}
+             <b>{this.getClusterID()}</b>
             <br></br>
             <AlertTable data={this.state} />
             </div>            
@@ -67,8 +78,9 @@ function AlertTable(props){
 
         if (!props.data.deMap){return}
 
-        var tableHeaders = [];        
-        tableHeaders.push(<th key={_.uniqueId("th_")} >isDuplicate</th>);
+        var tableHeaders = [];      
+        tableHeaders.push(<th key={_.uniqueId("th_#")} > ## </th>);  
+        tableHeaders.push(<th key={_.uniqueId("th_duplicate")} >isDuplicate</th>);
         
         for (var key in props.data.deMap ){
             tableHeaders.push(<th key={_.uniqueId("th_")}>{props.data.deMap[key].name}</th>);
@@ -90,7 +102,7 @@ function AlertTable(props){
     
     function getRows(cases,clusterDeIdToNameMap){
         var rows = [];
-        cases.map(function(eventCase){
+        cases.map(function(eventCase,index){
             var isDuplicate =  utility.findValueAgainstId(eventCase.dataValues,"dataElement",NIE.DE_isDuplicate,"value");
             if (isDuplicate == null || isDuplicate == undefined){
                 isDuplicate = false;
@@ -100,6 +112,9 @@ function AlertTable(props){
             var duplicateRowClass = '';
             var cells = [];
             var eventUID = eventCase.event;
+            cells.push(<td key = {index+1}>
+                       {index+1}
+                       </td>)
             cells.push(
                     <td key = {eventCase.event+"-"+NIE.DE_isDuplicate}>
                     <input key = {"input_"+eventCase.event+"-"+NIE.DE_isDuplicate} type='checkbox' value='duplicate' onChange={ () => toggleDuplicate(eventUID,isDuplicate)} checked = {isDuplicate} >
