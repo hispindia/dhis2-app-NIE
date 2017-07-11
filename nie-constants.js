@@ -1,6 +1,11 @@
 
 import utility from './utility-functions';
 
+export const BASE_URL = "http://139.162.61.147/nieodk/";
+export const Node_Service_URL = "http://localhost:8000/";
+
+export const DEST_PATH_BASE = "/home/harsh/Desktop/sms/phantomjs/";
+
 export const Cluster_ProgramUID = "a1x2Z6M4jSt";
 export const TrackedEntity = "MCPQUTHX1Ze";
 export const Cluster_Relationship = "HJFIaMLUr7v";

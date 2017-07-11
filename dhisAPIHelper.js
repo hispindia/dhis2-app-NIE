@@ -110,6 +110,7 @@ function dhisAPIHelper(){
                 function(error,response,body){
                     if (error){
                         console.log("Custer Fetch error")
+                       
                     }
                     
                     if (response.statusText == "Not Found"){
@@ -119,7 +120,7 @@ function dhisAPIHelper(){
                                 callback("Some Error Occured")
                                 return
                             }
-                            callback("Cluster Saved",cluster_tei);
+                            callback(false,"Cluster Saved",cluster_tei);
                         })
                     }else{
                         api.update("trackedEntityInstance",cluster_tei.trackedEntityInstance,cluster_tei,function(error,response,body){
@@ -128,7 +129,7 @@ function dhisAPIHelper(){
                                 callback("Some Error Occured")
                                 return
                             }
-                            callback("Cluster Updated",cluster_tei);
+                            callback(false,"Cluster Updated",cluster_tei);
                         })
                         //callback("Already Exists!",response)
                     }  

@@ -7,6 +7,7 @@ import _ from 'lodash';
 import dhisAPIHelper from '../dhisAPIHelper';
 import * as NIE from '../nie-constants';
 import utility from '../utility-functions';
+import ajax from '../ajax-wrapper'
 
 export function UploadFile(props){
         return (
@@ -43,6 +44,7 @@ export function AlertPopUp(props){
   
     instance.getClusterID = function(){
         
+
         if (!this.state.data.cluster){return ""}
 
         var id = utility.findValueAgainstId(this.state.data.cluster.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value")
@@ -51,23 +53,34 @@ export function AlertPopUp(props){
     
     instance.approveAndSave = function(state){    
        
-        dhisAPIHelper.saveCluster(state,(message,cluster) => {
+        dhisAPIHelper.saveCluster(state,(error,message,cluster) => {
             alert(message);
-            this.state.data.cluster = cluster;
-            this.setState({data:this.state.data})
-           debugger
-        });                
+            if (!error){ // send Cluster Information Report 
+                ajax.request({
+                    type: "GET",
+                    async: true,
+                    contentType: "text/plain",
+                    url: NIE.Node_Service_URL+"sendClusterInformationReport?ou="+cluster.orgUnit+"&tei="+cluster.trackedEntityInstance+"&name="+cluster.trackedEntityInstance+".pdf"
+                }, function (error, response, body) {
+                    
+                    
+                })
+                this.state.data.cluster = cluster;
+                this.setState({data:this.state.data})
+                
+            };                
+        })
     }
-
+    
     var isClusterActive = false;
     instance.render = function() {       
-      
+        
         return  <div className='linelist '> <input key = {"input_save"} type='button' value='Approve and Save' onClick={ () => this.approveAndSave(this.state)}  />
             {this.getClusterID()}
             <br></br>
             <AlertTable data={this.state} />
             </div>            
-    }
+        }
     
     return instance    
 }
