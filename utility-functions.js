@@ -104,7 +104,7 @@ _.getMapLength = function(map){
     for (var key in map){
         index = index+1;
     }
-    debugger
+    
     return index;
 }
 module.exports = _;

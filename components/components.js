@@ -56,11 +56,13 @@ export function AlertPopUp(props){
         dhisAPIHelper.saveCluster(state,(error,message,cluster) => {
             alert(message);
             if (!error){ // send Cluster Information Report 
+                var clusterID = utility.findValueAgainstId(cluster.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value")
+
                 ajax.request({
                     type: "GET",
                     async: true,
                     contentType: "text/plain",
-                    url: NIE.Node_Service_URL+"sendClusterInformationReport?ou="+cluster.orgUnit+"&tei="+cluster.trackedEntityInstance+"&name="+cluster.trackedEntityInstance+".pdf"
+                    url: NIE.Node_Service_URL+"sendClusterInformationReport?ou="+cluster.orgUnit+"&tei="+cluster.trackedEntityInstance+"&name="+clusterID
                 }, function (error, response, body) {
                     
                     

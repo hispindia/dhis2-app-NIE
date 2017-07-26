@@ -128,7 +128,7 @@ window.refresh = function(){
     var startDate = $('#sdate').val();
     var endDate = $('#edate').val();
 
-    var diff = moment(new Date()).diff(startDate,'days');
+    var diff = moment(endDate).diff(startDate,'days');
     
     $('#movingPeriod').text(diff);
     getEvents(startDate,endDate).then(function(events){
@@ -590,12 +590,12 @@ function addClustergons(map,gjson){
           //  var px = map.project(popup._latlng); // find the pixel location on the map where the popup anchor is
           //  px.y -= popup._container.clientHeight/2 // find the height of the popup container, divide by 2, subtract from the Y axis of marker location
            // map.panTo(map.unproject(px),{animate: true}); // pan to new center
-            layer.on({
-	        // mouseover: highlightFeature,
+          /*  layer.on({
+	         //mouseover: highlightFeature,
 	        //  mouseout: resetHighlight,
 	        click: panToFeature
 	        
-            });
+            });*/
         }
         
         layer.on({
