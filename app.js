@@ -152,18 +152,20 @@ $('document').ready(function(){
     style.weight =0.95;
     style.color = "black";
     style.opacity = 0.25;
-    //addOrgUnitLayer(8,Object.assign({},style));
+    addOrgUnitLayer(8,Object.assign({},style));
    
     getTEI(startDate,endDate).then(function(teis){
         var coords =  extractCoordsFromTEI(teis);
           buildMap(coords,5,3,excludeInactive);
     });
 
+    var showClusterIntensity = document.getElementById('showClusterIntensity').checked;
+
     map.getMap().on('popupopen', function(e) {
         
         var data = e.popup.data;
 
-        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} />, document.getElementById('hello'));
+        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} endDate={startDate} clusterIntensity={showClusterIntensity} />, document.getElementById('hello'));
         //var marker = e.popup._source;
     });
 });

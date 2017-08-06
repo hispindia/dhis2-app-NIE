@@ -7,6 +7,7 @@ import _ from 'lodash';
 import dhisAPIHelper from '../dhisAPIHelper';
 import * as NIE from '../nie-constants';
 import utility from '../utility-functions';
+import moment from 'moment';
 
 export function UploadFile(props){
     return (
@@ -19,18 +20,38 @@ export function UploadFile(props){
 }
 
 export function AlertPopUp(props){
-    
-    var instance = Object.create(React.Component.prototype)
+    function filterByEventDate (events,date){
+        
+        var results = [];
+        
+        for (var key in events){
+            if (moment(events[key].eventDate) < date){
+                results.push(events[key]);
+            }
+        }
+        
+        return results;
+    }
 
+    var instance = Object.create(React.Component.prototype)
+    
     instance.props = props
     instance.state = { data: props.data , cases : [] };
 
     instance.componentDidMount =  function() {        
-        dhisAPIHelper.getClusterCases(props.data.cases,(cases) => {
-            cases = utility.sortBy(cases,function(event){
+        dhisAPIHelper.getClusterCases(props.data.cases, (cases) => {
+            cases = utility.sortBy(cases,function(event){                
                 return event.eventDate;
             });
-            instance.setState({cases : cases , deMap : props.deMap, componentDidMount: instance.componentDidMount});
+            
+            var showClusterIntensity = document.getElementById('showClusterIntensity').checked;
+            var startDate = $('#edate').val();
+
+
+            if (!showClusterIntensity)
+            cases = filterByEventDate(cases,moment(startDate));
+
+            instance.setState({cases : cases , deMap : props.deMap, endDate:props.endDate, clusterIntensity:props.clusterIntensity, componentDidMount: instance.componentDidMount});
         })
     }
   

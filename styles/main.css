@@ -25,7 +25,7 @@
     height:400px;
     width :600px;
     opacity: 1.0;
-    white-space: normal;
+    white-space: nowrap;
     text-align: center;
     border: 1px solid #aaa;
     padding:0px;
