@@ -2,7 +2,7 @@
 import utility from './utility-functions';
 
 export const BASE_URL = "http://139.162.61.147/nieodk/";
-export const Node_Service_URL = "http://localhost:8000/";
+export const Node_Service_URL = "http://139.162.61.147:8000/";
 
 export const DEST_PATH_BASE = "/home/harsh/Desktop/sms/phantomjs/";
 

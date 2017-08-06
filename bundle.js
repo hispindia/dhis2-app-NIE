@@ -96796,7 +96796,7 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var BASE_URL = exports.BASE_URL = "http://139.162.61.147/nieodk/";
-	var Node_Service_URL = exports.Node_Service_URL = "http://localhost:8000/";
+	var Node_Service_URL = exports.Node_Service_URL = "http://139.162.61.147:8000/";
 
 	var DEST_PATH_BASE = exports.DEST_PATH_BASE = "/home/harsh/Desktop/sms/phantomjs/";
 
