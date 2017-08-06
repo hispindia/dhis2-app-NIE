@@ -25,7 +25,7 @@ export function AlertPopUp(props){
         var results = [];
         
         for (var key in events){
-            if (moment(events[key].eventDate) < date){
+            if (moment(events[key].eventDate) <= date){
                 results.push(events[key]);
             }
         }
