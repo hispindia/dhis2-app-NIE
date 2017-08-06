@@ -141,7 +141,7 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area){
             
             mergedCircle.properties.area = (parseFloat(turf.area(mergedCircle))/1000000);
             
-            if (mergedCircle.properties.area < parseFloat(area))
+            if (mergedCircle.properties.area > parseFloat(area))
             { // Cluster Area should be greater than threshold area;therefore skipping 
                 return
             }
