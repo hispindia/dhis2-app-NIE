@@ -75,13 +75,13 @@
     <div id="mainContainer">
       <div class="hidden-print">
         <label><h2>eDFSS Alerts - Fixed Algorithm</h2></label>
-        <label class="right">Moving Period Range(in days):<b><i id = "movingPeriod"> 7 </i></b></label>
+    <!--    <label class="right">Fixed Period:<b><i id = "movingPeriod"> 1 Day</i></b></label> -->
 
         <br>
          <input hidden id="sdate" type="date"></input>
-        Select Date: <input  id="edate" type="date"></input>
+        Cluster Generated On : <input  id="edate" type="date"></input>
          <input  type="checkbox" id="excludeInactive" checked> Exclude Inactive </input>
-         <input  type="checkbox" id="showClusterIntensity" > Show All Cases in a Cluster </input>
+         <input hidden  type="checkbox" id="showClusterIntensity" ></input>
 
         <input hidden type="number" id="c_dist" value="5"></input>
         <input hidden type="number" id="threshold" value="3"></input>

@@ -198,7 +198,7 @@ function getTEI(startDate,endDate){
         async: true,
         contentType: "application/json",
      //   url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
-        url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&filter="+NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE+":ge:"+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
+        url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&filter="+NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE+":ge:"+moment(startDate).format(format)+"&filter="+NIE.CLUSTER_TEA_CLUSTER_START_DATE+":eq:"+moment(endDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
         //All Cases
         //url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
     },function(error,response){

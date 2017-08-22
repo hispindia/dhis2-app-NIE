@@ -275,7 +275,7 @@
 	        async: true,
 	        contentType: "application/json",
 	        //   url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
-	        url: "../../trackedEntityInstances?ou=" + NIE.ROOT_OU_UID + "&ouMode=DESCENDANTS&filter=" + NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE + ":ge:" + (0, _moment2.default)(startDate).format(format) + "&programEndDate=" + (0, _moment2.default)(endDate).format(format) + "&program=" + NIE.Cluster_ProgramUID + "&skipPaging=true"
+	        url: "../../trackedEntityInstances?ou=" + NIE.ROOT_OU_UID + "&ouMode=DESCENDANTS&filter=" + NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE + ":ge:" + (0, _moment2.default)(startDate).format(format) + "&filter=" + NIE.CLUSTER_TEA_CLUSTER_START_DATE + ":eq:" + (0, _moment2.default)(endDate).format(format) + "&programEndDate=" + (0, _moment2.default)(endDate).format(format) + "&program=" + NIE.Cluster_ProgramUID + "&skipPaging=true"
 	        //All Cases
 	        //url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
 	    }, function (error, response) {
@@ -96578,6 +96578,7 @@
 	var CLUSTER_TEA_CLUSTERID = exports.CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
 	var CLUSTER_TEA_CLUSTER_INDEX_DATE = exports.CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
 	var CLUSTER_TEA_CLUSTER_TAIL_DATE = exports.CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";
+	var CLUSTER_TEA_CLUSTER_START_DATE = exports.CLUSTER_TEA_CLUSTER_START_DATE = "XGWh7OT2Pa8";
 
 /***/ })
 /******/ ]);
