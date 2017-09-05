@@ -8,6 +8,7 @@ import dhisAPIHelper from '../dhisAPIHelper';
 import * as NIE from '../nie-constants';
 import utility from '../utility-functions';
 import ajax from '../ajax-wrapper'
+import moment from 'moment';
 
 export function UploadFile(props){
         return (
@@ -135,6 +136,10 @@ function AlertTable(props){
             for (var key in clusterDeIdToNameMap ){
                 var value = utility.findValueAgainstId(eventCase.dataValues,"dataElement",key,"value");
                 if (!value){value = ""};
+                if (clusterDeIdToNameMap[key].valueType == "DATE"){
+                    value = moment(value).format("DD-MM-YYYY");
+                }
+                
                 cells.push(<td  key = {eventCase.event+"-"+key}>{value}</td>)
             }
             if (isDuplicate){

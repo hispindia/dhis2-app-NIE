@@ -53,7 +53,7 @@ function getClusterToBeShownDE(){
         type: "GET",
         async: true,
         contentType: "application/json",
-        url: "../../dataElementGroups/"+NIE.DEGROUP_CLUSTERTOBESHOWN+"?fields=id,name,dataElements[id,name]"
+        url: "../../dataElementGroups/"+NIE.DEGROUP_CLUSTERTOBESHOWN+"?fields=id,name,dataElements[id,name,valueType]"
     },callback);
     
     function callback(error, response, body){

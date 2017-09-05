@@ -138,7 +138,7 @@
 	        type: "GET",
 	        async: true,
 	        contentType: "application/json",
-	        url: "../../dataElementGroups/" + NIE.DEGROUP_CLUSTERTOBESHOWN + "?fields=id,name,dataElements[id,name]"
+	        url: "../../dataElementGroups/" + NIE.DEGROUP_CLUSTERTOBESHOWN + "?fields=id,name,dataElements[id,name,valueType]"
 	    }, callback);
 
 	    function callback(error, response, body) {
@@ -96338,13 +96338,13 @@
 
 	var _ajaxWrapper2 = _interopRequireDefault(_ajaxWrapper);
 
+	var _moment = __webpack_require__(254);
+
+	var _moment2 = _interopRequireDefault(_moment);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	/**
-	 * Created by harsh on 21/12/16.
-	 */
 
 	function UploadFile(props) {
 	    return _react2.default.createElement(
@@ -96362,7 +96362,9 @@
 	            'Import'
 	        )
 	    );
-	}
+	} /**
+	   * Created by harsh on 21/12/16.
+	   */
 
 	function AlertPopUp(props) {
 
@@ -96500,6 +96502,10 @@
 	                if (!value) {
 	                    value = "";
 	                };
+	                if (clusterDeIdToNameMap[key].valueType == "DATE") {
+	                    value = (0, _moment2.default)(value).format("DD-MM-YYYY");
+	                }
+
 	                cells.push(_react2.default.createElement(
 	                    'td',
 	                    { key: eventCase.event + "-" + key },
