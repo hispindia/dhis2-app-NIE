@@ -139,7 +139,7 @@
 	        type: "GET",
 	        async: true,
 	        contentType: "application/json",
-	        url: "../../dataElementGroups/" + NIE.DEGROUP_CLUSTERTOBESHOWN + "?fields=id,name,dataElements[id,name]"
+	        url: "../../dataElementGroups/" + NIE.DEGROUP_CLUSTERTOBESHOWN + "?fields=id,name,dataElements[id,name,valueType]"
 	    }, callback);
 
 	    function callback(error, response, body) {
@@ -96395,7 +96395,11 @@
 	                var value = _utilityFunctions2.default.findValueAgainstId(eventCase.dataValues, "dataElement", key, "value");
 	                if (!value) {
 	                    value = "";
-	                };
+	                };debugger;
+	                if (clusterDeIdToNameMap[key].valueType == "DATE") {
+	                    value = (0, _moment2.default)(value).format("DD-MM-YYYY");
+	                }
+
 	                cells.push(_react2.default.createElement(
 	                    'td',
 	                    { key: eventCase.event + "-" + key },

@@ -144,7 +144,11 @@ function AlertTable(props){
             
             for (var key in clusterDeIdToNameMap ){
                 var value = utility.findValueAgainstId(eventCase.dataValues,"dataElement",key,"value");
-                if (!value){value = ""};
+                if (!value){value = ""};debugger
+                if (clusterDeIdToNameMap[key].valueType == "DATE"){
+                    value = moment(value).format("DD-MM-YYYY");
+                }
+                
                 cells.push(<td  key = {eventCase.event+"-"+key}>{value}</td>)
             }
             if (isDuplicate){
