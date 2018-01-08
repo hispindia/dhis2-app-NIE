@@ -174,6 +174,11 @@
 	    });
 	};
 
+	window.center = function () {
+
+	    map.getMap().setView(new L.LatLng(13.239758, 79.978065), 10);
+	};
+
 	window.refresh = function () {
 	    var startDate = (0, _jquery2.default)('#sdate').val();
 	    var endDate = (0, _jquery2.default)('#edate').val();
@@ -275,7 +280,7 @@
 	        async: true,
 	        contentType: "application/json",
 	        //   url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programStartDate="+moment(startDate).format(format)+"&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
-	        url: "../../trackedEntityInstances?ou=" + NIE.ROOT_OU_UID + "&ouMode=DESCENDANTS&filter=" + NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE + ":ge:" + (0, _moment2.default)(startDate).format(format) + "&filter=" + NIE.CLUSTER_TEA_CLUSTER_START_DATE + ":eq:" + (0, _moment2.default)(endDate).format(format) + "&programEndDate=" + (0, _moment2.default)(endDate).format(format) + "&program=" + NIE.Cluster_ProgramUID + "&skipPaging=true"
+	        url: "../../trackedEntityInstances?ou=" + NIE.ROOT_OU_UID + "&ouMode=DESCENDANTS&filter=" + NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE + ":ge:" + (0, _moment2.default)(startDate).format(format) + "&filter=" + NIE.CLUSTER_TEA_CLUSTER_START_DATE + ":eq:" + (0, _moment2.default)(endDate).format(format) + "&program=" + NIE.Cluster_ProgramUID + "&skipPaging=true"
 	        //All Cases
 	        //url: "../../trackedEntityInstances?ou="+NIE.ROOT_OU_UID+"&ouMode=DESCENDANTS&programEndDate="+moment(endDate).format(format)+"&program="+NIE.Cluster_ProgramUID+"&skipPaging=true"
 	    }, function (error, response) {
@@ -63441,7 +63446,7 @@
 	        maxZoom: 8
 	    });
 
-	    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
+	    var wmsLayer = L.tileLayer.wms('http://gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
 	        layers: 'tnssdi_admin:tnssdi_admin'
 	    });
 

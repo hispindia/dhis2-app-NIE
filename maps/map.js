@@ -19,7 +19,7 @@ function dhis2Map(){
 	maxZoom: 8
     });
 
-    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
+    var wmsLayer = L.tileLayer.wms('http://gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
         layers: 'tnssdi_admin:tnssdi_admin'
     });
 
