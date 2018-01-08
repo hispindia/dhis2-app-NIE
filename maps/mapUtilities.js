@@ -57,7 +57,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 	return dist
 }
 
-_.clusterize = function(data,clusterDist,threshold,area){
+_.clusterize = function(data,clusterDist,threshold,area,areaCheckbox){
 
     var graph = createGraph(data,clusterDist);
     
@@ -66,13 +66,13 @@ _.clusterize = function(data,clusterDist,threshold,area){
     var nodes = serializedGraph.nodes;
     var edges = serializedGraph.edges;
     
-    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area);
+    var featureCollection = getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area,areaCheckbox);
     
     return featureCollection;
 
 }
 
-function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area){
+function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area,areaCheckbox){
 
     var geoJsonPointFeatures = {
         type:"FeatureCollection",
@@ -123,7 +123,10 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,area){
             
             if (utility.getMapLength(orgUnitsMap) <= 1)
             {// Filter for excluding points coming from same village
-                return
+              if (areaCheckbox){
+                  return
+              }
+                
             }
             if (points.features.length <3){return}
             var centroid = turf.centroid(points);

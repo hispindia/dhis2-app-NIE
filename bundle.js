@@ -112,8 +112,8 @@
 	var imgpath_ipd = "images/ipd.png";
 	var imgpath_lab = "images/lab.png";
 	var imgpath_opd = "images/opd.png";
-	var imgpath_afi = "images/yellow-point.png";
-	var imgpath_add = "images/green-point.png";
+	var imgpath_afi = "images/afi.png";
+	var imgpath_add = "images/add.png";
 	var imgpath_dengue = "images/dengue2.png";
 
 	var imgpath_cluster = "images/marker-icon-red.png";
@@ -198,6 +198,11 @@
 	    img.style.visibility = visible ? 'visible' : 'hidden';
 	}
 
+	window.center = function () {
+
+	    map.getMap().setView(new L.LatLng(13.239758, 79.978065), 10);
+	};
+
 	window.refresh = function () {
 
 	    setImageVisible("loader", true);
@@ -234,6 +239,7 @@
 	    (0, _jquery2.default)('#sdate').val((0, _moment2.default)(startDate).format(format));
 
 	    map.init("mapid", [13.239758, 79.978065], 10);
+
 	    addLegend(map.getMap());
 
 	    // control that shows state info on hover
@@ -373,7 +379,22 @@
 
 	function filterEvents(events, filters, deNameToIdMap) {
 
+	    function filterEventsByDataValue(events, idKey, id, valKey, values, operation) {
+	        var list = [];
+	        for (var i = 0; i < events.length; i++) {
+	            if (_utilityFunctions2.default.checkListForValue(events[i].dataValues, idKey, id, valKey, values)) {
+	                if (operation == "include") list.push(events[i]);
+	            } else {
+	                if (operation == "exclude") list.push(events[i]);
+	            }
+	        }
+	        return list;
+	    }
+
 	    var filteredEvents = [];
+
+	    // exclude duplicate cases
+	    events = filterEventsByDataValue(events, "dataElement", NIE.DE_isDuplicate, "value", ["true"], "exclude");
 
 	    for (var i = 0; i < events.length; i++) {
 
@@ -486,7 +507,10 @@
 	    map.clearLayers();
 
 	    //  window.coords=coords;
-	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold, area);
+	    var areaFilter = document.getElementById('areaCheckbox').checked;
+
+	    debugger;
+	    var featureCollection = _mapUtilities2.default.clusterize(coords, c_dist, threshold, area, areaFilter);
 
 	    var icon = getCustomIcon();
 
@@ -645,6 +669,10 @@
 	            popup.data = feature.properties;
 	            popup.setContent("<div class='linelist' id='hello'></div>");
 	            popup.setLatLng(layer.getLatLng());
+
+	            popup.on('popupclose', function (e) {
+	                debugger;
+	            });
 
 	            layer.bindPopup(popup, {
 	                maxWidth: 600,
@@ -33624,6 +33652,42 @@
 
 	    return index;
 	};
+
+	_.checkListForValue = function (data, idKey, id, valKey, values) {
+	    for (var i = 0; i < data.length; i++) {
+	        if (data[i][idKey] == id) {
+	            for (var key in values) {
+	                if (data[i][valKey] == values[key]) {
+	                    return true;
+	                }
+	            }
+	        }
+	    }
+	    return false;
+	};
+
+	_.getMaxMinFromList = function (list, id) {
+
+	    var result = { max: null, min: null };
+
+	    for (var key in list) {
+	        if (!result.max) {
+	            result.max = list[key][id];
+	        }
+	        if (!result.min) {
+	            result.min = list[key][id];
+	        }
+
+	        if (result.max < list[key][id]) {
+	            result.max = list[key][id];
+	        }
+	        if (result.min > list[key][id]) {
+	            result.min = list[key][id];
+	        }
+	    }
+	    return result;
+	};
+
 	module.exports = _;
 
 /***/ }),
@@ -63538,10 +63602,12 @@
 
 	};initWMS();
 
-	*/
-	window.open('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&service=WMS&request=GetMap&layers=tnssdi_admin%3Atnssdi_admin&styles=&format=image%2Fjpeg&transparent=false&version=1.1.1&height=256&width=256&srs=EPSG%3A3857&bbox=8942520.81313934,1487158.8223163905,8962088.692380346,1506726.7015573943', '_blank' // <- This is what makes it open in a new window.
-	);
 
+	window.open(
+	  'http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0&service=WMS&request=GetMap&layers=tnssdi_admin%3Atnssdi_admin&styles=&format=image%2Fjpeg&transparent=false&version=1.1.1&height=256&width=256&srs=EPSG%3A3857&bbox=8942520.81313934,1487158.8223163905,8962088.692380346,1506726.7015573943',
+	  '_blank' // <- This is what makes it open in a new window.
+	);
+	*/
 	function dhis2Map() {
 
 	    var map;
@@ -63558,7 +63624,7 @@
 	        maxZoom: 18,
 	        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	    });
-	    var wmsLayer = L.tileLayer.wms('http://nieicmr:icmr0217@gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
+	    var wmsLayer = L.tileLayer.wms('http://gisnic.tn.nic.in:8080/geoserver/tnssdi/wms?version%3D1.1.0', {
 	        layers: 'tnssdi_admin:tnssdi_admin'
 	    });
 
@@ -63712,7 +63778,7 @@
 	    return dist;
 	}
 
-	_.clusterize = function (data, clusterDist, threshold, area) {
+	_.clusterize = function (data, clusterDist, threshold, area, areaCheckbox) {
 
 	    var graph = createGraph(data, clusterDist);
 
@@ -63721,12 +63787,12 @@
 	    var nodes = serializedGraph.nodes;
 	    var edges = serializedGraph.edges;
 
-	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area);
+	    var featureCollection = getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area, areaCheckbox);
 
 	    return featureCollection;
 	};
 
-	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area) {
+	function getFeatureCollection(graph, allNodesMap, threshold, clusterDist, area, areaCheckbox) {
 
 	    var geoJsonPointFeatures = {
 	        type: "FeatureCollection",
@@ -63778,7 +63844,9 @@
 
 	            if (_utilityFunctions2.default.getMapLength(orgUnitsMap) <= 1) {
 	                // Filter for excluding points coming from same village
-	                return;
+	                if (areaCheckbox) {
+	                    return;
+	                }
 	            }
 	            if (points.features.length < 3) {
 	                return;
@@ -96580,6 +96648,8 @@
 	var api = new _dhis2API2.default();
 
 
+	var format = "YYYY-MM-DD";
+
 	function dhisAPIHelper() {
 
 	    this.getClusterCases = function (cases, callback) {
@@ -96664,6 +96734,21 @@
 	                    cluster_tei.attributes.push({
 	                        "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
 	                        "value": _utilityFunctions2.default.reduce(state.cases, "event", ";")
+	                    });
+
+	                    var outliers = _utilityFunctions2.default.getMaxMinFromList(state.cases, "eventDate");
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE,
+	                        "value": (0, _moment2.default)(outliers.max).format(format)
+	                    });
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_START_DATE,
+	                        "value": (0, _moment2.default)(outliers.max).format(format)
+	                    });
+
+	                    cluster_tei.attributes.push({
+	                        "attribute": NIE.CLUSTER_TEA_CLUSTER_INDEX_DATE,
+	                        "value": (0, _moment2.default)(outliers.min).format(format)
 	                    });
 
 	                    saveCluster(cluster_tei, callback);
@@ -96793,7 +96878,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.DHIS_ROOT_OU_UID = exports.CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTERID = exports.CLUSTER_PROGRAM = exports.CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_COORDINATE = exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = exports.DEST_PATH_BASE = exports.Node_Service_URL = exports.BASE_URL = undefined;
+	exports.CLUSTER_TEA_CLUSTER_START_DATE = exports.CLUSTER_TEA_CLUSTER_TAIL_DATE = exports.CLUSTER_TEA_CLUSTER_INDEX_DATE = exports.DHIS_ROOT_OU_UID = exports.CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TEA_IS_ACTIVE = exports.CLUSTER_TEA_CLUSTER_METHOD = exports.CLUSTER_TEA_CASES_UIDS = exports.CLUSTER_TEA_CLUSTER_TYPE = exports.CLUSTER_TEA_CLUSTERID = exports.CLUSTER_PROGRAM = exports.CLUSTER_TEA_FEATURETYPE = exports.CLUSTER_TEA_COORDINATE = exports.MALARIA_NAME = exports.LEPTO_NAME = exports.SCRUB_NAME = exports.DENGUE_NAME = exports.MALARIA_VAL = exports.LEPTO_VAL = exports.SCRUB_VAL = exports.DENGUE_VAL = exports.ADD_DIAGNOSIS_VAL = exports.AFI_DIAGNOSIS_VAL = exports.LAB_FORM_VAL = exports.OPD_FORM_VAL = exports.IPD_FORM_VAL = exports.DE_NAMES_VALUES = exports.DE_isDuplicate = exports.DEGROUP_CLUSTERTOBESHOWN = exports.PROGRAM_ODK_DATA = exports.Cluster_Relationship = exports.TrackedEntity = exports.Cluster_ProgramUID = exports.DEST_PATH_BASE = exports.Node_Service_URL = exports.BASE_URL = undefined;
 
 	var _utilityFunctions = __webpack_require__(187);
 
@@ -96846,6 +96931,10 @@
 	var CLUSTER_TRACKED_ENTITY = exports.CLUSTER_TRACKED_ENTITY = "q0NbkqzMUF8";
 
 	var DHIS_ROOT_OU_UID = exports.DHIS_ROOT_OU_UID = "mnbTnDyJ37p";
+
+	var CLUSTER_TEA_CLUSTER_INDEX_DATE = exports.CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
+	var CLUSTER_TEA_CLUSTER_TAIL_DATE = exports.CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";
+	var CLUSTER_TEA_CLUSTER_START_DATE = exports.CLUSTER_TEA_CLUSTER_START_DATE = "XGWh7OT2Pa8";
 
 /***/ })
 /******/ ]);

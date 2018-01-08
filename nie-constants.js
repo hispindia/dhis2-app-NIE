@@ -60,3 +60,7 @@ export const CLUSTER_TEA_IS_ACTIVE = "DyjpKLdKmoD";
 export const CLUSTER_TRACKED_ENTITY = "q0NbkqzMUF8";
 
 export const DHIS_ROOT_OU_UID = "mnbTnDyJ37p";
+
+export const CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
+export const CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";
+export const CLUSTER_TEA_CLUSTER_START_DATE = "XGWh7OT2Pa8";

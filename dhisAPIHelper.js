@@ -7,6 +7,7 @@ import * as NIE from './nie-constants';
 import moment from 'moment';
 import utility from './utility-functions';
 
+var format = "YYYY-MM-DD"; 
 
 function dhisAPIHelper(){
 
@@ -95,6 +96,21 @@ function dhisAPIHelper(){
                     cluster_tei.attributes.push({
                         "attribute": NIE.CLUSTER_TEA_CASES_UIDS,
                         "value": utility.reduce(state.cases,"event",";")
+                    })
+                    
+                    var outliers = utility.getMaxMinFromList(state.cases,"eventDate");
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTER_TAIL_DATE,
+                        "value": moment(outliers.max).format(format)
+                    })
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTER_START_DATE,
+                        "value": moment(outliers.max).format(format)
+                    })
+                    
+                    cluster_tei.attributes.push({
+                        "attribute": NIE.CLUSTER_TEA_CLUSTER_INDEX_DATE,
+                        "value": moment(outliers.min).format(format)
                     })
                     
                     saveCluster(cluster_tei,callback);

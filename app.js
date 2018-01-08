@@ -25,8 +25,8 @@ var clusterDeIdToNameMap = [];
 const imgpath_ipd = "images/ipd.png";
 const imgpath_lab = "images/lab.png";
 const imgpath_opd = "images/opd.png";
-const imgpath_afi = "images/yellow-point.png";
-const imgpath_add = "images/green-point.png";
+const imgpath_afi = "images/afi.png";
+const imgpath_add = "images/add.png";
 const imgpath_dengue = "images/dengue2.png";
 
 const imgpath_cluster = "images/marker-icon-red.png";
@@ -116,6 +116,12 @@ function setImageVisible(id, visible) {
     img.style.visibility = (visible ? 'visible' : 'hidden');
 }
 
+window.center = function(){
+
+    map.getMap().setView(new L.LatLng(13.239758,79.978065), 10);
+
+}
+
 window.refresh = function(){
 
     setImageVisible("loader",true);
@@ -154,6 +160,7 @@ $('document').ready(function(){
 
 
     map.init("mapid",[13.239758,79.978065],10);
+
     addLegend(map.getMap())
 
     // control that shows state info on hover
@@ -297,10 +304,25 @@ function extractCoordsFromEvents(events){
 
 export function filterEvents(events,filters,deNameToIdMap){
 
+    function filterEventsByDataValue(events,idKey,id,valKey,values,operation){
+        var list = [];
+        for (var i=0;i<events.length;i++){
+            if (utility.checkListForValue(events[i].dataValues,idKey,id,valKey,values)){
+                if (operation == "include")  list.push(events[i]);
+            }else{
+                if (operation == "exclude")  list.push(events[i]);
+            }
+        }
+        return list;
+    }
+    
     var filteredEvents = [];
 
+    // exclude duplicate cases
+    events = filterEventsByDataValue(events,"dataElement",NIE.DE_isDuplicate,"value",["true"],"exclude");  
+    
     for (var i =0;i<events.length;i++){
-       
+        
         var deIdToNameMap = utility.invert(deNameToIdMap);
         var idToValueDVMap = utility.prepareIdToValueMap(events[i].dataValues,"dataElement","value");
         var source = idToValueDVMap[deNameToIdMap["id"]];
@@ -413,7 +435,10 @@ function buildMap(coords,c_dist,threshold,area){
     map.clearLayers();
 
     //  window.coords=coords;
-    var featureCollection = mUtility.clusterize(coords,c_dist,threshold,area);
+    var areaFilter = document.getElementById('areaCheckbox').checked;
+    
+    debugger
+    var featureCollection = mUtility.clusterize(coords,c_dist,threshold,area,areaFilter);
     
     var icon = getCustomIcon();
 
@@ -580,6 +605,10 @@ function addClustergons(map,gjson){
             popup.data = feature.properties; 
             popup.setContent("<div class='linelist' id='hello'></div>");
             popup.setLatLng(layer.getLatLng());
+            
+            popup.on('popupclose', function(e) {
+                debugger
+            });
             
             layer.bindPopup(popup,{
                 maxWidth : 600,

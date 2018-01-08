@@ -107,4 +107,36 @@ _.getMapLength = function(map){
     
     return index;
 }
+
+
+_.checkListForValue = function (data,idKey,id,valKey,values){
+    for (var i=0;i<data.length;i++){
+        if (data[i][idKey]==id){
+            for (var key in values){
+                if (data[i][valKey] == values[key]){
+                    return true
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+
+_.getMaxMinFromList = function(list,id){
+
+    var result = {max : null,min:null};
+
+    for (var key in list){
+        if (!result.max){result.max = list[key][id]}
+        if (!result.min){result.min = list[key][id]}
+
+        if (result.max < list[key][id]){result.max = list[key][id]}
+        if (result.min > list[key][id]){result.min = list[key][id]}
+
+    }
+    return result;
+}
+
 module.exports = _;
