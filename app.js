@@ -111,9 +111,10 @@ window.refresh = function(){
         buildMap(coords,5,3);
     });
 }
-$('document').ready(function(){
-    map = new dhis2Map();
+$('document').ready(function(){      
 
+    map = new dhis2Map();
+    
     var startDate = new Date();
     var endDate = new Date();
     var format = "YYYY-MM-DD";
@@ -466,12 +467,12 @@ function addLegend(map){
 
 	var div = L.DomUtil.create('div', 'info legend');
         var height = 15,width=15;
-        var html = '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
+        var html = 	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
+	    '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
             '<img src="'+imgpath_star+'"  height="'+height+'" width="'+width+'">  AFI 5 cases in 7 days<br>'+
 	    '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
-	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
-	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Manual<br>'+
-	    '<img src="'+imgpath_marker_icon_inactive+'"  height="'+height+'" width="'+width+'">  Inactive<br>';
+	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Manual Cluster<br>'+
+	    '<img src="'+imgpath_marker_icon_inactive+'"  height="'+height+'" width="'+width+'">  Inactive Cluster<br>';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
             "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+

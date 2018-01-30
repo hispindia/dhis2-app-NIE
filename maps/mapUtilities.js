@@ -160,7 +160,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                         layerId :"custom",
                         trackedEntityInstance : data.trackedEntityInstance,
                         attributes : data.attributes,
-                        cases : data.cases
+                        cases : data.cases,
+			orgunit : data.orgUnit
                     },
                     "geometry": {
                         "type": "Point",

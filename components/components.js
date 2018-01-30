@@ -59,7 +59,11 @@ export function AlertPopUp(props){
         if (!this.state.data.attributes){return ""}
         
         var id = utility.findValueAgainstId(this.state.data.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value");
-        
+	var cluster_id = id.split("_");
+	if (cluster_id[1]){
+	    id = cluster_id[0]+"_" + moment(cluster_id[1]).format("DD-MM-YYYY");
+	}
+	
         return id;
     }
     
@@ -84,7 +88,7 @@ export function AlertPopUp(props){
         
         return  <div className='linelist '>
             is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} /> 
-             <b>{this.getClusterID()}</b>
+            <b><a href={"../../../dhis-web-tracker-capture/index.html#/dashboard?tei="+this.props.data.trackedEntityInstance+"&program=mcnt7nqNrNw&ou="+this.props.data.orgunit} target="_blank" >{this.getClusterID()}</a></b>
             <br></br>
             <AlertTable data={this.state} />
             </div>            
@@ -144,7 +148,7 @@ function AlertTable(props){
             
             for (var key in clusterDeIdToNameMap ){
                 var value = utility.findValueAgainstId(eventCase.dataValues,"dataElement",key,"value");
-                if (!value){value = ""};debugger
+                if (!value){value = ""};
                 if (clusterDeIdToNameMap[key].valueType == "DATE"){
                     value = moment(value).format("DD-MM-YYYY");
                 }
