@@ -139,4 +139,26 @@ _.getMaxMinFromList = function(list,id){
     return result;
 }
 
+_.popupOrdering = function(cells,order){
+
+    var result = [];
+    var cellsMap = [];
+    result.push(cells[0]);
+    for (var key=0;key<order.length;key++){
+	for (var i=1;i<cells.length;i++){
+	    if (cells[i].key.split("-")[1] == order[key]){
+		result.push(cells[i]);
+		cellsMap[cells[i].key] = true;
+	    }
+	}
+    }
+
+    for (var i=1;i<cells.length;i++){
+	if (!cellsMap[cells[i].key]){
+	    result.push(cells[i]);
+	}
+    }
+    
+    return result;
+}
 module.exports = _;

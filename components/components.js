@@ -48,7 +48,11 @@ export function AlertPopUp(props){
 
         if (!this.state.data.cluster){return ""}
 
-        var id = utility.findValueAgainstId(this.state.data.cluster.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value")
+        var id = utility.findValueAgainstId(this.state.data.cluster.attributes,"attribute",NIE.CLUSTER_TEA_CLUSTERID,"value");
+	var cluster_id = id.split("_");
+ 	if (cluster_id[1]){
+ 	    id = cluster_id[0]+"_" + moment(cluster_id[1]).format("DD-MM-YYYY");
+ 	}
         return "ClusterID :"+id;
     }
     
@@ -77,13 +81,23 @@ export function AlertPopUp(props){
     
     var isClusterActive = false;
     instance.render = function() {       
-        
-        return  <div className='linelist '> <input key = {"input_save"} type='button' value='Approve and Save' onClick={ () => this.approveAndSave(this.state)}  />
-            {this.getClusterID()}
+        var tei = "";
+	var ou = "";
+	if (this.state.data.cluster){
+	    tei = this.state.data.cluster.trackedEntityInstance;
+	    ou = this.state.data.cluster.orgUnit;
+	}
+	
+	return  <div className='linelist '>
+	    
+	    <input key = {"input_save"} type='button' value='Approve and Save' onClick={ () => this.approveAndSave(this.state)}  />
+	    <label>No of Cases : {this.state.data.clusterSize}</label>
+
+	    <b><a href={"../../../dhis-web-tracker-capture/index.html#/dashboard?tei="+tei+"&program=mcnt7nqNrNw&ou="+ou} target="_blank" >{this.getClusterID()}</a></b>
             <br></br>
             <AlertTable data={this.state} />
             </div>            
-        }
+    }
     
     return instance    
 }
@@ -98,9 +112,11 @@ function AlertTable(props){
         tableHeaders.push(<th key={_.uniqueId("th_")} >isDuplicate</th>);
         
         for (var key in props.data.deMap ){
-            tableHeaders.push(<th key={_.uniqueId("th_")}>{props.data.deMap[key].name}</th>);
+            tableHeaders.push(<th key={_.uniqueId("th_")+"-"+props.data.deMap[key].id}>{props.data.deMap[key].name}</th>);
         }
-        
+	
+        tableHeaders = utility.popupOrdering(tableHeaders,NIE.popupOrdering);
+
         return tableHeaders;
     }
     
@@ -139,12 +155,22 @@ function AlertTable(props){
                 if (clusterDeIdToNameMap[key].valueType == "DATE"){
                     value = moment(value).format("DD-MM-YYYY");
                 }
+		if (clusterDeIdToNameMap[key].id =='IeAaU6tgIFl'){
+		    var temp = value.split("-");
+		    if (temp[1]){
+			value = temp[1]
+		    }
+		    
+		}
                 
                 cells.push(<td  key = {eventCase.event+"-"+key}>{value}</td>)
             }
             if (isDuplicate){
                 duplicateRowClass = 'violet';
             }
+
+	    cells = utility.popupOrdering(cells,NIE.popupOrdering);
+	    
             rows.push(<tr className = {duplicateRowClass} key = {eventCase.event}>{cells}</tr>);          
         })
 

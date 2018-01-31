@@ -28,6 +28,10 @@ const imgpath_opd = "images/opd.png";
 const imgpath_afi = "images/afi.png";
 const imgpath_add = "images/add.png";
 const imgpath_dengue = "images/dengue2.png";
+const imgpath_scrub = "images/scrub.jpg";
+const imgpath_Lepto = "images/lepto.jpg";
+const imgpath_malaria = "images/malaria.jpg";
+
 
 const imgpath_cluster = "images/marker-icon-red.png";
 
@@ -437,7 +441,6 @@ function buildMap(coords,c_dist,threshold,area){
     //  window.coords=coords;
     var areaFilter = document.getElementById('areaCheckbox').checked;
     
-    debugger
     var featureCollection = mUtility.clusterize(coords,c_dist,threshold,area,areaFilter);
     
     var icon = getCustomIcon();
@@ -484,6 +487,18 @@ function buildMap(coords,c_dist,threshold,area){
             case NIE.DENGUE_VAL :
                 return L.marker(latlng,{
                     icon : getCustomIcon2(imgpath_dengue)
+                });
+	    case NIE.LEPTO_VAL :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_lepto)
+                });
+		  case NIE.SCRUB_VAL :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_scrub)
+                });
+		  case NIE.MALARIA_VAL :
+                return L.marker(latlng,{
+                    icon : getCustomIcon2(imgpath_malaria)
                 });
             }
         }
@@ -532,9 +547,13 @@ function addLegend(map){
         var html = '<img src="'+imgpath_ipd+'"  height="'+height+'" width="'+width+'">  IPD<br>'+
 	    '<img src="'+imgpath_opd+'"  height="'+height+'" width="'+width+'">  OPD<br>'+
 	    '<img src="'+imgpath_lab+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
-	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
+	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_dengue+'"  height="'+height+'" width="'+width+'">  Dengue<br>'+
+	    '<img src="'+imgpath_scrub+'"  height="'+height+'" width="'+width+'">  Scrub_typhus<br>'+
+	    '<img src="'+imgpath_Lepto+'"  height="'+height+'" width="'+width+'">  Leptosprirosis<br>'+
+	    '<img src="'+imgpath_malaria+'"  height="'+height+'" width="'+width+'">  Malaria<br>'+
+
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
