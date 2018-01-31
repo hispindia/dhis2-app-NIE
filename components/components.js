@@ -86,8 +86,11 @@ export function AlertPopUp(props){
         }
         isActive = JSON.parse(isActive);
         
+	var clusterSize = this.state.data.cases.split(";").length-1;
         return  <div className='linelist '>
-            is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} /> 
+            is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} />
+	    <label>No of Cases : {clusterSize} </label>
+
             <b><a href={"../../../dhis-web-tracker-capture/index.html#/dashboard?tei="+this.props.data.trackedEntityInstance+"&program=mcnt7nqNrNw&ou="+this.props.data.orgunit} target="_blank" >{this.getClusterID()}</a></b>
             <br></br>
             <AlertTable data={this.state} />
@@ -108,9 +111,11 @@ function AlertTable(props){
         tableHeaders.push(<th key={_.uniqueId("th_duplicate")} >isDuplicate</th>);
         
         for (var key in props.data.deMap ){
-            tableHeaders.push(<th key={_.uniqueId("th_")}>{props.data.deMap[key].name}</th>);
+	    tableHeaders.push(<th key={_.uniqueId("th_")+"-"+props.data.deMap[key].id}>{props.data.deMap[key].name}</th>);
         }
-        
+
+	tableHeaders = utility.popupOrdering(tableHeaders,NIE.popupOrdering);
+
         return tableHeaders;
     }
     
@@ -152,12 +157,21 @@ function AlertTable(props){
                 if (clusterDeIdToNameMap[key].valueType == "DATE"){
                     value = moment(value).format("DD-MM-YYYY");
                 }
-                
+                if (clusterDeIdToNameMap[key].id =='IeAaU6tgIFl'){
+ 		    var temp = value.split("-");
+ 		    if (temp[1]){
+ 			value = temp[1]
+ 		    }
+ 		    
+ 		}
                 cells.push(<td  key = {eventCase.event+"-"+key}>{value}</td>)
             }
             if (isDuplicate){
                 duplicateRowClass = 'violet';
             }
+
+	    cells = utility.popupOrdering(cells,NIE.popupOrdering);
+
             rows.push(<tr className = {duplicateRowClass} key = {eventCase.event}>{cells}</tr>);          
         })
 

@@ -539,7 +539,7 @@
 	        var div = L.DomUtil.create('div', 'info legend');
 	        var height = 15,
 	            width = 15;
-	        var html = '<img src="' + imgpath_red_circle + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_polygon_5_sided + '"  height="' + height + '" width="' + width + '">  AFI 3 cases in 5 days<br>' + '<img src="' + imgpath_star + '"  height="' + height + '" width="' + width + '">  AFI 5 cases in 7 days<br>' + '<img src="' + imgpath_yellow_triangle + '"  height="' + height + '" width="' + width + '">  ADD 2 cases in 3 days<br>' + '<img src="' + imgpath_marker_icon_blue + '"  height="' + height + '" width="' + width + '">  Manual Cluster<br>' + '<img src="' + imgpath_marker_icon_inactive + '"  height="' + height + '" width="' + width + '">  Inactive Cluster<br>';
+	        var html = '<img src="' + imgpath_red_circle + '"  height="' + height + '" width="' + width + '">  LAB<br>' + '<img src="' + imgpath_polygon_5_sided + '"  height="' + height + '" width="' + width + '">  AFI 3 cases in 5 days<br>' + '<img src="' + imgpath_star + '"  height="' + height + '" width="' + width + '">  AFI 5 cases in 7 days<br>' + '<img src="' + imgpath_marker_icon_blue + '"  height="' + height + '" width="' + width + '">  Area Cluster(Manual)<br>' + '<img src="' + imgpath_yellow_triangle + '"  height="' + height + '" width="' + width + '">  ADD 2 cases in 3 days<br>' + '<img src="' + imgpath_marker_icon_inactive + '"  height="' + height + '" width="' + width + '">  Inactive Cluster<br>';
 
 	        /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
 	            "<i class='alert-icon' style='background: "+color_add+"'></i>  : ADD<br>"+
@@ -33318,6 +33318,31 @@
 	        }
 	    }
 	    return null;
+	};
+
+	_.popupOrdering = function (cells, order) {
+
+	    var result = [];
+	    var cellsMap = [];
+	    result.push(cells[0]);
+	    result.push(cells[1]);
+
+	    for (var key = 0; key < order.length; key++) {
+	        for (var i = 2; i < cells.length; i++) {
+	            if (cells[i].key.split("-")[1] == order[key]) {
+	                result.push(cells[i]);
+	                cellsMap[cells[i].key] = true;
+	            }
+	        }
+	    }
+
+	    for (var i = 2; i < cells.length; i++) {
+	        if (!cellsMap[cells[i].key]) {
+	            result.push(cells[i]);
+	        }
+	    }
+
+	    return result;
 	};
 
 	module.exports = _;
@@ -101596,6 +101621,7 @@
 	        }
 	        isActive = JSON.parse(isActive);
 
+	        var clusterSize = this.state.data.cases.split(";").length - 1;
 	        return _react2.default.createElement(
 	            'div',
 	            { className: 'linelist ' },
@@ -101603,6 +101629,13 @@
 	            _react2.default.createElement('input', { type: 'checkbox', value: 'Activate/Deactivate', onChange: function onChange() {
 	                    return _this2.clusterActivationToggle(_this2.props.data, isActive);
 	                }, checked: isActive }),
+	            _react2.default.createElement(
+	                'label',
+	                null,
+	                'No of Cases : ',
+	                clusterSize,
+	                ' '
+	            ),
 	            _react2.default.createElement(
 	                'b',
 	                null,
@@ -101643,10 +101676,12 @@
 	        for (var key in props.data.deMap) {
 	            tableHeaders.push(_react2.default.createElement(
 	                'th',
-	                { key: _lodash2.default.uniqueId("th_") },
+	                { key: _lodash2.default.uniqueId("th_") + "-" + props.data.deMap[key].id },
 	                props.data.deMap[key].name
 	            ));
 	        }
+
+	        tableHeaders = _utilityFunctions2.default.popupOrdering(tableHeaders, NIE.popupOrdering);
 
 	        return tableHeaders;
 	    }
@@ -101695,7 +101730,12 @@
 	                if (clusterDeIdToNameMap[key].valueType == "DATE") {
 	                    value = (0, _moment2.default)(value).format("DD-MM-YYYY");
 	                }
-
+	                if (clusterDeIdToNameMap[key].id == 'IeAaU6tgIFl') {
+	                    var temp = value.split("-");
+	                    if (temp[1]) {
+	                        value = temp[1];
+	                    }
+	                }
 	                cells.push(_react2.default.createElement(
 	                    'td',
 	                    { key: eventCase.event + "-" + key },
@@ -101705,6 +101745,9 @@
 	            if (isDuplicate) {
 	                duplicateRowClass = 'violet';
 	            }
+
+	            cells = _utilityFunctions2.default.popupOrdering(cells, NIE.popupOrdering);
+
 	            rows.push(_react2.default.createElement(
 	                'tr',
 	                { className: duplicateRowClass, key: eventCase.event },
@@ -101858,7 +101901,7 @@
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	var Cluster_ProgramUID = exports.Cluster_ProgramUID = "mcnt7nqNrNw";
 	var ROOT_OU_UID = exports.ROOT_OU_UID = "mnbTnDyJ37p";
@@ -101879,6 +101922,8 @@
 	var CLUSTER_TEA_CLUSTER_INDEX_DATE = exports.CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
 	var CLUSTER_TEA_CLUSTER_TAIL_DATE = exports.CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";
 	var CLUSTER_TEA_CLUSTER_START_DATE = exports.CLUSTER_TEA_CLUSTER_START_DATE = "XGWh7OT2Pa8";
+
+	var popupOrdering = exports.popupOrdering = ['xUhbNO2bQCz', 'xq2RxjLDbev', 'pa6AUJ4s9li', 'Pg53F2DV7aL', 'o5bAIpGOHqa', 'IeAaU6tgIFl', 'hkbX11lZdlK'];
 
 /***/ })
 /******/ ]);

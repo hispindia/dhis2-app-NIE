@@ -19,3 +19,14 @@ export const CLUSTER_TEA_CLUSTERID = "ITGMdhSozgC";
 export const CLUSTER_TEA_CLUSTER_INDEX_DATE = "tSauh1hpsrn";
 export const CLUSTER_TEA_CLUSTER_TAIL_DATE = "b1WmXl2TU5U";
 export const CLUSTER_TEA_CLUSTER_START_DATE = "XGWh7OT2Pa8";
+
+
+export const popupOrdering = [
+    'xUhbNO2bQCz',
+    'xq2RxjLDbev',
+    'pa6AUJ4s9li',
+    'Pg53F2DV7aL',
+    'o5bAIpGOHqa',
+    'IeAaU6tgIFl',
+    'hkbX11lZdlK'
+]

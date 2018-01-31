@@ -470,8 +470,8 @@ function addLegend(map){
         var html = 	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
 	    '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
             '<img src="'+imgpath_star+'"  height="'+height+'" width="'+width+'">  AFI 5 cases in 7 days<br>'+
+	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Area Cluster(Manual)<br>'+
 	    '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
-	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Manual Cluster<br>'+
 	    '<img src="'+imgpath_marker_icon_inactive+'"  height="'+height+'" width="'+width+'">  Inactive Cluster<br>';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+
