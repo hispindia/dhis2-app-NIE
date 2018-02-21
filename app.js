@@ -29,7 +29,7 @@ const imgpath_afi = "images/afi.png";
 const imgpath_add = "images/add.png";
 const imgpath_dengue = "images/dengue2.png";
 const imgpath_scrub = "images/scrub.jpg";
-const imgpath_Lepto = "images/lepto.jpg";
+const imgpath_lepto = "images/lepto.jpg";
 const imgpath_malaria = "images/malaria.jpg";
 
 
@@ -551,7 +551,7 @@ function addLegend(map){
 	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_dengue+'"  height="'+height+'" width="'+width+'">  Dengue<br>'+
 	    '<img src="'+imgpath_scrub+'"  height="'+height+'" width="'+width+'">  Scrub_typhus<br>'+
-	    '<img src="'+imgpath_Lepto+'"  height="'+height+'" width="'+width+'">  Leptosprirosis<br>'+
+	    '<img src="'+imgpath_lepto+'"  height="'+height+'" width="'+width+'">  Leptosprirosis<br>'+
 	    '<img src="'+imgpath_malaria+'"  height="'+height+'" width="'+width+'">  Malaria<br>'+
 
 	    '<img src="'+imgpath_cluster+'"  height="'+22+'" width="'+17+'">  CLUSTER';
