@@ -6,7 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 //import L from 'leaflet';
 import ajax from './ajax-wrapper'
-import $ from 'jquery';
+//import $ from 'jquery';
 import dhis2API from './dhis2API/dhis2API';
 import moment from 'moment';
 import dhis2Map from './maps/map';
@@ -135,10 +135,14 @@ window.refresh = function(){
     var threshold=$('#threshold').val();
     var area =$('#area').val();
 
-    var startDate = $('#sdate').val();
-    var endDate = $('#edate').val();
+//    var startDate = $('#sdate').val();
+//    var endDate = $('#edate').val();
+    var startDate = $('#sdate').datepicker('getDate');
+    var endDate = $('#edate').datepicker('getDate');
 
     var diff = moment(endDate).diff(startDate,'days');
+   // startDate = moment(startDate).format("YYYY-MM-DD");
+   // endDate = moment(endDate).format("YYYY-MM-DD");
     
     $('#movingPeriod').text(diff);
     getEvents(startDate,endDate).then(function(events){
@@ -153,11 +157,13 @@ window.alertConfirmed = function(){
     alert("SMS alerts to go here!");
 }
 
-$('document').ready(function(){
+window.onload = function(){
     map = new dhis2Map();
 
     var startDate = new Date();
     var format = "YYYY-MM-DD";
+    var _format = "DD-MM-YYYY";
+
     $('#edate').val(moment(startDate).format(format));
     startDate.setDate(startDate.getDate() - 5);
     $('#sdate').val(moment(startDate).format(format));
@@ -220,7 +226,7 @@ $('document').ready(function(){
         ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} />, document.getElementById('hello'));
         //var marker = e.popup._source;
     });
-});
+}
 
 
 function getFilters(){
@@ -264,7 +270,7 @@ function addOrgUnitLayer(level,style){
 }                    
 function getEvents(startDate,endDate){
     var def = $.Deferred();
-
+debugger
     //    var endDate = new Date();
     var format = "YYYY-MM-DD";
 

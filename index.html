@@ -8,14 +8,14 @@
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
 
     <script type="text/javascript" src="scripts/lib/jQuery/jquery.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/ui/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/jquery.plugin.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/jquery.tmpl.js"></script>
+  
 
 
     <script type="text/javascript" src="scripts/lib/bootstrap/js/bootstrap.min.js"></script>
     <link type="text/css" rel="stylesheet"  href="scripts/lib/bootstrap/css/bootstrap.min.css">
-
+  
+    <link rel="stylesheet" href="scripts/lib/jQuery/ui/css/redmond/jquery-ui.css">
+    <script type="text/javascript" src="scripts/lib/jQuery/ui/jquery-ui.min.js"></script>
 
     <script type="text/javascript" src="scripts/lib/angular/angular.js"></script>
     <script type="text/javascript" src="scripts/lib/angular/angular-resource.js"></script>
@@ -63,7 +63,14 @@
     <link type="text/css" rel="stylesheet" media="screen" href="styles/main.css">
 
     <script type="text/javascript" src="angular-app.js"></script>
-
+  <script>
+      $( function() {
+      $( ".datepicker" ).datepicker({
+      dateFormat: 'dd-mm-yy',
+    
+      });
+      } );
+    </script>
   </head>
   <body>
 
@@ -79,8 +86,8 @@
         <img id="loader" src="images/loader.gif" height="25" width="25" style="display: inline; float: right;">
 
         <br>
-        Start Date: <input id="sdate" type="date"></input>
-        End Date: <input id="edate" type="date"></input>
+        Start Date: <input id="sdate" class="datepicker"></input>
+        End Date: <input id="edate" class="datepicker"></input>
 
         Cluster Distance(Km):
         <input type="number" id="c_dist" value="1.2615"></input>
