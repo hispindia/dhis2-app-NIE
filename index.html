@@ -6,16 +6,15 @@
 
     <script type="application/javascript" src="bundle.js"></script>
     <link type="text/css" rel="stylesheet" media="screen" href="styles/style.css">
-
+   
     <script type="text/javascript" src="scripts/lib/jQuery/jquery.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/ui/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/jquery.plugin.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/jQuery/jquery.tmpl.js"></script>
-
 
     <script type="text/javascript" src="scripts/lib/bootstrap/js/bootstrap.min.js"></script>
     <link type="text/css" rel="stylesheet"  href="scripts/lib/bootstrap/css/bootstrap.min.css">
 
+    <link rel="stylesheet" href="scripts/lib/jQuery/ui/css/redmond/jquery-ui.css">
+    <script type="text/javascript" src="scripts/lib/jQuery/ui/jquery-ui.min.js"></script>
+  
 
     <script type="text/javascript" src="scripts/lib/angular/angular.js"></script>
     <script type="text/javascript" src="scripts/lib/angular/angular-resource.js"></script>
@@ -56,9 +55,9 @@
     <link rel="stylesheet" href="scripts/lib/leaflet/dist/leaflet.css" />
     
     <link rel="stylesheet" href="scripts/lib/leaflet-easyPrint/dist/easyPrint.css"/>
-    <script src="scripts/lib/pickaday/pickaday.js"></script>
+  <!--  <script src="scripts/lib/pickaday/pickaday.js"></script>
     <link rel="stylesheet" href="styles/pickaday.css"/>
-
+-->
     <script src="scripts/lib/leaflet-easyPrint/dist/leaflet.easyPrint.js"></script>
     <script src="scripts/lib/oms/oms.min.js"></script>
 
@@ -67,6 +66,14 @@
 
     <script type="text/javascript" src="angular-app.js"></script>
    
+    <script>
+      $( function() {
+      $( ".datepicker" ).datepicker({
+      dateFormat: 'dd-mm-yy',
+    
+      });
+      } );
+    </script>
   </head>
   <body>
 
@@ -81,8 +88,8 @@
     <!--    <label class="right">Fixed Period:<b><i id = "movingPeriod"> 1 Day</i></b></label> -->
 
         <br>
-         <input hidden id="sdate" type="date"></input>
-        Cluster Generated On : <input  id="edate" type="date"></input>
+         <input  id="sdate"  hidden class="datepicker"></input>
+        Cluster Generated On : <input  id="edate"  class="datepicker" ></input>
          <input  type="checkbox" id="excludeInactive" checked> Exclude Inactive </input>
          <input hidden  type="checkbox" id="showClusterIntensity" ></input>
 

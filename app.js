@@ -6,7 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 //import L from 'leaflet';
 import ajax from './ajax-wrapper'
-import $ from 'jquery';
+//import $ from 'jquery';
 import dhis2API from './dhis2API/dhis2API';
 import moment from 'moment';
 import dhis2Map from './maps/map';
@@ -100,27 +100,36 @@ window.center = function(){
 }
 
 window.refresh = function(){
-    var startDate = $('#sdate').val();
-    var endDate = $('#edate').val();
+
+    var startDate = $('#sdate').datepicker('getDate');
+    var endDate = $('#edate').datepicker('getDate');
+
+   // var startDate = $('#sdate').val();
+    //var endDate = $('#edate').val();
     var excludeInactive = document.getElementById('excludeInactive').checked;
     startDate = new Date(endDate)
     startDate = startDate.setDate(startDate.getDate() - 7);            
-    startDate = moment(startDate).format("YYYY-MM-DD");
-    getTEI(startDate,endDate).then(function(teis){
+    var _startDate = moment(startDate).format("YYYY-MM-DD");
+    var _endDate = moment(endDate).format("YYYY-MM-DD");
+   console.log(startDate+"-"+endDate)
+    getTEI(_startDate,_endDate).then(function(teis){
         var coords =  extractCoordsFromTEI(teis,excludeInactive);
         buildMap(coords,5,3);
     });
 }
-$('document').ready(function(){      
+
+window.onload = function(){      
 
     map = new dhis2Map();
     
     var startDate = new Date();
     var endDate = new Date();
     var format = "YYYY-MM-DD";
+    var _format = "DD-MM-YYYY";
+
     startDate.setDate(endDate.getDate() - 7);
     $('#sdate').val(moment(startDate).format(format));
-    $('#edate').val(moment(endDate).format(format));
+    $('#edate').val(moment(endDate).format(_format));
 
     map.init("mapid",[13.239758,79.978065],10);
     addLegend(map.getMap())
@@ -170,11 +179,11 @@ $('document').ready(function(){
     map.getMap().on('popupopen', function(e) {
         
         var data = e.popup.data;
-
-        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} endDate={startDate} clusterIntensity={showClusterIntensity} />, document.getElementById('hello'));
+        console.log("popup startdate="+startDate)
+        ReactDOM.render(<AlertPopUp data={data} deMap={clusterDeIdToNameMap} endDate={moment(startDate.toISOString())} clusterIntensity={showClusterIntensity} />, document.getElementById('hello'));
         //var marker = e.popup._source;
     });
-});
+}
 
 
 function addOrgUnitLayer(level,style){

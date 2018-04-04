@@ -45,7 +45,7 @@ export function AlertPopUp(props){
             });
             
             var showClusterIntensity = document.getElementById('showClusterIntensity').checked;
-            var startDate = $('#edate').val();
+            var startDate = $('#edate').datepicker('getDate');
 
 
             if (!showClusterIntensity)
