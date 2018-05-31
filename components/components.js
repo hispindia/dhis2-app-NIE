@@ -91,7 +91,7 @@ export function AlertPopUp(props){
             is Active ? <input type='checkbox' value = "Activate/Deactivate" onChange={() => this.clusterActivationToggle(this.props.data,isActive)} checked = {isActive} />
 	    <label>No of Cases : {clusterSize} </label>
 
-            <b><a href={"../../../dhis-web-tracker-capture/index.html#/dashboard?tei="+this.props.data.trackedEntityInstance+"&program=mcnt7nqNrNw&ou="+this.props.data.orgunit} target="_blank" >{this.getClusterID()}</a></b>
+            <b><a href={"../../../dhis-web-reporting/generateHtmlReport.action?uid=DnjzL5wPJE5&tei="+this.props.data.trackedEntityInstance } target="_blank" >{this.getClusterID()}</a></b>
             <br></br>
             <AlertTable data={this.state} />
             </div>            

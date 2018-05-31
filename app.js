@@ -111,10 +111,17 @@ window.refresh = function(){
     startDate = startDate.setDate(startDate.getDate() - 7);            
     var _startDate = moment(startDate).format("YYYY-MM-DD");
     var _endDate = moment(endDate).format("YYYY-MM-DD");
-   console.log(startDate+"-"+endDate)
+    console.log(startDate+"-"+endDate)
     getTEI(_startDate,_endDate).then(function(teis){
-        var coords =  extractCoordsFromTEI(teis,excludeInactive);
-        buildMap(coords,5,3);
+        getOUNames(teis).then(function(ous){
+            var ouIDToNameMap = ous.reduce(function(map,obj){
+                map[obj.id] = obj.name;
+                return map;
+            },[])
+            
+            var coords =  extractCoordsFromTEI(teis,excludeInactive,ouIDToNameMap);
+            buildMap(coords,5,3);
+        })
     });
 }
 
@@ -170,8 +177,17 @@ window.onload = function(){
     addOrgUnitLayer(8,Object.assign({},style));
    
     getTEI(startDate,endDate).then(function(teis){
-        var coords =  extractCoordsFromTEI(teis);
-          buildMap(coords,5,3,excludeInactive);
+         getOUNames(teis).then(function(ous){
+            var ouIDToNameMap = ous.reduce(function(map,obj){
+                map[obj.id] = obj.name;
+                return map;
+            },[])
+             
+             var coords =  extractCoordsFromTEI(teis,excludeInactive,ouIDToNameMap);
+             buildMap(coords,5,3);
+            
+         })
+       
     });
 
     var showClusterIntensity = document.getElementById('showClusterIntensity').checked;
@@ -226,7 +242,36 @@ function getTEI(startDate,endDate){
     return def.promise();
 }
 
-function extractCoordsFromTEI(teis,excludeInactive){
+function getOUNames(teis){
+
+    var ouIds = teis.reduce((str,obj) =>{
+        if (str == ""){
+            str = obj.orgUnit;
+        }else{
+            str = str + "," + obj.orgUnit;
+        }
+        return str;
+    },"");
+    
+    var def = $.Deferred();
+
+    ajax.request({
+        type: "GET",
+        async: true,
+        contentType: "application/json",
+        url: "../../organisationUnits?&fields=id,name&paging=false&filter=id:in:["+ouIds+"]"
+        
+    },function(error,response){
+        if (error){
+            def.resolve(null);
+        }else{
+            def.resolve(response.organisationUnits);
+        }
+    })
+    return def.promise();
+
+}
+function extractCoordsFromTEI(teis,excludeInactive,ouIDToNameMap){
 
     var result = [];
 
@@ -275,6 +320,7 @@ function extractCoordsFromTEI(teis,excludeInactive){
                 id : teis[i].trackedEntityInstance+clusterType , 
                 coordinates : coord, 
                 orgUnit : teis[i].orgUnit,
+                orgUnitName : ouIDToNameMap[teis[i].orgUnit],
                 type : type,
                 trackedEntityInstance : teis[i].trackedEntityInstance,
                 attributes : teis[i].attributes,
@@ -359,6 +405,7 @@ function buildMap(coords,c_dist,threshold){
     
     var pointToLayer = function(feature, latlng) {
         if (feature.properties){
+            var hoverText = feature.properties.orgUnitName +" : " +(feature.properties.cases.split(";").length-1)
             switch(feature.properties.type){
             case 'centroid' : 
                 var centroidIcon =L.divIcon({
@@ -367,31 +414,46 @@ function buildMap(coords,c_dist,threshold){
                 });
                 
                 return L.marker(latlng,{
-                    icon : centroidIcon
+                    icon : centroidIcon,
+                    title : hoverText
+
                 });
             case 'LAB' :  
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_red_circle)
+                    icon : getCustomIcon2(imgpath_red_circle),
+                    title : hoverText
+
                 });
                 
-            case 'AFI3' :   return L.marker(latlng,{
-                icon :  getCustomIcon2(imgpath_polygon_5_sided,[20,20],[15,0])
+            case 'AFI3' :
+                return L.marker(latlng,{
+                    icon :  getCustomIcon2(imgpath_polygon_5_sided,[20,20],[15,0]),
+                    title : hoverText
+
             });
             case 'AFI5' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_star,[20,20],[0,0])
+                    icon : getCustomIcon2(imgpath_star,[20,20],[0,0]),
+                    title : hoverText
+
                 });
             case 'ADD2' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_yellow_triangle,[17,17],[0,15])
+                    icon : getCustomIcon2(imgpath_yellow_triangle,[17,17],[0,15]),
+                    title : hoverText
+
                 });
             case 'MANUAL' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_marker_icon_blue,[25,41],[5,15])
+                    icon : getCustomIcon2(imgpath_marker_icon_blue,[25,41],[5,15]),
+                    title : hoverText
+
                 });
             case 'INACTIVE' :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_marker_icon_inactive,[25,41],[10,10])
+                    icon : getCustomIcon2(imgpath_marker_icon_inactive,[25,41],[10,10]),
+                    title : hoverText
+
                 });
             }
         }
@@ -479,8 +541,8 @@ function addLegend(map){
         var html = 	    '<img src="'+imgpath_red_circle+'"  height="'+height+'" width="'+width+'">  LAB<br>'+
 	    '<img src="'+imgpath_polygon_5_sided+'"  height="'+height+'" width="'+width+'">  AFI 3 cases in 5 days<br>'+
             '<img src="'+imgpath_star+'"  height="'+height+'" width="'+width+'">  AFI 5 cases in 7 days<br>'+
+            '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
 	    '<img src="'+imgpath_marker_icon_blue+'"  height="'+height+'" width="'+width+'">  Area Cluster(Manual)<br>'+
-	    '<img src="'+imgpath_yellow_triangle+'"  height="'+height+'" width="'+width+'">  ADD 2 cases in 3 days<br>'+
 	    '<img src="'+imgpath_marker_icon_inactive+'"  height="'+height+'" width="'+width+'">  Inactive Cluster<br>';
         
         /*  var html = "<i class='alert-icon' style='background:"+color_afi+"'></i> : AFI<br>"+

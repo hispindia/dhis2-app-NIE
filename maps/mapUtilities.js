@@ -161,7 +161,8 @@ function  getFeatureCollection(graph,allNodesMap,threshold,clusterDist,labelMap)
                         trackedEntityInstance : data.trackedEntityInstance,
                         attributes : data.attributes,
                         cases : data.cases,
-			orgunit : data.orgUnit
+			orgunit : data.orgUnit,
+                        orgUnitName : data.orgUnitName
                     },
                     "geometry": {
                         "type": "Point",
