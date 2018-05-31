@@ -75,7 +75,7 @@ window.saveCluster(args);
 
 window.setDistance = function(){
     $('#c_dist').val("1.78412");
-debugger
+
 }
 
 window.saveCluster = function(args){
@@ -270,7 +270,7 @@ function addOrgUnitLayer(level,style){
 }                    
 function getEvents(startDate,endDate){
     var def = $.Deferred();
-debugger
+
     //    var endDate = new Date();
     var format = "YYYY-MM-DD";
 
@@ -352,6 +352,7 @@ export function filterEvents(events,filters,deNameToIdMap){
                 events[i].type = dengue;
             filteredEvents.push(events[i]);  continue; 
             }
+            
             if (utility.contains(filters.lab_confirmed,malaria)){
                 events[i].type = malaria;
                 filteredEvents.push(events[i]);   continue;
@@ -556,7 +557,7 @@ function addLegend(map){
 	    '<img src="'+imgpath_afi+'"  height="'+height+'" width="'+width+'">  AFI<br>'+
 	    '<img src="'+imgpath_add+'"  height="'+height+'" width="'+width+'">  ADD<br>'+
 	    '<img src="'+imgpath_dengue+'"  height="'+height+'" width="'+width+'">  Dengue<br>'+
-	    '<img src="'+imgpath_scrub+'"  height="'+height+'" width="'+width+'">  Scrub_typhus<br>'+
+	    '<img src="'+imgpath_scrub+'"  height="'+height+'" width="'+width+'">  Scrub Typhus<br>'+
 	    '<img src="'+imgpath_lepto+'"  height="'+height+'" width="'+width+'">  Leptosprirosis<br>'+
 	    '<img src="'+imgpath_malaria+'"  height="'+height+'" width="'+width+'">  Malaria<br>'+
 

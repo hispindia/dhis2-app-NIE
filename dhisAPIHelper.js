@@ -18,6 +18,10 @@ function dhisAPIHelper(){
         getEvent(0,cases);
         function getEvent(index,cases){
             if (index == cases.length){
+
+                clusterCases = utility.sortBy(clusterCases,function(event){           
+                    return event.eventDate;
+                }).reverse();
                 callback(clusterCases);
                 return
             }
