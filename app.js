@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom';
 //import L from 'leaflet';
 import ajax from './ajax-wrapper'
 //import $ from 'jquery';
-import dhis2API from './dhis2API/dhis2API';
 import moment from 'moment';
 import dhis2Map from './maps/map';
 import mUtility from './maps/mapUtilities';
@@ -17,7 +16,6 @@ import utility from './utility-functions';
 import dhisAPIHelper from './dhisAPIHelper';
 
 var map;
-var api = new dhis2API();
 var previousClusterLayer;
 var info;
 
