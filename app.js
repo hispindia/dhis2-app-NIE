@@ -36,7 +36,7 @@ const imgpath_malaria = "images/malaria.jpg";
 const imgpath_cluster = "images/marker-icon-red.png";
 
 function fetchDEs(){
-  ajax.request({
+    ajax.request({
         type: "GET",
         async: true,
         contentType: "application/json",
@@ -53,7 +53,7 @@ function fetchDEs(){
 
 
 function getClusterToBeShownDE(){
- ajax.request({
+    ajax.request({
         type: "GET",
         async: true,
         contentType: "application/json",
@@ -70,7 +70,7 @@ function getClusterToBeShownDE(){
 
 function saveClusterFoo(args){
 
-window.saveCluster(args);
+    window.saveCluster(args);
 }
 
 window.setDistance = function(){
@@ -80,38 +80,38 @@ window.setDistance = function(){
 
 window.saveCluster = function(args){
 
-var properties = utility.unshadowStringify(args);
+    var properties = utility.unshadowStringify(args);
 
-NIE.Cluster_ProgramUID;
+    NIE.Cluster_ProgramUID;
 
-var tei = {
-    trackedEntityInstance : properties.uid,
-    orgUnit : api.getRootOrgUnitUid(),
-    trackedEntity : NIE.TrackedEntity,
-    relationships : [
-       
-    ]
-}
-
-for  (var i=0;i<properties.teis.length;i++){
-    var rel =  {
-        relationship: NIE.Cluster_Relationship,
-        trackedEntityInstanceA : tei.trackedEntityInstance,
-        trackedEntityInstanceB : properties.teis[i]
+    var tei = {
+        trackedEntityInstance : properties.uid,
+        orgUnit : api.getRootOrgUnitUid(),
+        trackedEntity : NIE.TrackedEntity,
+        relationships : [
+            
+        ]
     }
-    tei.relationships.push(rel);
-}
+
+    for  (var i=0;i<properties.teis.length;i++){
+        var rel =  {
+            relationship: NIE.Cluster_Relationship,
+            trackedEntityInstanceA : tei.trackedEntityInstance,
+            trackedEntityInstanceB : properties.teis[i]
+        }
+        tei.relationships.push(rel);
+    }
     api.save("trackedEntityInstance",tei,callback);
     
-function callback(error,response){
-    if (error){
-        alert("Already Exists!!");
-    }else{
-        alert("Cluster Saved Succesfully!");
-    }        
-}
+    function callback(error,response){
+        if (error){
+            alert("Already Exists!!");
+        }else{
+            alert("Cluster Saved Succesfully!");
+        }        
+    }
     
-//program : NIE.Cluster_ProgramUID,
+    //program : NIE.Cluster_ProgramUID,
 
 }
 
@@ -135,14 +135,14 @@ window.refresh = function(){
     var threshold=$('#threshold').val();
     var area =$('#area').val();
 
-//    var startDate = $('#sdate').val();
-//    var endDate = $('#edate').val();
+    //    var startDate = $('#sdate').val();
+    //    var endDate = $('#edate').val();
     var startDate = $('#sdate').datepicker('getDate');
     var endDate = $('#edate').datepicker('getDate');
 
     var diff = moment(endDate).diff(startDate,'days');
-   // startDate = moment(startDate).format("YYYY-MM-DD");
-   // endDate = moment(endDate).format("YYYY-MM-DD");
+    // startDate = moment(startDate).format("YYYY-MM-DD");
+    // endDate = moment(endDate).format("YYYY-MM-DD");
     
     $('#movingPeriod').text(diff);
     getEvents(startDate,endDate).then(function(events){
@@ -217,6 +217,7 @@ window.onload = function(){
 
     getEvents(startDate,endDate).then(function(events){
         events = filterEvents(events,getFilters(),deNameToIdMap);
+        
         var coords =  extractCoordsFromEvents(events);
         buildMap(coords,c_dist,threshold,area);
     });
@@ -232,21 +233,21 @@ window.onload = function(){
 function getFilters(){
 
     var filters = {source : [],
-                  diagnosis : [],
-                  lab_confirmed : []
+                   diagnosis : [],
+                   lab_confirmed : []
                   };
     $('#filters:checked').each(function() {
         var deName = $(this).data('de');
         switch(deName){
-            case "id" :         
+        case "id" :         
             filters.source.push($(this).val());
             break;
 
-            case "Diagnosis_Information/Syndrome":
+        case "Diagnosis_Information/Syndrome":
             filters.diagnosis.push(  $(this).val());
             break;
 
-            default : 
+        default : 
             filters.lab_confirmed.push($(this).val());
         }
     });
@@ -350,7 +351,7 @@ export function filterEvents(events,filters,deNameToIdMap){
             }
             if (utility.contains(filters.lab_confirmed,dengue)){
                 events[i].type = dengue;
-            filteredEvents.push(events[i]);  continue; 
+                filteredEvents.push(events[i]);  continue; 
             }
             
             if (utility.contains(filters.lab_confirmed,malaria)){
@@ -378,8 +379,8 @@ export function filterEvents(events,filters,deNameToIdMap){
             events[i].type = source;
             filteredEvents.push(events[i]); continue;     
         }
-      
-  
+        
+        
         if ((filters.diagnosis.length == 0 && filters.lab_confirmed.length != 0 ) && 
             utility.contains(filters.source,source) && 
             (source == NIE.IPD_FORM_VAL || source == NIE.OPD_FORM_VAL) ){
@@ -462,6 +463,7 @@ function buildMap(coords,c_dist,threshold,area){
 
     var pointToLayer = function(feature, latlng) {
         if (feature.properties){
+            var hoverText = feature.properties.label;
             switch(feature.properties.type){
             case 'centroid' : 
                 var centroidIcon =L.divIcon({
@@ -474,38 +476,47 @@ function buildMap(coords,c_dist,threshold,area){
                 });
             case NIE.IPD_FORM_VAL :  
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_ipd)
+                    icon : getCustomIcon2(imgpath_ipd),
+                    title : hoverText
                 });
                 
             case NIE.OPD_FORM_VAL :   return L.marker(latlng,{
-                icon :  getCustomIcon2(imgpath_opd)
+                icon :  getCustomIcon2(imgpath_opd),
+                title : hoverText
             });
             case NIE.LAB_FORM_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_lab)
+                    icon : getCustomIcon2(imgpath_lab),
+                    title : hoverText
                 });
             case NIE.AFI_DIAGNOSIS_VAL :   return L.marker(latlng,{
-                icon :  getCustomIcon2(imgpath_afi)
+                icon :  getCustomIcon2(imgpath_afi),
+                title : hoverText
             });
             case NIE.ADD_DIAGNOSIS_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_add)
+                    icon : getCustomIcon2(imgpath_add),
+                    title : hoverText
                 });
             case NIE.DENGUE_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_dengue)
+                    icon : getCustomIcon2(imgpath_dengue),
+                    title : hoverText
                 });
 	    case NIE.LEPTO_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_lepto)
+                    icon : getCustomIcon2(imgpath_lepto),
+                    title : hoverText
                 });
-		  case NIE.SCRUB_VAL :
+	    case NIE.SCRUB_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_scrub)
+                    icon : getCustomIcon2(imgpath_scrub),
+                    title : hoverText
                 });
-		  case NIE.MALARIA_VAL :
+	    case NIE.MALARIA_VAL :
                 return L.marker(latlng,{
-                    icon : getCustomIcon2(imgpath_malaria)
+                    icon : getCustomIcon2(imgpath_malaria),
+                    title : hoverText
                 });
             }
         }
@@ -536,7 +547,7 @@ function buildMap(coords,c_dist,threshold,area){
         map.getMap().addLayer(marker);
         oms.addMarker(marker); 
     }
- 
+    
     addClustergons(map.getMap(),featureCollection.geoJsonPolygonFeatures)
 
     //  setTimeout(function(){ReactDOM.render(<AlertPopUp />, document.getElementById('alert'))},10000)
@@ -579,23 +590,27 @@ function addClustergons(map,gjson){
     var geojson;
     function highlightFeature(e) {
         var layer = e.target;
-        
-        if (previousClusterLayer)
-            geojson.resetStyle(previousClusterLayer);
-        previousClusterLayer = layer;
-        layer.setStyle({
-	    weight: 3,
-	    color: '#de2d26',
-            opacity: 0.9,
-            fillColor: "black",
-            fillOpacity: 0.05,   
-	    dashArray: '',
-        });
 
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-	    layer.bringToFront();
+        if (layer.setStyle){
+            
+            if (previousClusterLayer)
+                geojson.resetStyle(previousClusterLayer);
+            previousClusterLayer = layer;
+            layer.setStyle({
+	        weight: 3,
+	        color: '#de2d26',
+                opacity: 0.9,
+                fillColor: "black",
+                fillOpacity: 0.05,   
+	        dashArray: '',
+            });
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+	        layer.bringToFront();
+            }
+
         }
-
+        
+      
         info.update(layer.feature.properties);
     }
 
@@ -642,14 +657,14 @@ function addClustergons(map,gjson){
                 keepInView : true
             });
             
-          //  var px = map.project(popup._latlng); // find the pixel location on the map where the popup anchor is
-          //  px.y -= popup._container.clientHeight/2 // find the height of the popup container, divide by 2, subtract from the Y axis of marker location
-           // map.panTo(map.unproject(px),{animate: true}); // pan to new center
-          /*  layer.on({
-	         //mouseover: highlightFeature,
-	        //  mouseout: resetHighlight,
-	        click: panToFeature
-	        
+            //  var px = map.project(popup._latlng); // find the pixel location on the map where the popup anchor is
+            //  px.y -= popup._container.clientHeight/2 // find the height of the popup container, divide by 2, subtract from the Y axis of marker location
+            // map.panTo(map.unproject(px),{animate: true}); // pan to new center
+            /*  layer.on({
+	    //mouseover: highlightFeature,
+	    //  mouseout: resetHighlight,
+	    click: panToFeature
+	    
             });*/
         }
         
@@ -703,12 +718,12 @@ function zoomToBiggestCluster(map,layers){
 
 function onEachFeature (feature, layer)
 {
- if (feature.properties.type == 'centroid'){                
-     layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
-     
- }else{
-       layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
-      }
+    if (feature.properties.type == 'centroid'){                
+        layer.bindPopup('<div id="alert"><i>Cluster Found</i><br><input type="button" value="Please confirm" onclick="alertConfirmed()"></div>');
+        
+    }else{
+        layer.bindPopup('<div id="alert"><i>Fever Case[<b> '+feature.properties.label+'</b>]<br></div>');
+    }
 
 }
 

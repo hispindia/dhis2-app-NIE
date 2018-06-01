@@ -10,7 +10,6 @@ APIx.dhis2API = function(){
 
     var ajax = require('../ajax-wrapper');
     var utility = require('../utility-functions');
-    var Promise = require('bluebird');
     var CONSTANTS = require('./constants');
 
     var baseURL = "../../";
