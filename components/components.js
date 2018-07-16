@@ -93,7 +93,7 @@ export function AlertPopUp(props){
 	    <input key = {"input_save"} type='button' value='Approve and Save' onClick={ () => this.approveAndSave(this.state)}  />
 	    <label>No of Cases : {this.state.data.clusterSize}</label>
 
-	    <b><a href={"../../../dhis-web-tracker-capture/index.html#/dashboard?tei="+tei+"&program=mcnt7nqNrNw&ou="+ou} target="_blank" >{this.getClusterID()}</a></b>
+            <b><a href={"../../../dhis-web-reporting/generateHtmlReport.action?uid=DnjzL5wPJE5&tei="+this.props.data.uid } target="_blank" >{this.getClusterID()}</a></b>
             <br></br>
             <AlertTable data={this.state} />
             </div>            
