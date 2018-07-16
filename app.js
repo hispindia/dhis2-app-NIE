@@ -123,7 +123,30 @@ window.refresh = function(){
     });
 }
 
+function timeline(d){
+
+    var startDate = new Date();
+    var endDate = $('#edate').datepicker('getDate');
+    var format = "YYYY-MM-DD";
+    var _format = "DD-MM-YYYY";
+
+    endDate.setDate(endDate.getDate() + 1);
+
+    startDate.setDate(endDate.getDate() - 7);
+    $('#sdate').val(moment(startDate).format(format));
+    $('#edate').val(moment(endDate).format(_format));
+
+    refresh();
+    setTimeout(function(){
+        timeline(endDate);
+    },50)
+}
+
 window.onload = function(){      
+    
+    setTimeout(function(){
+        timeline(new Date("2017-01-01"));
+    },10000)
 
     map = new dhis2Map();
     
